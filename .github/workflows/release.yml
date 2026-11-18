@@ -16,6 +16,8 @@ jobs:
     uses: ./.github/workflows/ci.yml
   release:
     needs: checks
+    env:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
     permissions:
       contents: write
       packages: write
@@ -31,6 +33,11 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          if [[ -n "$DOCKERHUB_USERNAME" ]]; then
+            [[ "$DOCKERHUB_USERNAME" =~ ^[a-z0-9]+$ ]]
+            echo "hub_version=docker.io/$DOCKERHUB_USERNAME/qiangmacnav:v$version" >> "$GITHUB_OUTPUT"
+            echo "hub_latest=docker.io/$DOCKERHUB_USERNAME/qiangmacnav:latest" >> "$GITHUB_OUTPUT"
+          fi
           echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
@@ -42,6 +49,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        if: env.DOCKERHUB_USERNAME != ''
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         id: image
         with:
@@ -51,6 +65,8 @@ jobs:
           tags: |
             ${{ steps.metadata.outputs.image }}:v${{ steps.metadata.outputs.version }}
             ${{ steps.metadata.outputs.image }}:latest
+            ${{ steps.metadata.outputs.hub_version }}
+            ${{ steps.metadata.outputs.hub_latest }}
           build-args: |
             APP_VERSION=${{ steps.metadata.outputs.version }}
             BUILD_COMMIT=${{ github.sha }}

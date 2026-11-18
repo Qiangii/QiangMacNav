@@ -60,6 +60,19 @@ updater需要Docker socket权限，因此可以控制该Docker守护进程，属
 
 ## 发布新版本
 
+### 同时发布到 Docker Hub
+
+在 Docker Hub 的个人命名空间创建公开仓库 `qiangmacnav`，并在 Account settings → Personal access tokens 生成有 Read & Write 权限的令牌。在 GitHub 仓库的 Settings → Secrets and variables → Actions 中添加下列仓库级配置。
+
+| 位置 | 名称 | 值 |
+| --- | --- | --- |
+| Variables | `DOCKERHUB_USERNAME` | Docker ID，与上述个人仓库的命名空间相同 |
+| Secrets | `DOCKERHUB_TOKEN` | Docker Hub 访问令牌 |
+
+配置后，版本标签工作流会把同一次构建的 `linux/amd64` 和 `linux/arm64` 镜像推送到 Docker Hub 与 GHCR，标签为 `vX.Y.Z` 和 `latest`。省略 `DOCKERHUB_USERNAME` 时仅发布 GHCR。群晖在 Container Manager 的「注册表」中搜索 `Docker ID/qiangmacnav` 即可下载。使用网页在线更新时按本文的 GHCR 通道配置部署。
+
+### 发布步骤
+
 普通分支推送和拉取请求运行 [CI 检查](../.github/workflows/ci.yml)。[标签发布](../.github/workflows/release.yml) 复用同一组检查，使用 GitHub 提供的 `GITHUB_TOKEN` 创建 Release 并推送 GHCR。仓库需启用 Actions，组织策略须允许发布任务取得 `contents: write` 和 `packages: write`。首次生成镜像后，在 GitHub Packages 确认包可见性为 Public，部署主机才能匿名拉取。
 
 1. 修改`server/internal/buildinfo/version.txt`，使用递增的稳定版本，例如1.1.0。源码本地Docker构建时传`APP_VERSION=1.1.0`，或在`.env`同步该构建参数；构建会验证参数与源文件一致。
