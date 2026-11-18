@@ -38,6 +38,13 @@ jobs:
           cache-dependency-path: server/go.sum
       - run: go test ./... && go vet ./...
         working-directory: server
+      - name: Verify SQLite backup and rollback with updater permissions
+        working-directory: server
+        run: |
+          CGO_ENABLED=0 go test -c -o "$RUNNER_TEMP/updates.test" ./internal/updates
+          docker run --rm --network none --read-only --tmpfs /tmp --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE \
+            -v "$RUNNER_TEMP/updates.test:/updates.test:ro" alpine:3.22 \
+            /updates.test -test.v -test.run '^TestBackupRestoresWALAndInterruptedState$'
       - name: Validate Compose configurations
         env:
           UPDATER_TOKEN: compose-validation-only-not-a-deployment-secret

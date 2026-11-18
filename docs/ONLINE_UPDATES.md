@@ -76,7 +76,7 @@ updater需要Docker socket权限，因此可以控制该Docker守护进程，属
 普通分支推送和拉取请求运行 [CI 检查](../.github/workflows/ci.yml)。[标签发布](../.github/workflows/release.yml) 复用同一组检查，使用 GitHub 提供的 `GITHUB_TOKEN` 创建 Release 并推送 GHCR。仓库需启用 Actions，组织策略须允许发布任务取得 `contents: write` 和 `packages: write`。首次生成镜像后，在 GitHub Packages 确认包可见性为 Public，部署主机才能匿名拉取。
 
 1. 修改`server/internal/buildinfo/version.txt`，使用递增的稳定版本，例如1.1.0。源码本地Docker构建时传`APP_VERSION=1.1.0`，或在`.env`同步该构建参数；构建会验证参数与源文件一致。
-2. 将发布提交推送到 GitHub，再为该提交推送匹配的标签，例如 `v1.1.0`。首次发布可使用与源文件一致的 `v1.0.0`。
+2. 将发布提交推送到 GitHub，再为该提交推送与源文件版本一致的新标签，例如 `v1.1.0`。
 3. 工作流运行网页与插件的类型检查、测试及构建，运行 Go 测试与 vet，随后构建 `linux/amd64` 和 `linux/arm64` 镜像，推送版本标签及 `latest`。
 4. GitHub Release 附带已构建插件 ZIP 及 `update.json`。清单记录多架构镜像摘要。
 

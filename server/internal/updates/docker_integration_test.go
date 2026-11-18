@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"navigation/server/internal/buildinfo"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -174,7 +176,7 @@ func TestDockerUpgradeAndRollback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	release := Release{Version: "1.0.0", Protocol: 1, Digest: "sha256:" + strings.Repeat("a", 64)}
+	release := Release{Version: buildinfo.Version(), Protocol: 1, Digest: "sha256:" + strings.Repeat("a", 64)}
 	if _, err = runner.Begin(release, old); err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +192,7 @@ func TestDockerUpgradeAndRollback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if current.ID == old.ID || current.Label("org.opencontainers.image.version") != "1.0.0" {
+	if current.ID == old.ID || current.Label("org.opencontainers.image.version") != buildinfo.Version() {
 		t.Fatal("container was not replaced")
 	}
 	if _, err = os.Stat(filepath.Join("/data", ".update-maintenance")); !os.IsNotExist(err) {
@@ -216,7 +218,7 @@ func TestDockerUpgradeAndRollback(t *testing.T) {
 		t.Fatal("category/session lost after rollback")
 	}
 	current, err = runner.Ready(ctx)
-	if err != nil || current.Label("org.opencontainers.image.version") != "1.0.0" {
+	if err != nil || current.Label("org.opencontainers.image.version") != buildinfo.Version() {
 		t.Fatalf("old version unavailable: %v", err)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -53,6 +54,11 @@ func TestReleaseValidation(t *testing.T) {
 }
 
 func TestBackupRestoresWALAndInterruptedState(t *testing.T) {
+	// Production restores files for the app container (10001:10001). CI also
+	// runs this test in a dedicated container with permission to set ownership.
+	if runtime.GOOS != "windows" && os.Geteuid() != 0 && (os.Geteuid() != 10001 || os.Getegid() != 10001) {
+		t.Skip("requires permission to restore files owned by 10001:10001")
+	}
 	r := &Runner{DataDir: t.TempDir(), StateDir: t.TempDir()}
 	id := strings.Repeat("a", 32)
 	for _, name := range databaseFiles[:2] {
