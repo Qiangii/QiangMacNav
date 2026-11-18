@@ -1,0 +1,76 @@
+# Standalone Container Manager project using published images.
+services:
+  data-init:
+    image: ghcr.io/qiangii/qiangmacnav:latest
+    user: "0:0"
+    restart: "no"
+    network_mode: none
+    healthcheck:
+      disable: true
+    volumes:
+      - ${DATA_DIR:-navigation-data}:/data
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        cd /data
+        for file in navigation.db navigation.db-wal navigation.db-shm navigation.db-journal; do
+          if [ -L "$$file" ] || { [ -e "$$file" ] && [ ! -f "$$file" ]; }; then
+            echo "Expected a regular SQLite file at /data/$$file" >&2
+            exit 1
+          fi
+        done
+        chown 10001:10001 .
+        chmod u+rwx .
+        for file in navigation.db navigation.db-wal navigation.db-shm navigation.db-journal; do
+          if [ -f "$$file" ]; then
+            chown 10001:10001 "$$file"
+            chmod u+rw "$$file"
+          fi
+        done
+
+  navigation:
+    user: "10001:10001"
+    image: ghcr.io/qiangii/qiangmacnav:latest
+    container_name: harbor-navigation
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8088}:8080"
+    labels:
+      io.qiangmacnav.update.enabled: "true"
+      io.qiangmacnav.update.channel: ghcr.io/qiangii/qiangmacnav:latest
+    environment:
+      SETUP_TOKEN: ${SETUP_TOKEN:-}
+      APP_ORIGIN: ${APP_ORIGIN:-}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
+      UPDATER_URL: http://updater:8090
+      UPDATER_TOKEN: ${UPDATER_TOKEN:?Set a random UPDATER_TOKEN of at least 32 characters}
+      UPDATE_MAINTENANCE_FILE: /data/.update-maintenance
+    volumes:
+      - ${DATA_DIR:-navigation-data}:/data
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+
+  updater:
+    image: ghcr.io/qiangii/qiangmacnav:latest
+    restart: unless-stopped
+    user: "0:0"
+    command: ["/app/updater"]
+    healthcheck:
+      test: ["CMD", "/app/updater", "status"]
+      interval: 30s
+      timeout: 10s
+    environment:
+      UPDATER_TOKEN: ${UPDATER_TOKEN:?Set a random UPDATER_TOKEN of at least 32 characters}
+      UPDATE_CONTAINER: harbor-navigation
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_DIR:-navigation-data}:/data
+      - ${UPDATE_STATE_DIR:-navigation-updates}:/state
+    depends_on:
+      - navigation
+
+volumes:
+  navigation-data:
+  navigation-updates:

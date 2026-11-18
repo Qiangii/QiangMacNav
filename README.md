@@ -19,7 +19,7 @@ QiangMacNav 是一个 macOS 风格的自托管导航页。你可以在网页桌�
 
 ### 群晖直接运行镜像
 
-从 `v1.0.2` 起，在 Container Manager 的「注册表」下载官方镜像后，可以在「映像 → 运行」中直接创建网站容器。
+从 `v1.0.3` 起，在 Container Manager 的「注册表」下载官方镜像后，可以在「映像 → 运行」中直接创建网站容器。
 
 1. 在 File Station 新建网站专用文件夹，例如 `docker/QiangMacNav/data`。
 2. 将 NAS 的空闲 TCP 端口（例如 `8088`）映射至容器的 `8080`，将上述文件夹以读写方式挂载到 `/data`。
