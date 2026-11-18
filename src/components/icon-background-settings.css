@@ -1,0 +1,15 @@
+.setting-row > .icon-background-controls { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.icon-background-controls .icon-background-swatch { width: 34px; height: 29px; flex: none; padding: 3px; border: 1px solid var(--border); border-radius: 6px; background: var(--compact-input-bg); cursor: pointer; }
+.icon-background-swatch > span { display: block; width: 100%; height: 100%; border-radius: 3px; }
+.editor-dialog.icon-color-picker { width: min(320px, 100%); }
+.icon-color-picker form { display: grid; gap: 12px; }
+.icon-color-plane { position: relative; height: 160px; border-radius: 7px; background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent); touch-action: none; cursor: crosshair; }
+.icon-color-plane > span { position: absolute; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 1px #0008; transform: translate(-50%, -50%); pointer-events: none; }
+.icon-color-picker label { display: grid; gap: 6px; font-size: 11px; min-width: 0; }
+.icon-color-slider input { width: 100%; margin: 0; accent-color: var(--accent, #3478f6); }
+.icon-color-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.icon-color-picker input:not([type="range"]) { --field-background: var(--compact-input-bg); width: 100%; min-width: 0; box-sizing: border-box; height: 29px; border: 0; border-radius: 6px; background: var(--field-background); color: var(--field-text); padding: 0 9px; font-size: 11px; }
+.icon-color-hex { display: flex; align-items: flex-end; gap: 10px; }
+.icon-color-hex label { flex: 1; }
+.icon-color-preview { width: 29px; height: 29px; border: 1px solid var(--border); border-radius: 6px; flex: none; }
+@media (max-width: 540px) { .icon-background-row { flex-wrap: wrap; gap: 10px; } .setting-row > .icon-background-controls { justify-content: flex-start; } }

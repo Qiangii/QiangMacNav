@@ -1,0 +1,12 @@
+.wallpaper-grid .wallpaper-upload > span, .wallpaper-grid .wallpaper-more > span { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--compact-input-bg); border: 1px dashed var(--muted); color: var(--muted); }
+.wallpaper-grid .wallpaper-upload, .wallpaper-grid .wallpaper-more { align-self: start; }
+.wallpaper-grid .wallpaper-upload b { padding: 0; }
+.wallpaper-tile > button:first-child { width: 100%; position: relative; }
+.wallpaper-builtin { position: relative; }
+.wallpaper-tile > button:first-child > span { overflow: hidden; }
+.wallpaper-tile img, .wallpaper-tile video { width: 100%; height: 100%; object-fit: cover; }
+.wallpaper-tile b { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.wallpaper-grid .media-delete { padding: 0; background: #b9323ae8; color: white; border: 0; }
+.wallpaper-format { position: absolute; left: 8px; top: 8px; background: #0008; color: white; border-radius: 4px; padding: 2px 4px; font-size: 9px; pointer-events: none; }
+.desktop-wallpaper { pointer-events: none; overflow: hidden; }
+.desktop-wallpaper > video, .desktop-wallpaper > img { width: 100%; height: 100%; object-fit: cover; display: block; }

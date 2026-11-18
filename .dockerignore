@@ -1,0 +1,27 @@
+# Build inputs only. Keep license and attribution files with public assets.
+**
+!package.json
+!package-lock.json
+!index.html
+!vite.config.ts
+!tsconfig.json
+!src/
+!src/**
+!public/
+!public/**
+!ASSET_NOTICES.md
+!server/
+!server/**/
+!server/**/*.go
+!server/go.mod
+!server/go.sum
+!server/*_catalog.json
+!server/internal/buildinfo/version.txt
+server/**/*_test.go
+server/data/
+**/.env*
+**/*.db*
+**/*.sqlite*
+**/*.pem
+**/*.key
+**/*.pfx

@@ -1,0 +1,9 @@
+/* Pointer gestures belong to the window controller, not browser touch panning. */
+.finder-titlebar, .window-titlebar, .mac-window-resize { touch-action: none; }
+.mac-window-resize { position: absolute; z-index: 5; right: 0; bottom: 0; width: 17px; height: 17px; cursor: nwse-resize; }
+@media (max-width: 760px) {
+  .mac-window-resize { display: none; }
+}
+.window-titlebar-spacer { width: 84px; flex: 0 0 84px; }
+[data-titlebar-position="right"] > .finder-titlebar,
+[data-titlebar-position="right"] > .window-titlebar { flex-direction: row-reverse; }

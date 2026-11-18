@@ -1,0 +1,4 @@
+.category-shared-badge { display: inline-flex; flex: none; align-items: center; gap: 3px; padding: 2px 5px; border-radius: 4px; background: color-mix(in srgb, var(--focus-ring) 14%, transparent); color: var(--control-text); font-size: 10px; font-weight: 500; line-height: 1.2; white-space: nowrap; vertical-align: middle; }
+.finder-sidebar-item > .category-shared-badge { margin-left: auto; }
+.sidebar-category-row.selected .category-shared-badge { background: rgba(255,255,255,.18); color: inherit; }
+.category-shared-badge > svg { flex: none; }

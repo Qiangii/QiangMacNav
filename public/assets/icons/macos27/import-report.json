@@ -1,0 +1,770 @@
+{
+  "source": "https://macos27.kimi.page/",
+  "capturedAt": "2026-11-16T07:57:49.371Z",
+  "sourceChecksums": {
+    "manifest.json": "7bec2f2b90b4e1c6d93dc5b1d4fc020f46ef449b953cb9a3626dd19037155aed",
+    "README.md": "c024b826a0c0ea0a31860fd93101ad11b44b69d35a6b6d675b18fde28b2e2e80",
+    "applications/activitymonitor.png": "fb9e5439932edd3196a624e06a705ed82c2cb3fa499d0c734247c6902eafe339",
+    "applications/appstore.png": "faab872e98adc73d4c56a3781b98bfa9cb078544914c2e0fecb09e71cafd8ffb",
+    "applications/calculator.png": "bb5eee39148d8d70ec521fd2dffb3f2bf9c0cd575ff4e1dc06500c74b2c3d98e",
+    "applications/calendar.png": "cffb1854e7624f20ea6e77ac37bb1b43fa1cd5df556cbb862514967ee90ae4cd",
+    "applications/clock.png": "9eb92ae96f7e2ea0b0754dde685cd5365f7ab2785239c4ade61dcf68a00eba3a",
+    "applications/contacts.png": "fa1642a2db8a5146752b288dfe1ec5c8e3afc48036e647d9bc7f41cca776e1d9",
+    "applications/diskutility.png": "201b8d41eae81306871e0408ff9bdc76bfb1f1a95939322fe96bda0af3c795b1",
+    "applications/facetime.png": "bd2c56d74e219d7f6464711f6ada8e2141f54dbf4a6fe3aa866e8cf125945bd5",
+    "applications/finder.png": "358944bac8ec643546bffaf41fe01577ee33692939b48e19b4f549f05dba7f76",
+    "applications/freeform.png": "5edd3e2625a09f79d031a2584f594cb9113617251367b2e780fd9f4864c66bdc",
+    "applications/games.png": "63ce15883e3b25d7bd3dfc4383d3862ef7678b9a91764919d9ac3f439af3a06f",
+    "applications/launchpad.png": "ae40aa70ee112a5189ebb616b5f5fe202c8d33990711dd582a0e8ba6adf21f9e",
+    "applications/mail.png": "566e8a0a888161085b69d148747a480700a859be75a6342b5f62097fd8db1603",
+    "applications/maps.png": "d382bd538d309e68a98eb342b38c8452c16485aa7df486d56c242167d8f56ef9",
+    "applications/messages.png": "d3b2cebc2df6656e6759a9d635517ea232b03e0c7911d22b8325311e9348011b",
+    "applications/music.png": "fe006342a0a7c4004bb3d4c18371dab26bdb951ff57f77ab81feaa888be593df",
+    "applications/news.png": "a60aebdcc3e62029909ad00b78bb5ab436752f6e16dc879d23f5797b9b50f916",
+    "applications/notes.png": "a478e05d2da6779279a421df8ff950f29c8fa7ee21a20c05eab887ede4f0638f",
+    "applications/phone.png": "47c97eba428867f5f5ac0859ae00ea6027fb2028a46f6617e746106b2d5a7910",
+    "applications/photobooth.png": "a2a02acfde691639d008b08aee2d6e22e7d76adb7b52bcda8c70e0194e966bca",
+    "applications/photos.png": "cde5be63a0bb72f5764dc40cc047bd3375b7dd28316fa02281b51e5de285e1d5",
+    "applications/podcasts.png": "00cf86c4d0fde9f31f9141e3ab0678d06dcfe657d402395d020ea7aca0e78673",
+    "applications/preview.png": "46008af2b79b4a44f2ba97d217678e578ca59698ec2e800f7ed9f64c8793e5e0",
+    "applications/quicktime.png": "505e9fd404ae89ab02f0c0fdfc1bb79fde563917a5e5b4c73aa9ae59b4c9ac63",
+    "applications/reminders.png": "2e28c1210f36df4c03452af1f9f8fc0743e0f3667701af9fc8f5a4ff86fe1e3c",
+    "applications/safari.png": "c44b777352baee176ed02d0424488344dc2c3d5ec98798a2bb8495ccfc9cbd92",
+    "applications/settings.png": "593413d8de068dd7747c310f9ef90d069689f7766103da7ec623e5bb61e53c4f",
+    "applications/stickies.png": "7d7112b8703a83614dda7f36238572fb4f8b92465d672781fa7004cdfd9954ad",
+    "applications/stocks.png": "c1efe543474499e8ae2cf4119bf173681dde742e8ce973c1498011d98f5f8976",
+    "applications/terminal.png": "ec862f44c3647c211c3c0f9ffe84ac2c867422e01974af3733e6cd52788555d5",
+    "applications/textedit.png": "921499efc1b80f49674d609889e272c8251c122cf82244198371fa12dc40dc8b",
+    "applications/tv.png": "5460e75d40a20177067dcc2f74c57a7f3dd78b80056b6cfd310ab32db0f289fe",
+    "applications/voicememos.png": "6988b166e025f8056c9e171fee04fcb05b9dede1971302b5993b82d15142b42c",
+    "applications/weather.png": "83ac8bb8e45326d31abd56b17f883f7d6bec14cf9b5114e7246cb8291e000f30",
+    "desktop-files/tahoe-trip.png": "477dd62951c8396e66d423eaa9fe749ca923dfbdf64612735a5b3bb5a04e86df",
+    "desktop-files/utilities-folder.png": "bd5c4502184633f9cb2ffddf88a1a937748c503246fd5f35b69cb4e80ffddf49",
+    "desktop-files/welcome-txt.png": "3956c29a78e91132e442c869a1180a7ce5c71eeaf16512cb35ecd795d680a1b4",
+    "finder-sidebar/airdrop.png": "41433e87a1cfdfffa9781a9c68d36b72e27363f8a20f723b5f82d42d723f5c69",
+    "finder-sidebar/airdrop.svg": "571cc8d5ebfc6cc9c5c9d3f4f20609223e53de7929f90f7cf6711ee74dadd05b",
+    "finder-sidebar/applications.png": "e8acd21e62c997ab9e4c1f7a5e210a34cd4c9c86331985b83b90a176bccd7c39",
+    "finder-sidebar/applications.svg": "18869caaca4367aaf74c38526f53150516f4028417db75ff849607f06b4a1de8",
+    "finder-sidebar/desktop.png": "2c29f974e7e045dc85d8c5a19fa950e6f003c84c56156cda355acceb5b8e8de2",
+    "finder-sidebar/desktop.svg": "1a0771609b86e79456efc2c309b023f2665893492bf444cfadaa645c017c3eeb",
+    "finder-sidebar/documents.png": "c8dc482fb571675f161c9c8219d2b6970f58568c9bb0e42c626ff40f31985f76",
+    "finder-sidebar/documents.svg": "e1a9226e99fd001cd58460d3a6dbc1371459a2fbd6192b8d255934d373c3d9c1",
+    "finder-sidebar/downloads.png": "671ab5b9713e12756847f7f18ed4518a853cda61028214b4973fc47b537ee9e0",
+    "finder-sidebar/downloads.svg": "bf40078fa14970834ece1d13ade4ebcde559d05fe66f013fd195c1895f62ec89",
+    "finder-sidebar/icloud-drive.png": "8f28cd3f2dcd67170f2609395cb308dc6c205e0aa218bda71d394fafce99874d",
+    "finder-sidebar/icloud-drive.svg": "f0b0703637a3083e6478d621e7eb2da8756a154bf2f1ac2d187b62ec9e7f7403",
+    "finder-sidebar/icloud.png": "8f28cd3f2dcd67170f2609395cb308dc6c205e0aa218bda71d394fafce99874d",
+    "finder-sidebar/icloud.svg": "f0b0703637a3083e6478d621e7eb2da8756a154bf2f1ac2d187b62ec9e7f7403",
+    "finder-sidebar/macbook.png": "6610becb5a2e05f810d4a07f156f494d0993e59994d7378e412f8909518c053a",
+    "finder-sidebar/macbook.svg": "2ede116efd479619cfbf963ebce9418f7b7224a00067d1f775aeca0569bd7127",
+    "finder-sidebar/network.png": "e9aa9bf897ab0e9b8f7f62fc289a01b5a7a12143f4a6b30b38364b130e5f72fe",
+    "finder-sidebar/network.svg": "7be3e3f61214c4883fa1e63683ed8078ed4cef1d8067a24d4a47b81a5bcc3bc3",
+    "finder-sidebar/recents.png": "6cbfb891cfe2d345b374b1d1473e84bd06de3b26bffbdea72dda60916d76c55b",
+    "finder-sidebar/recents.svg": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19",
+    "music-sidebar/albums.png": "0d06f36eb5587476535f5ec5df84c54ed1de1faf9bf468d8d621ec25b05020c7",
+    "music-sidebar/albums.svg": "dda04baee520e1d05857f2e3549ccdae4fc065f88321101a0e2d47ab8b5b2987",
+    "music-sidebar/artists.png": "672e63288187a331b79a4e629d0b25b7e741d5b656ba3d6e0c7f45006ede7ff6",
+    "music-sidebar/artists.svg": "97a3224350a1f6458c3f57ec1ba7a23501486b24e7b2437412a7af49f995bca5",
+    "music-sidebar/browse.png": "f4a740591eceeed1a4c6ae2142e8275ab3a2d6f47308fcfe6d2b9f305938da6e",
+    "music-sidebar/browse.svg": "ec04be5ecd7188964483cc237d2c79229b7c1d0455c4461a525a19800de50893",
+    "music-sidebar/listen-now.png": "bac3379ad78716100e14662636c947e11e8e612324ce3d62f87b14ee888b1cee",
+    "music-sidebar/listen-now.svg": "624b3b7194155418a65e95418fefd08184b9a58fbdcf4557a2dee9ac21e3f43b",
+    "music-sidebar/radio.png": "3be1cbe3c3fe14f467fcea1923fd54bd7eaf6534339302badef41a214a15b051",
+    "music-sidebar/radio.svg": "6f07b44c75972c5add92ce4606585a918e6590e163efd176c261925c02c35eac",
+    "music-sidebar/recently-added.png": "6cbfb891cfe2d345b374b1d1473e84bd06de3b26bffbdea72dda60916d76c55b",
+    "music-sidebar/recently-added.svg": "67c2071fb13a61c223792c060850b19b340cb5b10831c5a34289ebc7de54646a",
+    "music-sidebar/songs.png": "a42067d71978998e995024fe0520ddeafe99a2f5b9776c5b006d322dec7e664d",
+    "music-sidebar/songs.svg": "c00b3be58db196c28999c8046427cc368f8d9bb7c8ced7e43b3f3e07853104ec",
+    "settings-sidebar/accessibility.png": "c2b0d8a9c83ed00fee43db702d13b2a2ced8f0f8c111092a873865b1f465e1bb",
+    "settings-sidebar/appearance.png": "8d0206d1402d69e4d7eee146d67d0490623f89c2c9491a3fdb05a96cc8631efd",
+    "settings-sidebar/apple-account.png": "4f574a19ddb68321ed0e0eea34f3d235215e23d468a5dfa513544dcdd66135ea",
+    "settings-sidebar/apple-intelligence-and-siri.png": "73ff65115dd0d3ff4727a2680ecdf34a6ac9cd748caf548bacf6c1a33759d303",
+    "settings-sidebar/battery.png": "207014407a4efe90ab98c615df2cfac5432a6748a92e91ecd8015973d6d17079",
+    "settings-sidebar/bluetooth.png": "893ccb48d8acd7623db3c5caa2f4d24e6d0920f414523cac25f7ac75ae97cd9e",
+    "settings-sidebar/desktop-and-dock.png": "c6c819321d6b349f8d1694797034f3d0495571afb28dbba0138f59b4381b53a9",
+    "settings-sidebar/displays.png": "a745adeaa1cd596c53964e10e69006fac667658cf76bea22f3e04ffd0780bd71",
+    "settings-sidebar/focus.png": "9b6d9004e21e1cfefbec44e13c02a3866fa98c69dae96e317e0c24ee2f8c0109",
+    "settings-sidebar/general.png": "679c8a33fcc931ca4269f6bc2d42148fdcdf35448b88ff91d770941bbf9acdc1",
+    "settings-sidebar/keyboard.png": "d463ff1246f347e276ce29a84db7639e44fc49c7e30ce1452322c0040b6f0a89",
+    "settings-sidebar/menu-bar.png": "5e598fdeb7cd0a27b0289f1a859ad618c7c0cb510358033de130016163f058f7",
+    "settings-sidebar/mouse.png": "2ab6ca926b7d62e97827ffae75f91fdac8699c02aaf5d16815c5db45c77ea250",
+    "settings-sidebar/network.png": "f30a4a0c21c90f447078939fde2872ef35bbee9c25400c2031ad4834cbbc5d4a",
+    "settings-sidebar/notifications.png": "f05a2fa452ebbd8be8768a246c5f125e664d61bbb73aa43fd3e0aa94e9b9599c",
+    "settings-sidebar/privacy-and-security.png": "3da432c7cbc419947d9939e82d791c62f1d14192a1442aec372861c9bfb4402a",
+    "settings-sidebar/screen-saver.png": "482267c837f096cb45932132834d25fc84f2f4bec71561a5e5197c2e218e6e01",
+    "settings-sidebar/sound.png": "843622617f7022554fa4525424475ce70a3a170d5dd4ff52bd1ea28a1c5b54ab",
+    "settings-sidebar/time-machine.png": "49e9f340377b940e2f996d8e6b67be5301d76adf5e35a6d8ef3005e4aaa06e29",
+    "settings-sidebar/trackpad.png": "df5858fd055d9618ae9e7c261b8169bb3936e9624eb5b74efb41fa9bf8838aaf",
+    "settings-sidebar/users-and-groups.png": "418af1565b56c990cb248c149698fd7433c984e1c5fcd370b313b4ab5a741807",
+    "settings-sidebar/vpn.png": "50efa6f59c6180930624bc0749a2a391e42458aacb75fa513d7c0c4ae7815a93",
+    "settings-sidebar/wallpaper.png": "a0622bf94ccde8bbf0fb4c062c560203e4495567cc702debcf9c3f81e077a90c",
+    "settings-sidebar/wi-fi.png": "c16ea6173bec2de2916d52d38e692218e3c4c0d2c0dfcb62d03c01c431414fa8"
+  },
+  "files": [
+    {
+      "file": "finder-sidebar/airdrop.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-airdrop.svg",
+      "reason": "imported",
+      "sourceSha256": "571cc8d5ebfc6cc9c5c9d3f4f20609223e53de7929f90f7cf6711ee74dadd05b",
+      "targetSha256": "571cc8d5ebfc6cc9c5c9d3f4f20609223e53de7929f90f7cf6711ee74dadd05b"
+    },
+    {
+      "file": "finder-sidebar/applications.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-applications.svg",
+      "reason": "imported",
+      "sourceSha256": "18869caaca4367aaf74c38526f53150516f4028417db75ff849607f06b4a1de8",
+      "targetSha256": "18869caaca4367aaf74c38526f53150516f4028417db75ff849607f06b4a1de8"
+    },
+    {
+      "file": "finder-sidebar/desktop.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-desktop.svg",
+      "reason": "imported",
+      "sourceSha256": "1a0771609b86e79456efc2c309b023f2665893492bf444cfadaa645c017c3eeb",
+      "targetSha256": "1a0771609b86e79456efc2c309b023f2665893492bf444cfadaa645c017c3eeb"
+    },
+    {
+      "file": "finder-sidebar/documents.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-documents.svg",
+      "reason": "imported",
+      "sourceSha256": "e1a9226e99fd001cd58460d3a6dbc1371459a2fbd6192b8d255934d373c3d9c1",
+      "targetSha256": "e1a9226e99fd001cd58460d3a6dbc1371459a2fbd6192b8d255934d373c3d9c1"
+    },
+    {
+      "file": "finder-sidebar/downloads.svg",
+      "url": "/assets/icons/lucide-download.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "bf40078fa14970834ece1d13ade4ebcde559d05fe66f013fd195c1895f62ec89",
+      "targetSha256": "6f8ad77f5c382a73fc61fa7b2274c5aeabe4980c8fd31db55659d59d507865fd"
+    },
+    {
+      "file": "finder-sidebar/icloud-drive.svg",
+      "url": "/assets/icons/lucide-cloud.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "f0b0703637a3083e6478d621e7eb2da8756a154bf2f1ac2d187b62ec9e7f7403",
+      "targetSha256": "3edc121d64bfb2865f5281c826938c7efc1e86d4ab0cd80708223348f73ad34e"
+    },
+    {
+      "file": "finder-sidebar/icloud.svg",
+      "url": "/assets/icons/lucide-cloud.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "f0b0703637a3083e6478d621e7eb2da8756a154bf2f1ac2d187b62ec9e7f7403",
+      "targetSha256": "3edc121d64bfb2865f5281c826938c7efc1e86d4ab0cd80708223348f73ad34e"
+    },
+    {
+      "file": "finder-sidebar/macbook.svg",
+      "url": "/assets/icons/lucide-hard-drive.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "2ede116efd479619cfbf963ebce9418f7b7224a00067d1f775aeca0569bd7127",
+      "targetSha256": "82457ae1e105704ca5dc52ba3d59c950dbb58a05b4a6a2f34bfbd0e0c959f9ee"
+    },
+    {
+      "file": "finder-sidebar/network.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-network.svg",
+      "reason": "imported",
+      "sourceSha256": "7be3e3f61214c4883fa1e63683ed8078ed4cef1d8067a24d4a47b81a5bcc3bc3",
+      "targetSha256": "7be3e3f61214c4883fa1e63683ed8078ed4cef1d8067a24d4a47b81a5bcc3bc3"
+    },
+    {
+      "file": "finder-sidebar/recents.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-recents.svg",
+      "reason": "imported",
+      "sourceSha256": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19",
+      "targetSha256": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19"
+    },
+    {
+      "file": "music-sidebar/albums.svg",
+      "url": "/assets/icons/macos27/music-sidebar-albums.svg",
+      "reason": "imported",
+      "sourceSha256": "dda04baee520e1d05857f2e3549ccdae4fc065f88321101a0e2d47ab8b5b2987",
+      "targetSha256": "dda04baee520e1d05857f2e3549ccdae4fc065f88321101a0e2d47ab8b5b2987"
+    },
+    {
+      "file": "music-sidebar/artists.svg",
+      "url": "/assets/icons/lucide-user-round.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "97a3224350a1f6458c3f57ec1ba7a23501486b24e7b2437412a7af49f995bca5",
+      "targetSha256": "f4306e5b4205899953a6c13aa58b3d2290f47de90b633edb436a79d54aa3e286"
+    },
+    {
+      "file": "music-sidebar/browse.svg",
+      "url": "/assets/icons/macos27/music-sidebar-browse.svg",
+      "reason": "imported",
+      "sourceSha256": "ec04be5ecd7188964483cc237d2c79229b7c1d0455c4461a525a19800de50893",
+      "targetSha256": "ec04be5ecd7188964483cc237d2c79229b7c1d0455c4461a525a19800de50893"
+    },
+    {
+      "file": "music-sidebar/listen-now.svg",
+      "url": "/assets/icons/macos27/music-sidebar-listen-now.svg",
+      "reason": "imported",
+      "sourceSha256": "624b3b7194155418a65e95418fefd08184b9a58fbdcf4557a2dee9ac21e3f43b",
+      "targetSha256": "624b3b7194155418a65e95418fefd08184b9a58fbdcf4557a2dee9ac21e3f43b"
+    },
+    {
+      "file": "music-sidebar/radio.svg",
+      "url": "/assets/icons/macos27/music-sidebar-radio.svg",
+      "reason": "imported",
+      "sourceSha256": "6f07b44c75972c5add92ce4606585a918e6590e163efd176c261925c02c35eac",
+      "targetSha256": "6f07b44c75972c5add92ce4606585a918e6590e163efd176c261925c02c35eac"
+    },
+    {
+      "file": "music-sidebar/recently-added.svg",
+      "url": "/assets/icons/macos27/finder-sidebar-recents.svg",
+      "reason": "matching-artwork",
+      "sourceSha256": "67c2071fb13a61c223792c060850b19b340cb5b10831c5a34289ebc7de54646a",
+      "targetSha256": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19"
+    },
+    {
+      "file": "music-sidebar/songs.svg",
+      "url": "/assets/icons/macos27/music-sidebar-songs.svg",
+      "reason": "imported",
+      "sourceSha256": "c00b3be58db196c28999c8046427cc368f8d9bb7c8ced7e43b3f3e07853104ec",
+      "targetSha256": "c00b3be58db196c28999c8046427cc368f8d9bb7c8ced7e43b3f3e07853104ec"
+    },
+    {
+      "file": "applications/activitymonitor.png",
+      "url": "/assets/icons/macos27/applications-activitymonitor.png",
+      "reason": "imported",
+      "sourceSha256": "fb9e5439932edd3196a624e06a705ed82c2cb3fa499d0c734247c6902eafe339",
+      "targetSha256": "fb9e5439932edd3196a624e06a705ed82c2cb3fa499d0c734247c6902eafe339"
+    },
+    {
+      "file": "applications/appstore.png",
+      "url": "/assets/icons/macos27/applications-appstore.png",
+      "reason": "imported",
+      "sourceSha256": "faab872e98adc73d4c56a3781b98bfa9cb078544914c2e0fecb09e71cafd8ffb",
+      "targetSha256": "faab872e98adc73d4c56a3781b98bfa9cb078544914c2e0fecb09e71cafd8ffb"
+    },
+    {
+      "file": "applications/calculator.png",
+      "url": "/assets/icons/macos27/applications-calculator.png",
+      "reason": "imported",
+      "sourceSha256": "bb5eee39148d8d70ec521fd2dffb3f2bf9c0cd575ff4e1dc06500c74b2c3d98e",
+      "targetSha256": "bb5eee39148d8d70ec521fd2dffb3f2bf9c0cd575ff4e1dc06500c74b2c3d98e"
+    },
+    {
+      "file": "applications/calendar.png",
+      "url": "/assets/icons/macos27/applications-calendar.png",
+      "reason": "imported",
+      "sourceSha256": "cffb1854e7624f20ea6e77ac37bb1b43fa1cd5df556cbb862514967ee90ae4cd",
+      "targetSha256": "cffb1854e7624f20ea6e77ac37bb1b43fa1cd5df556cbb862514967ee90ae4cd"
+    },
+    {
+      "file": "applications/clock.png",
+      "url": "/assets/icons/macos27/applications-clock.png",
+      "reason": "imported",
+      "sourceSha256": "9eb92ae96f7e2ea0b0754dde685cd5365f7ab2785239c4ade61dcf68a00eba3a",
+      "targetSha256": "9eb92ae96f7e2ea0b0754dde685cd5365f7ab2785239c4ade61dcf68a00eba3a"
+    },
+    {
+      "file": "applications/contacts.png",
+      "url": "/assets/icons/macos27/applications-contacts.png",
+      "reason": "imported",
+      "sourceSha256": "fa1642a2db8a5146752b288dfe1ec5c8e3afc48036e647d9bc7f41cca776e1d9",
+      "targetSha256": "fa1642a2db8a5146752b288dfe1ec5c8e3afc48036e647d9bc7f41cca776e1d9"
+    },
+    {
+      "file": "applications/diskutility.png",
+      "url": "/assets/icons/macos27/applications-diskutility.png",
+      "reason": "imported",
+      "sourceSha256": "201b8d41eae81306871e0408ff9bdc76bfb1f1a95939322fe96bda0af3c795b1",
+      "targetSha256": "201b8d41eae81306871e0408ff9bdc76bfb1f1a95939322fe96bda0af3c795b1"
+    },
+    {
+      "file": "applications/facetime.png",
+      "url": "/assets/icons/macos27/applications-facetime.png",
+      "reason": "imported",
+      "sourceSha256": "bd2c56d74e219d7f6464711f6ada8e2141f54dbf4a6fe3aa866e8cf125945bd5",
+      "targetSha256": "bd2c56d74e219d7f6464711f6ada8e2141f54dbf4a6fe3aa866e8cf125945bd5"
+    },
+    {
+      "file": "applications/finder.png",
+      "url": "/assets/icons/macos27/applications-finder.png",
+      "reason": "imported",
+      "sourceSha256": "358944bac8ec643546bffaf41fe01577ee33692939b48e19b4f549f05dba7f76",
+      "targetSha256": "358944bac8ec643546bffaf41fe01577ee33692939b48e19b4f549f05dba7f76"
+    },
+    {
+      "file": "applications/freeform.png",
+      "url": "/assets/icons/macos27/applications-freeform.png",
+      "reason": "imported",
+      "sourceSha256": "5edd3e2625a09f79d031a2584f594cb9113617251367b2e780fd9f4864c66bdc",
+      "targetSha256": "5edd3e2625a09f79d031a2584f594cb9113617251367b2e780fd9f4864c66bdc"
+    },
+    {
+      "file": "applications/games.png",
+      "url": "/assets/icons/macos27/applications-games.png",
+      "reason": "imported",
+      "sourceSha256": "63ce15883e3b25d7bd3dfc4383d3862ef7678b9a91764919d9ac3f439af3a06f",
+      "targetSha256": "63ce15883e3b25d7bd3dfc4383d3862ef7678b9a91764919d9ac3f439af3a06f"
+    },
+    {
+      "file": "applications/launchpad.png",
+      "url": "/assets/icons/macos27/applications-launchpad.png",
+      "reason": "imported",
+      "sourceSha256": "ae40aa70ee112a5189ebb616b5f5fe202c8d33990711dd582a0e8ba6adf21f9e",
+      "targetSha256": "ae40aa70ee112a5189ebb616b5f5fe202c8d33990711dd582a0e8ba6adf21f9e"
+    },
+    {
+      "file": "applications/mail.png",
+      "url": "/assets/icons/macos27/applications-mail.png",
+      "reason": "imported",
+      "sourceSha256": "566e8a0a888161085b69d148747a480700a859be75a6342b5f62097fd8db1603",
+      "targetSha256": "566e8a0a888161085b69d148747a480700a859be75a6342b5f62097fd8db1603"
+    },
+    {
+      "file": "applications/maps.png",
+      "url": "/assets/icons/macos27/applications-maps.png",
+      "reason": "imported",
+      "sourceSha256": "d382bd538d309e68a98eb342b38c8452c16485aa7df486d56c242167d8f56ef9",
+      "targetSha256": "d382bd538d309e68a98eb342b38c8452c16485aa7df486d56c242167d8f56ef9"
+    },
+    {
+      "file": "applications/messages.png",
+      "url": "/assets/icons/macos27/applications-messages.png",
+      "reason": "imported",
+      "sourceSha256": "d3b2cebc2df6656e6759a9d635517ea232b03e0c7911d22b8325311e9348011b",
+      "targetSha256": "d3b2cebc2df6656e6759a9d635517ea232b03e0c7911d22b8325311e9348011b"
+    },
+    {
+      "file": "applications/music.png",
+      "url": "/assets/icons/macos27/applications-music.png",
+      "reason": "imported",
+      "sourceSha256": "fe006342a0a7c4004bb3d4c18371dab26bdb951ff57f77ab81feaa888be593df",
+      "targetSha256": "fe006342a0a7c4004bb3d4c18371dab26bdb951ff57f77ab81feaa888be593df"
+    },
+    {
+      "file": "applications/news.png",
+      "url": "/assets/icons/macos27/applications-news.png",
+      "reason": "imported",
+      "sourceSha256": "a60aebdcc3e62029909ad00b78bb5ab436752f6e16dc879d23f5797b9b50f916",
+      "targetSha256": "a60aebdcc3e62029909ad00b78bb5ab436752f6e16dc879d23f5797b9b50f916"
+    },
+    {
+      "file": "applications/notes.png",
+      "url": "/assets/icons/macos27/applications-notes.png",
+      "reason": "imported",
+      "sourceSha256": "a478e05d2da6779279a421df8ff950f29c8fa7ee21a20c05eab887ede4f0638f",
+      "targetSha256": "a478e05d2da6779279a421df8ff950f29c8fa7ee21a20c05eab887ede4f0638f"
+    },
+    {
+      "file": "applications/phone.png",
+      "url": "/assets/icons/macos27/applications-phone.png",
+      "reason": "imported",
+      "sourceSha256": "47c97eba428867f5f5ac0859ae00ea6027fb2028a46f6617e746106b2d5a7910",
+      "targetSha256": "47c97eba428867f5f5ac0859ae00ea6027fb2028a46f6617e746106b2d5a7910"
+    },
+    {
+      "file": "applications/photobooth.png",
+      "url": "/assets/icons/macos27/applications-photobooth.png",
+      "reason": "imported",
+      "sourceSha256": "a2a02acfde691639d008b08aee2d6e22e7d76adb7b52bcda8c70e0194e966bca",
+      "targetSha256": "a2a02acfde691639d008b08aee2d6e22e7d76adb7b52bcda8c70e0194e966bca"
+    },
+    {
+      "file": "applications/photos.png",
+      "url": "/assets/icons/macos27/applications-photos.png",
+      "reason": "imported",
+      "sourceSha256": "cde5be63a0bb72f5764dc40cc047bd3375b7dd28316fa02281b51e5de285e1d5",
+      "targetSha256": "cde5be63a0bb72f5764dc40cc047bd3375b7dd28316fa02281b51e5de285e1d5"
+    },
+    {
+      "file": "applications/podcasts.png",
+      "url": "/assets/icons/macos27/applications-podcasts.png",
+      "reason": "imported",
+      "sourceSha256": "00cf86c4d0fde9f31f9141e3ab0678d06dcfe657d402395d020ea7aca0e78673",
+      "targetSha256": "00cf86c4d0fde9f31f9141e3ab0678d06dcfe657d402395d020ea7aca0e78673"
+    },
+    {
+      "file": "applications/preview.png",
+      "url": "/assets/icons/macos27/applications-preview.png",
+      "reason": "imported",
+      "sourceSha256": "46008af2b79b4a44f2ba97d217678e578ca59698ec2e800f7ed9f64c8793e5e0",
+      "targetSha256": "46008af2b79b4a44f2ba97d217678e578ca59698ec2e800f7ed9f64c8793e5e0"
+    },
+    {
+      "file": "applications/quicktime.png",
+      "url": "/assets/icons/macos27/applications-quicktime.png",
+      "reason": "imported",
+      "sourceSha256": "505e9fd404ae89ab02f0c0fdfc1bb79fde563917a5e5b4c73aa9ae59b4c9ac63",
+      "targetSha256": "505e9fd404ae89ab02f0c0fdfc1bb79fde563917a5e5b4c73aa9ae59b4c9ac63"
+    },
+    {
+      "file": "applications/reminders.png",
+      "url": "/assets/icons/macos27/applications-reminders.png",
+      "reason": "imported",
+      "sourceSha256": "2e28c1210f36df4c03452af1f9f8fc0743e0f3667701af9fc8f5a4ff86fe1e3c",
+      "targetSha256": "2e28c1210f36df4c03452af1f9f8fc0743e0f3667701af9fc8f5a4ff86fe1e3c"
+    },
+    {
+      "file": "applications/safari.png",
+      "url": "/assets/icons/macos27/applications-safari.png",
+      "reason": "imported",
+      "sourceSha256": "c44b777352baee176ed02d0424488344dc2c3d5ec98798a2bb8495ccfc9cbd92",
+      "targetSha256": "c44b777352baee176ed02d0424488344dc2c3d5ec98798a2bb8495ccfc9cbd92"
+    },
+    {
+      "file": "applications/settings.png",
+      "url": "/assets/icons/macos27/applications-settings.png",
+      "reason": "imported",
+      "sourceSha256": "593413d8de068dd7747c310f9ef90d069689f7766103da7ec623e5bb61e53c4f",
+      "targetSha256": "593413d8de068dd7747c310f9ef90d069689f7766103da7ec623e5bb61e53c4f"
+    },
+    {
+      "file": "applications/stickies.png",
+      "url": "/assets/icons/macos27/applications-stickies.png",
+      "reason": "imported",
+      "sourceSha256": "7d7112b8703a83614dda7f36238572fb4f8b92465d672781fa7004cdfd9954ad",
+      "targetSha256": "7d7112b8703a83614dda7f36238572fb4f8b92465d672781fa7004cdfd9954ad"
+    },
+    {
+      "file": "applications/stocks.png",
+      "url": "/assets/icons/macos27/applications-stocks.png",
+      "reason": "imported",
+      "sourceSha256": "c1efe543474499e8ae2cf4119bf173681dde742e8ce973c1498011d98f5f8976",
+      "targetSha256": "c1efe543474499e8ae2cf4119bf173681dde742e8ce973c1498011d98f5f8976"
+    },
+    {
+      "file": "applications/terminal.png",
+      "url": "/assets/icons/macos27/applications-terminal.png",
+      "reason": "imported",
+      "sourceSha256": "ec862f44c3647c211c3c0f9ffe84ac2c867422e01974af3733e6cd52788555d5",
+      "targetSha256": "ec862f44c3647c211c3c0f9ffe84ac2c867422e01974af3733e6cd52788555d5"
+    },
+    {
+      "file": "applications/textedit.png",
+      "url": "/assets/icons/macos27/applications-textedit.png",
+      "reason": "imported",
+      "sourceSha256": "921499efc1b80f49674d609889e272c8251c122cf82244198371fa12dc40dc8b",
+      "targetSha256": "921499efc1b80f49674d609889e272c8251c122cf82244198371fa12dc40dc8b"
+    },
+    {
+      "file": "applications/tv.png",
+      "url": "/assets/icons/macos27/applications-tv.png",
+      "reason": "imported",
+      "sourceSha256": "5460e75d40a20177067dcc2f74c57a7f3dd78b80056b6cfd310ab32db0f289fe",
+      "targetSha256": "5460e75d40a20177067dcc2f74c57a7f3dd78b80056b6cfd310ab32db0f289fe"
+    },
+    {
+      "file": "applications/voicememos.png",
+      "url": "/assets/icons/macos27/applications-voicememos.png",
+      "reason": "imported",
+      "sourceSha256": "6988b166e025f8056c9e171fee04fcb05b9dede1971302b5993b82d15142b42c",
+      "targetSha256": "6988b166e025f8056c9e171fee04fcb05b9dede1971302b5993b82d15142b42c"
+    },
+    {
+      "file": "applications/weather.png",
+      "url": "/assets/icons/macos27/applications-weather.png",
+      "reason": "imported",
+      "sourceSha256": "83ac8bb8e45326d31abd56b17f883f7d6bec14cf9b5114e7246cb8291e000f30",
+      "targetSha256": "83ac8bb8e45326d31abd56b17f883f7d6bec14cf9b5114e7246cb8291e000f30"
+    },
+    {
+      "file": "desktop-files/tahoe-trip.png",
+      "url": "/assets/icons/macos27/desktop-files-tahoe-trip.png",
+      "reason": "imported",
+      "sourceSha256": "477dd62951c8396e66d423eaa9fe749ca923dfbdf64612735a5b3bb5a04e86df",
+      "targetSha256": "477dd62951c8396e66d423eaa9fe749ca923dfbdf64612735a5b3bb5a04e86df"
+    },
+    {
+      "file": "desktop-files/utilities-folder.png",
+      "url": "/assets/icons/macos27/desktop-files-utilities-folder.png",
+      "reason": "imported",
+      "sourceSha256": "bd5c4502184633f9cb2ffddf88a1a937748c503246fd5f35b69cb4e80ffddf49",
+      "targetSha256": "bd5c4502184633f9cb2ffddf88a1a937748c503246fd5f35b69cb4e80ffddf49"
+    },
+    {
+      "file": "desktop-files/welcome-txt.png",
+      "url": "/assets/icons/macos27/desktop-files-welcome-txt.png",
+      "reason": "imported",
+      "sourceSha256": "3956c29a78e91132e442c869a1180a7ce5c71eeaf16512cb35ecd795d680a1b4",
+      "targetSha256": "3956c29a78e91132e442c869a1180a7ce5c71eeaf16512cb35ecd795d680a1b4"
+    },
+    {
+      "file": "finder-sidebar/airdrop.png",
+      "url": "/assets/icons/macos27/finder-sidebar-airdrop.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "41433e87a1cfdfffa9781a9c68d36b72e27363f8a20f723b5f82d42d723f5c69",
+      "targetSha256": "571cc8d5ebfc6cc9c5c9d3f4f20609223e53de7929f90f7cf6711ee74dadd05b"
+    },
+    {
+      "file": "finder-sidebar/applications.png",
+      "url": "/assets/icons/macos27/finder-sidebar-applications.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "e8acd21e62c997ab9e4c1f7a5e210a34cd4c9c86331985b83b90a176bccd7c39",
+      "targetSha256": "18869caaca4367aaf74c38526f53150516f4028417db75ff849607f06b4a1de8"
+    },
+    {
+      "file": "finder-sidebar/desktop.png",
+      "url": "/assets/icons/macos27/finder-sidebar-desktop.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "2c29f974e7e045dc85d8c5a19fa950e6f003c84c56156cda355acceb5b8e8de2",
+      "targetSha256": "1a0771609b86e79456efc2c309b023f2665893492bf444cfadaa645c017c3eeb"
+    },
+    {
+      "file": "finder-sidebar/documents.png",
+      "url": "/assets/icons/macos27/finder-sidebar-documents.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "c8dc482fb571675f161c9c8219d2b6970f58568c9bb0e42c626ff40f31985f76",
+      "targetSha256": "e1a9226e99fd001cd58460d3a6dbc1371459a2fbd6192b8d255934d373c3d9c1"
+    },
+    {
+      "file": "finder-sidebar/downloads.png",
+      "url": "/assets/icons/lucide-download.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "671ab5b9713e12756847f7f18ed4518a853cda61028214b4973fc47b537ee9e0",
+      "targetSha256": "6f8ad77f5c382a73fc61fa7b2274c5aeabe4980c8fd31db55659d59d507865fd"
+    },
+    {
+      "file": "finder-sidebar/icloud-drive.png",
+      "url": "/assets/icons/lucide-cloud.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "8f28cd3f2dcd67170f2609395cb308dc6c205e0aa218bda71d394fafce99874d",
+      "targetSha256": "3edc121d64bfb2865f5281c826938c7efc1e86d4ab0cd80708223348f73ad34e"
+    },
+    {
+      "file": "finder-sidebar/icloud.png",
+      "url": "/assets/icons/lucide-cloud.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "8f28cd3f2dcd67170f2609395cb308dc6c205e0aa218bda71d394fafce99874d",
+      "targetSha256": "3edc121d64bfb2865f5281c826938c7efc1e86d4ab0cd80708223348f73ad34e"
+    },
+    {
+      "file": "finder-sidebar/macbook.png",
+      "url": "/assets/icons/lucide-hard-drive.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "6610becb5a2e05f810d4a07f156f494d0993e59994d7378e412f8909518c053a",
+      "targetSha256": "82457ae1e105704ca5dc52ba3d59c950dbb58a05b4a6a2f34bfbd0e0c959f9ee"
+    },
+    {
+      "file": "finder-sidebar/network.png",
+      "url": "/assets/icons/macos27/finder-sidebar-network.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "e9aa9bf897ab0e9b8f7f62fc289a01b5a7a12143f4a6b30b38364b130e5f72fe",
+      "targetSha256": "7be3e3f61214c4883fa1e63683ed8078ed4cef1d8067a24d4a47b81a5bcc3bc3"
+    },
+    {
+      "file": "finder-sidebar/recents.png",
+      "url": "/assets/icons/macos27/finder-sidebar-recents.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "6cbfb891cfe2d345b374b1d1473e84bd06de3b26bffbdea72dda60916d76c55b",
+      "targetSha256": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19"
+    },
+    {
+      "file": "music-sidebar/albums.png",
+      "url": "/assets/icons/macos27/music-sidebar-albums.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "0d06f36eb5587476535f5ec5df84c54ed1de1faf9bf468d8d621ec25b05020c7",
+      "targetSha256": "dda04baee520e1d05857f2e3549ccdae4fc065f88321101a0e2d47ab8b5b2987"
+    },
+    {
+      "file": "music-sidebar/artists.png",
+      "url": "/assets/icons/lucide-user-round.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "672e63288187a331b79a4e629d0b25b7e741d5b656ba3d6e0c7f45006ede7ff6",
+      "targetSha256": "f4306e5b4205899953a6c13aa58b3d2290f47de90b633edb436a79d54aa3e286"
+    },
+    {
+      "file": "music-sidebar/browse.png",
+      "url": "/assets/icons/macos27/music-sidebar-browse.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "f4a740591eceeed1a4c6ae2142e8275ab3a2d6f47308fcfe6d2b9f305938da6e",
+      "targetSha256": "ec04be5ecd7188964483cc237d2c79229b7c1d0455c4461a525a19800de50893"
+    },
+    {
+      "file": "music-sidebar/listen-now.png",
+      "url": "/assets/icons/macos27/music-sidebar-listen-now.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "bac3379ad78716100e14662636c947e11e8e612324ce3d62f87b14ee888b1cee",
+      "targetSha256": "624b3b7194155418a65e95418fefd08184b9a58fbdcf4557a2dee9ac21e3f43b"
+    },
+    {
+      "file": "music-sidebar/radio.png",
+      "url": "/assets/icons/macos27/music-sidebar-radio.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "3be1cbe3c3fe14f467fcea1923fd54bd7eaf6534339302badef41a214a15b051",
+      "targetSha256": "6f07b44c75972c5add92ce4606585a918e6590e163efd176c261925c02c35eac"
+    },
+    {
+      "file": "music-sidebar/recently-added.png",
+      "url": "/assets/icons/macos27/finder-sidebar-recents.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "6cbfb891cfe2d345b374b1d1473e84bd06de3b26bffbdea72dda60916d76c55b",
+      "targetSha256": "5d978838f2e16fc9aa11067c818945142fb653fec7ef2c26a313e940a22d8f19"
+    },
+    {
+      "file": "music-sidebar/songs.png",
+      "url": "/assets/icons/macos27/music-sidebar-songs.svg",
+      "reason": "png-svg-pair",
+      "sourceSha256": "a42067d71978998e995024fe0520ddeafe99a2f5b9776c5b006d322dec7e664d",
+      "targetSha256": "c00b3be58db196c28999c8046427cc368f8d9bb7c8ced7e43b3f3e07853104ec"
+    },
+    {
+      "file": "settings-sidebar/accessibility.png",
+      "url": "/assets/icons/macos27/settings-sidebar-accessibility.png",
+      "reason": "imported",
+      "sourceSha256": "c2b0d8a9c83ed00fee43db702d13b2a2ced8f0f8c111092a873865b1f465e1bb",
+      "targetSha256": "c2b0d8a9c83ed00fee43db702d13b2a2ced8f0f8c111092a873865b1f465e1bb"
+    },
+    {
+      "file": "settings-sidebar/appearance.png",
+      "url": "/assets/icons/macos27/settings-sidebar-appearance.png",
+      "reason": "imported",
+      "sourceSha256": "8d0206d1402d69e4d7eee146d67d0490623f89c2c9491a3fdb05a96cc8631efd",
+      "targetSha256": "8d0206d1402d69e4d7eee146d67d0490623f89c2c9491a3fdb05a96cc8631efd"
+    },
+    {
+      "file": "settings-sidebar/apple-account.png",
+      "url": "/assets/icons/macos27/settings-sidebar-apple-account.png",
+      "reason": "imported",
+      "sourceSha256": "4f574a19ddb68321ed0e0eea34f3d235215e23d468a5dfa513544dcdd66135ea",
+      "targetSha256": "4f574a19ddb68321ed0e0eea34f3d235215e23d468a5dfa513544dcdd66135ea"
+    },
+    {
+      "file": "settings-sidebar/apple-intelligence-and-siri.png",
+      "url": "/assets/icons/macos27/settings-sidebar-apple-intelligence-and-siri.png",
+      "reason": "imported",
+      "sourceSha256": "73ff65115dd0d3ff4727a2680ecdf34a6ac9cd748caf548bacf6c1a33759d303",
+      "targetSha256": "73ff65115dd0d3ff4727a2680ecdf34a6ac9cd748caf548bacf6c1a33759d303"
+    },
+    {
+      "file": "settings-sidebar/battery.png",
+      "url": "/assets/icons/macos27/settings-sidebar-battery.png",
+      "reason": "imported",
+      "sourceSha256": "207014407a4efe90ab98c615df2cfac5432a6748a92e91ecd8015973d6d17079",
+      "targetSha256": "207014407a4efe90ab98c615df2cfac5432a6748a92e91ecd8015973d6d17079"
+    },
+    {
+      "file": "settings-sidebar/bluetooth.png",
+      "url": "/assets/icons/macos27/settings-sidebar-bluetooth.png",
+      "reason": "imported",
+      "sourceSha256": "893ccb48d8acd7623db3c5caa2f4d24e6d0920f414523cac25f7ac75ae97cd9e",
+      "targetSha256": "893ccb48d8acd7623db3c5caa2f4d24e6d0920f414523cac25f7ac75ae97cd9e"
+    },
+    {
+      "file": "settings-sidebar/desktop-and-dock.png",
+      "url": "/assets/icons/macos27/settings-sidebar-desktop-and-dock.png",
+      "reason": "imported",
+      "sourceSha256": "c6c819321d6b349f8d1694797034f3d0495571afb28dbba0138f59b4381b53a9",
+      "targetSha256": "c6c819321d6b349f8d1694797034f3d0495571afb28dbba0138f59b4381b53a9"
+    },
+    {
+      "file": "settings-sidebar/displays.png",
+      "url": "/assets/icons/macos27/settings-sidebar-displays.png",
+      "reason": "imported",
+      "sourceSha256": "a745adeaa1cd596c53964e10e69006fac667658cf76bea22f3e04ffd0780bd71",
+      "targetSha256": "a745adeaa1cd596c53964e10e69006fac667658cf76bea22f3e04ffd0780bd71"
+    },
+    {
+      "file": "settings-sidebar/focus.png",
+      "url": "/assets/icons/macos27/settings-sidebar-focus.png",
+      "reason": "imported",
+      "sourceSha256": "9b6d9004e21e1cfefbec44e13c02a3866fa98c69dae96e317e0c24ee2f8c0109",
+      "targetSha256": "9b6d9004e21e1cfefbec44e13c02a3866fa98c69dae96e317e0c24ee2f8c0109"
+    },
+    {
+      "file": "settings-sidebar/general.png",
+      "url": "/assets/icons/macos27/settings-sidebar-general.png",
+      "reason": "imported",
+      "sourceSha256": "679c8a33fcc931ca4269f6bc2d42148fdcdf35448b88ff91d770941bbf9acdc1",
+      "targetSha256": "679c8a33fcc931ca4269f6bc2d42148fdcdf35448b88ff91d770941bbf9acdc1"
+    },
+    {
+      "file": "settings-sidebar/keyboard.png",
+      "url": "/assets/icons/macos27/settings-sidebar-keyboard.png",
+      "reason": "imported",
+      "sourceSha256": "d463ff1246f347e276ce29a84db7639e44fc49c7e30ce1452322c0040b6f0a89",
+      "targetSha256": "d463ff1246f347e276ce29a84db7639e44fc49c7e30ce1452322c0040b6f0a89"
+    },
+    {
+      "file": "settings-sidebar/menu-bar.png",
+      "url": "/assets/icons/macos27/settings-sidebar-menu-bar.png",
+      "reason": "imported",
+      "sourceSha256": "5e598fdeb7cd0a27b0289f1a859ad618c7c0cb510358033de130016163f058f7",
+      "targetSha256": "5e598fdeb7cd0a27b0289f1a859ad618c7c0cb510358033de130016163f058f7"
+    },
+    {
+      "file": "settings-sidebar/mouse.png",
+      "url": "/assets/icons/macos27/settings-sidebar-mouse.png",
+      "reason": "imported",
+      "sourceSha256": "2ab6ca926b7d62e97827ffae75f91fdac8699c02aaf5d16815c5db45c77ea250",
+      "targetSha256": "2ab6ca926b7d62e97827ffae75f91fdac8699c02aaf5d16815c5db45c77ea250"
+    },
+    {
+      "file": "settings-sidebar/network.png",
+      "url": "/assets/icons/macos27/settings-sidebar-network.png",
+      "reason": "imported",
+      "sourceSha256": "f30a4a0c21c90f447078939fde2872ef35bbee9c25400c2031ad4834cbbc5d4a",
+      "targetSha256": "f30a4a0c21c90f447078939fde2872ef35bbee9c25400c2031ad4834cbbc5d4a"
+    },
+    {
+      "file": "settings-sidebar/notifications.png",
+      "url": "/assets/icons/macos27/settings-sidebar-notifications.png",
+      "reason": "imported",
+      "sourceSha256": "f05a2fa452ebbd8be8768a246c5f125e664d61bbb73aa43fd3e0aa94e9b9599c",
+      "targetSha256": "f05a2fa452ebbd8be8768a246c5f125e664d61bbb73aa43fd3e0aa94e9b9599c"
+    },
+    {
+      "file": "settings-sidebar/privacy-and-security.png",
+      "url": "/assets/icons/macos27/settings-sidebar-privacy-and-security.png",
+      "reason": "imported",
+      "sourceSha256": "3da432c7cbc419947d9939e82d791c62f1d14192a1442aec372861c9bfb4402a",
+      "targetSha256": "3da432c7cbc419947d9939e82d791c62f1d14192a1442aec372861c9bfb4402a"
+    },
+    {
+      "file": "settings-sidebar/screen-saver.png",
+      "url": "/assets/icons/macos27/settings-sidebar-screen-saver.png",
+      "reason": "imported",
+      "sourceSha256": "482267c837f096cb45932132834d25fc84f2f4bec71561a5e5197c2e218e6e01",
+      "targetSha256": "482267c837f096cb45932132834d25fc84f2f4bec71561a5e5197c2e218e6e01"
+    },
+    {
+      "file": "settings-sidebar/sound.png",
+      "url": "/assets/icons/macos27/settings-sidebar-sound.png",
+      "reason": "imported",
+      "sourceSha256": "843622617f7022554fa4525424475ce70a3a170d5dd4ff52bd1ea28a1c5b54ab",
+      "targetSha256": "843622617f7022554fa4525424475ce70a3a170d5dd4ff52bd1ea28a1c5b54ab"
+    },
+    {
+      "file": "settings-sidebar/time-machine.png",
+      "url": "/assets/icons/macos27/settings-sidebar-time-machine.png",
+      "reason": "imported",
+      "sourceSha256": "49e9f340377b940e2f996d8e6b67be5301d76adf5e35a6d8ef3005e4aaa06e29",
+      "targetSha256": "49e9f340377b940e2f996d8e6b67be5301d76adf5e35a6d8ef3005e4aaa06e29"
+    },
+    {
+      "file": "settings-sidebar/trackpad.png",
+      "url": "/assets/icons/macos27/settings-sidebar-trackpad.png",
+      "reason": "imported",
+      "sourceSha256": "df5858fd055d9618ae9e7c261b8169bb3936e9624eb5b74efb41fa9bf8838aaf",
+      "targetSha256": "df5858fd055d9618ae9e7c261b8169bb3936e9624eb5b74efb41fa9bf8838aaf"
+    },
+    {
+      "file": "settings-sidebar/users-and-groups.png",
+      "url": "/assets/icons/macos27/settings-sidebar-users-and-groups.png",
+      "reason": "imported",
+      "sourceSha256": "418af1565b56c990cb248c149698fd7433c984e1c5fcd370b313b4ab5a741807",
+      "targetSha256": "418af1565b56c990cb248c149698fd7433c984e1c5fcd370b313b4ab5a741807"
+    },
+    {
+      "file": "settings-sidebar/vpn.png",
+      "url": "/assets/icons/macos27/settings-sidebar-vpn.png",
+      "reason": "imported",
+      "sourceSha256": "50efa6f59c6180930624bc0749a2a391e42458aacb75fa513d7c0c4ae7815a93",
+      "targetSha256": "50efa6f59c6180930624bc0749a2a391e42458aacb75fa513d7c0c4ae7815a93"
+    },
+    {
+      "file": "settings-sidebar/wallpaper.png",
+      "url": "/assets/icons/macos27/settings-sidebar-wallpaper.png",
+      "reason": "imported",
+      "sourceSha256": "a0622bf94ccde8bbf0fb4c062c560203e4495567cc702debcf9c3f81e077a90c",
+      "targetSha256": "a0622bf94ccde8bbf0fb4c062c560203e4495567cc702debcf9c3f81e077a90c"
+    },
+    {
+      "file": "settings-sidebar/wi-fi.png",
+      "url": "/assets/icons/macos27/settings-sidebar-wi-fi.png",
+      "reason": "imported",
+      "sourceSha256": "c16ea6173bec2de2916d52d38e692218e3c4c0d2c0dfcb62d03c01c431414fa8",
+      "targetSha256": "c16ea6173bec2de2916d52d38e692218e3c4c0d2c0dfcb62d03c01c431414fa8"
+    }
+  ]
+}

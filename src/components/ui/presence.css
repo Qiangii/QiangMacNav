@@ -1,0 +1,11 @@
+.mac-presence { display: contents; }
+.mac-presence[data-state="hidden"] { display: none; }
+.mac-presence[data-state="closing"] > * { animation: mac-presence-out 180ms ease-in both !important; pointer-events: none; }
+.mac-presence[data-state="open"] > * { animation: mac-presence-in 180ms ease-out both; }
+.settings-dialog-shell { display: contents; }
+.dock-wrap { z-index: 130; }
+@keyframes mac-presence-out { from { opacity: 1; } to { opacity: 0; transform: translateY(8px) scale(.985); } }
+@keyframes mac-presence-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .mac-presence > * { animation: none !important; }
+}

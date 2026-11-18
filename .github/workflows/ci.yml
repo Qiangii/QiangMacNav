@@ -1,0 +1,46 @@
+name: Project checks
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: node --test scripts/*.test.mjs
+      - run: npm run test:extension
+      - run: npm run build
+      - run: npm run build:extension
+      - name: Package browser extension
+        working-directory: extensions/qiangmacnav/dist
+        run: zip -qr "$RUNNER_TEMP/qiangmacnav-extension.zip" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-extension
+          path: ${{ runner.temp }}/qiangmacnav-extension.zip
+          if-no-files-found: error
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache-dependency-path: server/go.sum
+      - run: go test ./... && go vet ./...
+        working-directory: server
+      - name: Validate Compose configurations
+        env:
+          UPDATER_TOKEN: compose-validation-only-not-a-deployment-secret
+        run: |
+          docker compose --env-file .env.example config --quiet
+          docker compose --env-file .env.example -f compose.yaml -f compose.updates.yaml config --quiet

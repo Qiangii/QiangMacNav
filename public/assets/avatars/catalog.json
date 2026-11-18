@@ -1,0 +1,210 @@
+{
+  "categories": [
+    {
+      "id": "animals",
+      "name": "动物伙伴"
+    },
+    {
+      "id": "nature",
+      "name": "自然花园"
+    },
+    {
+      "id": "fun",
+      "name": "趣味灵感"
+    }
+  ],
+  "items": [
+    {
+      "id": "cat-face",
+      "name": "猫咪",
+      "category": "animals",
+      "url": "/assets/avatars/cat-face.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Cat%20face/3D/cat_face_3d.png",
+      "sha256": "d930f2aee8ae47cb3ca26f2594ddd15df42345d952b5903b776adf4a728860b5"
+    },
+    {
+      "id": "dog-face",
+      "name": "小狗",
+      "category": "animals",
+      "url": "/assets/avatars/dog-face.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Dog%20face/3D/dog_face_3d.png",
+      "sha256": "7db4c311218a47053e490ec53e7b3995bb83246b0d6992e135868a5220bb32e7"
+    },
+    {
+      "id": "fox",
+      "name": "狐狸",
+      "category": "animals",
+      "url": "/assets/avatars/fox.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Fox/3D/fox_3d.png",
+      "sha256": "1a3bc43212405fb03d8d2bcc709c7f39c99d4a19af06d406cae4724e5fe2b0ad"
+    },
+    {
+      "id": "panda",
+      "name": "熊猫",
+      "category": "animals",
+      "url": "/assets/avatars/panda.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Panda/3D/panda_3d.png",
+      "sha256": "31524ed035f8d769bc7d437268f30a65eb309ea216e84c09823d4f36c2f97070"
+    },
+    {
+      "id": "bear",
+      "name": "小熊",
+      "category": "animals",
+      "url": "/assets/avatars/bear.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Bear/3D/bear_3d.png",
+      "sha256": "8f108a036c28d25378e3970eea68d00fbf155228b349707f0456e557013a87c9"
+    },
+    {
+      "id": "koala",
+      "name": "考拉",
+      "category": "animals",
+      "url": "/assets/avatars/koala.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Koala/3D/koala_3d.png",
+      "sha256": "e5ec59d366cffe5e0f7d49144264633c71af2e50961d5cfe011f155a7ddfce1a"
+    },
+    {
+      "id": "rabbit-face",
+      "name": "兔子",
+      "category": "animals",
+      "url": "/assets/avatars/rabbit-face.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Rabbit%20face/3D/rabbit_face_3d.png",
+      "sha256": "49e3894d0e17c2eeea2b81f50d36ff407731d8b1983f3b5d71a7f7304dcbd5b3"
+    },
+    {
+      "id": "tiger-face",
+      "name": "老虎",
+      "category": "animals",
+      "url": "/assets/avatars/tiger-face.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Tiger%20face/3D/tiger_face_3d.png",
+      "sha256": "124229ecfb2fa27d6d343aa0827f728ff36c2b7ce6f297f103db76dc847ac3d7"
+    },
+    {
+      "id": "lion",
+      "name": "狮子",
+      "category": "animals",
+      "url": "/assets/avatars/lion.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Lion/3D/lion_3d.png",
+      "sha256": "1f1cf0d0dd94915f3c9f10c3415c5efbd4b8725adfa44a5d564098547076b34b"
+    },
+    {
+      "id": "penguin",
+      "name": "企鹅",
+      "category": "animals",
+      "url": "/assets/avatars/penguin.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Penguin/3D/penguin_3d.png",
+      "sha256": "c513a326631f3758e3ef9729ed2aa3bba46432340657ae63f32fd0332f648341"
+    },
+    {
+      "id": "owl",
+      "name": "猫头鹰",
+      "category": "animals",
+      "url": "/assets/avatars/owl.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Owl/3D/owl_3d.png",
+      "sha256": "7dfcdcdebd599787719d98f3057b0822522678e6752369ca3498a780ca7ba443"
+    },
+    {
+      "id": "unicorn",
+      "name": "独角兽",
+      "category": "animals",
+      "url": "/assets/avatars/unicorn.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Unicorn/3D/unicorn_3d.png",
+      "sha256": "7d4a8a3e1040e9ba2b5a562413e258ebacc812e5c6d87946b3de53a66d1736b4"
+    },
+    {
+      "id": "sunflower",
+      "name": "向日葵",
+      "category": "nature",
+      "url": "/assets/avatars/sunflower.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Sunflower/3D/sunflower_3d.png",
+      "sha256": "14eb41f2cb9afa1387e9b925a9458d8fc768be3bd32210e3064fb7f320e123ca"
+    },
+    {
+      "id": "cherry-blossom",
+      "name": "樱花",
+      "category": "nature",
+      "url": "/assets/avatars/cherry-blossom.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Cherry%20blossom/3D/cherry_blossom_3d.png",
+      "sha256": "e911aad0884966bbeb2a3feda131d5b5aa2fb3d70284e97b9cc1e94a75f953c0"
+    },
+    {
+      "id": "cactus",
+      "name": "仙人掌",
+      "category": "nature",
+      "url": "/assets/avatars/cactus.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Cactus/3D/cactus_3d.png",
+      "sha256": "29b605a5fe3559f5830192a5d73df0685f7b3961c49a2df1150880444f99f436"
+    },
+    {
+      "id": "four-leaf-clover",
+      "name": "四叶草",
+      "category": "nature",
+      "url": "/assets/avatars/four-leaf-clover.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Four%20leaf%20clover/3D/four_leaf_clover_3d.png",
+      "sha256": "37b310abbb0914050cb033ffcb99fe25b09c4e47d1d0ef93988f60f6fd849d07"
+    },
+    {
+      "id": "mushroom",
+      "name": "蘑菇",
+      "category": "nature",
+      "url": "/assets/avatars/mushroom.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Mushroom/3D/mushroom_3d.png",
+      "sha256": "cd3d240093294db7a66b3aa9570b558405d0d31dc31604fe1be46c9b4e0f836a"
+    },
+    {
+      "id": "rainbow",
+      "name": "彩虹",
+      "category": "nature",
+      "url": "/assets/avatars/rainbow.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Rainbow/3D/rainbow_3d.png",
+      "sha256": "81c60a96369047dd287b9fb54d02d29fe1e9b7fe3f00924330037e861b1fbd81"
+    },
+    {
+      "id": "rocket",
+      "name": "火箭",
+      "category": "fun",
+      "url": "/assets/avatars/rocket.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Rocket/3D/rocket_3d.png",
+      "sha256": "4636925a1dfc76a45dc83c08b983699d39143a0978f794a4e2dfb6cbffdcd7ab"
+    },
+    {
+      "id": "ringed-planet",
+      "name": "星球",
+      "category": "fun",
+      "url": "/assets/avatars/ringed-planet.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Ringed%20planet/3D/ringed_planet_3d.png",
+      "sha256": "e810d03a3d347da5d0cf50cace209c413c963bae9a3c72d7e396ef858574087d"
+    },
+    {
+      "id": "artist-palette",
+      "name": "调色盘",
+      "category": "fun",
+      "url": "/assets/avatars/artist-palette.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Artist%20palette/3D/artist_palette_3d.png",
+      "sha256": "147e62f6523e7e923add4ed5497bf90982d22e04eb2e65ab916b743de2dbe1d2"
+    },
+    {
+      "id": "headphone",
+      "name": "耳机",
+      "category": "fun",
+      "url": "/assets/avatars/headphone.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Headphone/3D/headphone_3d.png",
+      "sha256": "e7c26d433340b1706f20c733558da412cbf70b1a95048d51a80eb0ed2c0a02c9"
+    },
+    {
+      "id": "robot",
+      "name": "机器人",
+      "category": "fun",
+      "url": "/assets/avatars/robot.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Robot/3D/robot_3d.png",
+      "sha256": "3f9b5a00b53c8bddda36b6a3f68d00718d9d7d8c04f986a3248e55ae93a7961b"
+    },
+    {
+      "id": "alien",
+      "name": "外星人",
+      "category": "fun",
+      "url": "/assets/avatars/alien.png",
+      "source": "https://github.com/microsoft/fluentui-emoji/blob/1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Alien/3D/alien_3d.png",
+      "sha256": "7b2318a60f36814c289e92643cbfa8d72caac26d98e955d8cae196d3db9abddf"
+    }
+  ]
+}

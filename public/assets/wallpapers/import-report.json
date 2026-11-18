@@ -1,0 +1,71 @@
+[
+  {
+    "source": "春至.mp4",
+    "file": "spring.mp4",
+    "bytes": 4720779,
+    "sha256": "82f9382d9e538d6966440961eb3d48c98cb678d888ba06dd2f155cdda1fcdf37"
+  },
+  {
+    "source": "咖啡.jpg",
+    "file": "coffee.jpg",
+    "bytes": 289862,
+    "sha256": "377c6623cc3a1980f4b0b26fa4f05da7adc81a1f917111cfaf208826744e93b2",
+    "width": 3840,
+    "height": 2560,
+    "format": "JPEG"
+  },
+  {
+    "source": "卡通.jpg",
+    "file": "cartoon.jpg",
+    "bytes": 252454,
+    "sha256": "8532cfd67e324eb32c8ef2edf994661ed91efd0a31dc2e88ad11430b2064b934",
+    "width": 3840,
+    "height": 2160,
+    "format": "JPEG"
+  },
+  {
+    "source": "蜡笔小新.png",
+    "file": "shin-chan.jpg",
+    "bytes": 847633,
+    "sha256": "cd30f278f376684928d3a65b0403387742f11b8787136758e10e48707f9a5224",
+    "width": 2730,
+    "height": 1535,
+    "format": "JPEG"
+  },
+  {
+    "source": "海边.jpg",
+    "file": "seaside.jpg",
+    "bytes": 2747201,
+    "sha256": "2d58edd5416317a4bfda865fe67e0247e97e724d33d9d0678ea406ba8ceacf5c",
+    "width": 6016,
+    "height": 3384,
+    "format": "JPEG"
+  },
+  {
+    "source": "霞光.jpg",
+    "file": "sunset-glow.jpg",
+    "bytes": 1824334,
+    "sha256": "395e0dd25b8979556d595ddc10d377518956c92f5c057681d01c49b76e482741",
+    "width": 1920,
+    "height": 1280,
+    "format": "JPEG"
+  },
+  {
+    "source": "雪山.jpg",
+    "file": "snow-mountain.jpg",
+    "bytes": 1809663,
+    "sha256": "50a0dcdd7c054423fa1ab7af044a5357c80477b804cff79555bf2c6f59587f5c",
+    "width": 1920,
+    "height": 1285,
+    "format": "JPEG"
+  },
+  {
+    "derivedFrom": "spring.mp4",
+    "file": "spring-poster.jpg",
+    "bytes": 187246,
+    "sha256": "bbad41cbad77013d7d30f8c6625a7f00d61a17baa2cbcfc76968a3bcfa4a684d",
+    "width": 1920,
+    "height": 1080,
+    "format": "JPEG"
+  }
+]

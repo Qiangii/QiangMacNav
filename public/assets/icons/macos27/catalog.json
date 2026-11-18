@@ -1,0 +1,450 @@
+{
+  "categories": [
+    {
+      "id": "macos27-apps",
+      "name": "iOS 风格应用"
+    },
+    {
+      "id": "macos27-settings",
+      "name": "彩色系统图标"
+    },
+    {
+      "id": "macos27-sidebar",
+      "name": "侧栏与音乐"
+    }
+  ],
+  "items": [
+    {
+      "id": "macos27-finder-sidebar-airdrop",
+      "name": "隔空投送 AirDrop",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-airdrop.svg"
+    },
+    {
+      "id": "macos27-finder-sidebar-applications",
+      "name": "应用程序 Applications",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-applications.svg"
+    },
+    {
+      "id": "macos27-finder-sidebar-desktop",
+      "name": "桌面 Desktop",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-desktop.svg"
+    },
+    {
+      "id": "macos27-finder-sidebar-documents",
+      "name": "文稿 Documents",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-documents.svg"
+    },
+    {
+      "id": "macos27-finder-sidebar-network",
+      "name": "网络 Network",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-network.svg"
+    },
+    {
+      "id": "macos27-finder-sidebar-recents",
+      "name": "最近使用 Recents",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/finder-sidebar-recents.svg"
+    },
+    {
+      "id": "macos27-music-sidebar-albums",
+      "name": "专辑 Albums",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/music-sidebar-albums.svg"
+    },
+    {
+      "id": "macos27-music-sidebar-browse",
+      "name": "浏览 Browse",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/music-sidebar-browse.svg"
+    },
+    {
+      "id": "macos27-music-sidebar-listen-now",
+      "name": "立即收听 Listen Now",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/music-sidebar-listen-now.svg"
+    },
+    {
+      "id": "macos27-music-sidebar-radio",
+      "name": "广播 Radio",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/music-sidebar-radio.svg"
+    },
+    {
+      "id": "macos27-music-sidebar-songs",
+      "name": "歌曲 Songs",
+      "category": "macos27-sidebar",
+      "url": "/assets/icons/macos27/music-sidebar-songs.svg"
+    },
+    {
+      "id": "macos27-applications-activitymonitor",
+      "name": "活动监视器 Activity Monitor",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-activitymonitor.png"
+    },
+    {
+      "id": "macos27-applications-appstore",
+      "name": "应用商店 App Store",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-appstore.png"
+    },
+    {
+      "id": "macos27-applications-calculator",
+      "name": "计算器 Calculator",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-calculator.png"
+    },
+    {
+      "id": "macos27-applications-calendar",
+      "name": "日历 Calendar",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-calendar.png"
+    },
+    {
+      "id": "macos27-applications-clock",
+      "name": "时钟 Clock",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-clock.png"
+    },
+    {
+      "id": "macos27-applications-contacts",
+      "name": "通讯录 Contacts",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-contacts.png"
+    },
+    {
+      "id": "macos27-applications-diskutility",
+      "name": "磁盘工具 Disk Utility",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-diskutility.png"
+    },
+    {
+      "id": "macos27-applications-facetime",
+      "name": "视频通话 FaceTime",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-facetime.png"
+    },
+    {
+      "id": "macos27-applications-finder",
+      "name": "访达 Finder",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-finder.png"
+    },
+    {
+      "id": "macos27-applications-freeform",
+      "name": "无边记 Freeform",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-freeform.png"
+    },
+    {
+      "id": "macos27-applications-games",
+      "name": "游戏 Games",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-games.png"
+    },
+    {
+      "id": "macos27-applications-launchpad",
+      "name": "启动台 Apps",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-launchpad.png"
+    },
+    {
+      "id": "macos27-applications-mail",
+      "name": "邮件 Mail",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-mail.png"
+    },
+    {
+      "id": "macos27-applications-maps",
+      "name": "地图 Maps",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-maps.png"
+    },
+    {
+      "id": "macos27-applications-messages",
+      "name": "信息 Messages",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-messages.png"
+    },
+    {
+      "id": "macos27-applications-music",
+      "name": "音乐 Music",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-music.png"
+    },
+    {
+      "id": "macos27-applications-news",
+      "name": "新闻 News",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-news.png"
+    },
+    {
+      "id": "macos27-applications-notes",
+      "name": "备忘录 Notes",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-notes.png"
+    },
+    {
+      "id": "macos27-applications-phone",
+      "name": "电话 Phone",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-phone.png"
+    },
+    {
+      "id": "macos27-applications-photobooth",
+      "name": "拍照亭 Photo Booth",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-photobooth.png"
+    },
+    {
+      "id": "macos27-applications-photos",
+      "name": "照片 Photos",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-photos.png"
+    },
+    {
+      "id": "macos27-applications-podcasts",
+      "name": "播客 Podcasts",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-podcasts.png"
+    },
+    {
+      "id": "macos27-applications-preview",
+      "name": "预览 Preview",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-preview.png"
+    },
+    {
+      "id": "macos27-applications-quicktime",
+      "name": "视频播放器 QuickTime Player",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-quicktime.png"
+    },
+    {
+      "id": "macos27-applications-reminders",
+      "name": "提醒事项 Reminders",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-reminders.png"
+    },
+    {
+      "id": "macos27-applications-safari",
+      "name": "浏览器 Safari",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-safari.png"
+    },
+    {
+      "id": "macos27-applications-settings",
+      "name": "系统设置 System Settings",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-settings.png"
+    },
+    {
+      "id": "macos27-applications-stickies",
+      "name": "便笺 Stickies",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-stickies.png"
+    },
+    {
+      "id": "macos27-applications-stocks",
+      "name": "股市 Stocks",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-stocks.png"
+    },
+    {
+      "id": "macos27-applications-terminal",
+      "name": "终端 Terminal",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-terminal.png"
+    },
+    {
+      "id": "macos27-applications-textedit",
+      "name": "文本编辑 TextEdit",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-textedit.png"
+    },
+    {
+      "id": "macos27-applications-tv",
+      "name": "电视 TV",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-tv.png"
+    },
+    {
+      "id": "macos27-applications-voicememos",
+      "name": "语音备忘录 Voice Memos",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-voicememos.png"
+    },
+    {
+      "id": "macos27-applications-weather",
+      "name": "天气 Weather",
+      "category": "macos27-apps",
+      "url": "/assets/icons/macos27/applications-weather.png"
+    },
+    {
+      "id": "macos27-desktop-files-tahoe-trip",
+      "name": "旅行文件夹 Tahoe Trip",
+      "category": "files",
+      "url": "/assets/icons/macos27/desktop-files-tahoe-trip.png"
+    },
+    {
+      "id": "macos27-desktop-files-utilities-folder",
+      "name": "实用工具文件夹 Utilities folder",
+      "category": "files",
+      "url": "/assets/icons/macos27/desktop-files-utilities-folder.png"
+    },
+    {
+      "id": "macos27-desktop-files-welcome-txt",
+      "name": "文本文件 Welcome.txt",
+      "category": "files",
+      "url": "/assets/icons/macos27/desktop-files-welcome-txt.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-accessibility",
+      "name": "辅助功能 Accessibility",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-accessibility.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-appearance",
+      "name": "外观 Appearance",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-appearance.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-apple-account",
+      "name": "苹果账户 Apple Account",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-apple-account.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-apple-intelligence-and-siri",
+      "name": "智能助理 Apple Intelligence & Siri",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-apple-intelligence-and-siri.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-battery",
+      "name": "电池 Battery",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-battery.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-bluetooth",
+      "name": "蓝牙 Bluetooth",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-bluetooth.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-desktop-and-dock",
+      "name": "桌面与程序坞 Desktop & Dock",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-desktop-and-dock.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-displays",
+      "name": "显示器 Displays",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-displays.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-focus",
+      "name": "专注模式 Focus",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-focus.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-general",
+      "name": "通用 General",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-general.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-keyboard",
+      "name": "键盘 Keyboard",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-keyboard.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-menu-bar",
+      "name": "菜单栏 Menu Bar",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-menu-bar.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-mouse",
+      "name": "鼠标 Mouse",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-mouse.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-network",
+      "name": "网络 Network",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-network.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-notifications",
+      "name": "通知 Notifications",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-notifications.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-privacy-and-security",
+      "name": "隐私与安全 Privacy & Security",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-privacy-and-security.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-screen-saver",
+      "name": "屏幕保护 Screen Saver",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-screen-saver.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-sound",
+      "name": "声音 Sound",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-sound.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-time-machine",
+      "name": "时间机器 Time Machine",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-time-machine.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-trackpad",
+      "name": "触控板 Trackpad",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-trackpad.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-users-and-groups",
+      "name": "用户与群组 Users & Groups",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-users-and-groups.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-vpn",
+      "name": "虚拟专用网络 VPN",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-vpn.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-wallpaper",
+      "name": "壁纸 Wallpaper",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-wallpaper.png"
+    },
+    {
+      "id": "macos27-settings-sidebar-wi-fi",
+      "name": "无线网络 Wi-Fi",
+      "category": "macos27-settings",
+      "url": "/assets/icons/macos27/settings-sidebar-wi-fi.png"
+    }
+  ]
+}

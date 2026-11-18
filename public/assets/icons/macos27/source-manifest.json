@@ -1,0 +1,482 @@
+{
+  "source": "https://macos27.kimi.page/",
+  "capturedAt": "2026-11-16T07:57:49.371Z",
+  "scale": 4,
+  "items": [
+    {
+      "file": "desktop-files/tahoe-trip.png",
+      "label": "Tahoe Trip",
+      "type": "png"
+    },
+    {
+      "file": "desktop-files/welcome-txt.png",
+      "label": "Welcome.txt",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/recents.png",
+      "label": "Recents",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/recents.svg",
+      "label": "Recents",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/airdrop.png",
+      "label": "AirDrop",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/airdrop.svg",
+      "label": "AirDrop",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/applications.png",
+      "label": "Applications",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/applications.svg",
+      "label": "Applications",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/desktop.png",
+      "label": "Desktop",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/desktop.svg",
+      "label": "Desktop",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/documents.png",
+      "label": "Documents",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/documents.svg",
+      "label": "Documents",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/downloads.png",
+      "label": "Downloads",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/downloads.svg",
+      "label": "Downloads",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/icloud-drive.png",
+      "label": "iCloud Drive",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/icloud-drive.svg",
+      "label": "iCloud Drive",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/macbook.png",
+      "label": "MacBook",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/macbook.svg",
+      "label": "MacBook",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/icloud.png",
+      "label": "iCloud",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/icloud.svg",
+      "label": "iCloud",
+      "type": "svg"
+    },
+    {
+      "file": "finder-sidebar/network.png",
+      "label": "Network",
+      "type": "png"
+    },
+    {
+      "file": "finder-sidebar/network.svg",
+      "label": "Network",
+      "type": "svg"
+    },
+    {
+      "file": "applications/appstore.png",
+      "label": "App Store",
+      "type": "png"
+    },
+    {
+      "file": "applications/launchpad.png",
+      "label": "Apps",
+      "type": "png"
+    },
+    {
+      "file": "applications/calculator.png",
+      "label": "Calculator",
+      "type": "png"
+    },
+    {
+      "file": "applications/calendar.png",
+      "label": "Calendar",
+      "type": "png"
+    },
+    {
+      "file": "applications/clock.png",
+      "label": "Clock",
+      "type": "png"
+    },
+    {
+      "file": "applications/contacts.png",
+      "label": "Contacts",
+      "type": "png"
+    },
+    {
+      "file": "applications/facetime.png",
+      "label": "FaceTime",
+      "type": "png"
+    },
+    {
+      "file": "applications/finder.png",
+      "label": "Finder",
+      "type": "png"
+    },
+    {
+      "file": "applications/freeform.png",
+      "label": "Freeform",
+      "type": "png"
+    },
+    {
+      "file": "applications/games.png",
+      "label": "Games",
+      "type": "png"
+    },
+    {
+      "file": "applications/mail.png",
+      "label": "Mail",
+      "type": "png"
+    },
+    {
+      "file": "applications/maps.png",
+      "label": "Maps",
+      "type": "png"
+    },
+    {
+      "file": "applications/messages.png",
+      "label": "Messages",
+      "type": "png"
+    },
+    {
+      "file": "applications/music.png",
+      "label": "Music",
+      "type": "png"
+    },
+    {
+      "file": "applications/news.png",
+      "label": "News",
+      "type": "png"
+    },
+    {
+      "file": "applications/notes.png",
+      "label": "Notes",
+      "type": "png"
+    },
+    {
+      "file": "applications/phone.png",
+      "label": "Phone",
+      "type": "png"
+    },
+    {
+      "file": "applications/photobooth.png",
+      "label": "Photo Booth",
+      "type": "png"
+    },
+    {
+      "file": "applications/photos.png",
+      "label": "Photos",
+      "type": "png"
+    },
+    {
+      "file": "applications/podcasts.png",
+      "label": "Podcasts",
+      "type": "png"
+    },
+    {
+      "file": "applications/preview.png",
+      "label": "Preview",
+      "type": "png"
+    },
+    {
+      "file": "applications/quicktime.png",
+      "label": "QuickTime Player",
+      "type": "png"
+    },
+    {
+      "file": "applications/reminders.png",
+      "label": "Reminders",
+      "type": "png"
+    },
+    {
+      "file": "applications/safari.png",
+      "label": "Safari",
+      "type": "png"
+    },
+    {
+      "file": "applications/stickies.png",
+      "label": "Stickies",
+      "type": "png"
+    },
+    {
+      "file": "applications/stocks.png",
+      "label": "Stocks",
+      "type": "png"
+    },
+    {
+      "file": "applications/settings.png",
+      "label": "System Settings",
+      "type": "png"
+    },
+    {
+      "file": "applications/textedit.png",
+      "label": "TextEdit",
+      "type": "png"
+    },
+    {
+      "file": "applications/tv.png",
+      "label": "TV",
+      "type": "png"
+    },
+    {
+      "file": "applications/voicememos.png",
+      "label": "Voice Memos",
+      "type": "png"
+    },
+    {
+      "file": "applications/weather.png",
+      "label": "Weather",
+      "type": "png"
+    },
+    {
+      "file": "desktop-files/utilities-folder.png",
+      "label": "Utilities folder",
+      "type": "png"
+    },
+    {
+      "file": "applications/activitymonitor.png",
+      "label": "Activity Monitor",
+      "type": "png"
+    },
+    {
+      "file": "applications/diskutility.png",
+      "label": "Disk Utility",
+      "type": "png"
+    },
+    {
+      "file": "applications/terminal.png",
+      "label": "Terminal",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/apple-account.png",
+      "label": "Apple Account",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/wi-fi.png",
+      "label": "Wi-Fi",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/bluetooth.png",
+      "label": "Bluetooth",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/network.png",
+      "label": "Network",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/vpn.png",
+      "label": "VPN",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/battery.png",
+      "label": "Battery",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/general.png",
+      "label": "General",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/accessibility.png",
+      "label": "Accessibility",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/appearance.png",
+      "label": "Appearance",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/menu-bar.png",
+      "label": "Menu Bar",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/apple-intelligence-and-siri.png",
+      "label": "Apple Intelligence & Siri",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/desktop-and-dock.png",
+      "label": "Desktop & Dock",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/displays.png",
+      "label": "Displays",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/wallpaper.png",
+      "label": "Wallpaper",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/screen-saver.png",
+      "label": "Screen Saver",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/notifications.png",
+      "label": "Notifications",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/focus.png",
+      "label": "Focus",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/sound.png",
+      "label": "Sound",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/keyboard.png",
+      "label": "Keyboard",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/trackpad.png",
+      "label": "Trackpad",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/mouse.png",
+      "label": "Mouse",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/privacy-and-security.png",
+      "label": "Privacy & Security",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/users-and-groups.png",
+      "label": "Users & Groups",
+      "type": "png"
+    },
+    {
+      "file": "settings-sidebar/time-machine.png",
+      "label": "Time Machine",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/listen-now.png",
+      "label": "Listen Now",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/listen-now.svg",
+      "label": "Listen Now",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/browse.png",
+      "label": "Browse",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/browse.svg",
+      "label": "Browse",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/radio.png",
+      "label": "Radio",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/radio.svg",
+      "label": "Radio",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/recently-added.png",
+      "label": "Recently Added",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/recently-added.svg",
+      "label": "Recently Added",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/artists.png",
+      "label": "Artists",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/artists.svg",
+      "label": "Artists",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/albums.png",
+      "label": "Albums",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/albums.svg",
+      "label": "Albums",
+      "type": "svg"
+    },
+    {
+      "file": "music-sidebar/songs.png",
+      "label": "Songs",
+      "type": "png"
+    },
+    {
+      "file": "music-sidebar/songs.svg",
+      "label": "Songs",
+      "type": "svg"
+    }
+  ]
+}

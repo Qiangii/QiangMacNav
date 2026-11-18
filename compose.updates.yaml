@@ -1,0 +1,34 @@
+# Opt in with: docker compose -f compose.yaml -f compose.updates.yaml up -d --build
+services:
+  navigation:
+    labels:
+      io.qiangmacnav.update.enabled: "true"
+      io.qiangmacnav.update.channel: ${NAVIGATION_IMAGE:-harbor-navigation:local}
+    environment:
+      UPDATER_URL: http://updater:8090
+      UPDATER_TOKEN: ${UPDATER_TOKEN:?Set UPDATER_TOKEN to at least 32 random characters}
+      UPDATE_MAINTENANCE_FILE: /data/.update-maintenance
+  updater:
+    image: ${NAVIGATION_IMAGE:-harbor-navigation:local}
+    restart: unless-stopped
+    user: "0:0"
+    command: ["/app/updater"]
+    healthcheck:
+      test: ["CMD", "/app/updater", "status"]
+      interval: 30s
+      timeout: 10s
+    environment:
+      UPDATER_TOKEN: ${UPDATER_TOKEN:?Set UPDATER_TOKEN to at least 32 random characters}
+      UPDATE_REPOSITORY: ${UPDATE_REPOSITORY:-Qiangii/QiangMacNav}
+      UPDATE_IMAGE: ${UPDATE_IMAGE:-}
+      UPDATE_CONTAINER: harbor-navigation
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_DIR:-navigation-data}:/data
+      - navigation-updates:/state
+    depends_on:
+      navigation:
+        condition: service_started
+
+volumes:
+  navigation-updates:
