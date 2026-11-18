@@ -17,6 +17,19 @@ QiangMacNav 是一个 macOS 风格的自托管导航页。你可以在网页桌�
 
 ## Docker 快速部署
 
+### 群晖直接运行镜像
+
+从 `v1.0.2` 起，在 Container Manager 的「注册表」下载官方镜像后，可以在「映像 → 运行」中直接创建网站容器。
+
+1. 在 File Station 新建网站专用文件夹，例如 `docker/QiangMacNav/data`。
+2. 将 NAS 的空闲 TCP 端口（例如 `8088`）映射至容器的 `8080`，将上述文件夹以读写方式挂载到 `/data`。
+3. 保留镜像默认启动命令和用户。启动器会准备 `/data` 和已有 SQLite 文件的权限，然后以 `10001:10001` 运行网站。若 NAS 的 ACL 或网络文件系统禁止修改所有者，可使用 Docker 命名卷或预先为该身份授予写权限。
+4. 打开 `http://群晖IP:8088` 创建管理员。如需限制首次注册，在启动前设置 `SETUP_TOKEN`。
+
+单容器用户可在 Container Manager 中下载新版并重建容器，沿用同一 `/data`。需要网页一键升级时，在「项目」中导入 [群晖项目配置](compose.synology.yaml)，配置 `UPDATER_TOKEN`，并将 `DATA_DIR` 指向同一专用文件夹。该项目会启动网站和独立 updater。[在线更新说明](docs/ONLINE_UPDATES.md)
+
+### 从源码构建
+
 安装 Docker Engine 和 Compose v2 或更高版本。在仓库根目录执行以下命令，从源码构建并启动网页和 API 共用的容器。
 
 ```sh

@@ -1,6 +1,7 @@
 # Opt in with: docker compose -f compose.yaml -f compose.updates.yaml up -d --build
 services:
   navigation:
+    user: "10001:10001"
     labels:
       io.qiangmacnav.update.enabled: "true"
       io.qiangmacnav.update.channel: ${NAVIGATION_IMAGE:-harbor-navigation:local}

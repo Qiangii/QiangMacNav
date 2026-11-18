@@ -10,7 +10,24 @@
 - 升级器使用Docker API v1.41（Docker20.10及以上且支持该API）；目前在Docker Desktop29.3.1的Linux容器环境验证。默认目标容器为harbor-navigation，数据库必须为/data/navigation.db，updater必须挂载同一/data。
 - 原生Go运行可检查版本，但不执行自替换。Kubernetes/Swarm、多副本共享数据库、私有GitHub/GHCR认证及跨升级协议版本迁移不在当前在线升级范围。
 
-## 首次启用
+## 群晖 Container Manager 首次启用
+
+使用已发布的 `v1.0.1` 即可启用。下载仓库中的[群晖项目配置](../compose.synology.yaml)，在 File Station 中保存为 `docker/QiangMacNav/compose.yaml`。同一个项目会启动网站和 updater。
+
+1. 在项目目录中准备 `data` 和 `updates` 两个文件夹。如果已有网站，先在旧容器的「存储空间」中核对 `/data` 对应的 NAS 文件夹，再停止旧容器并备份整个数据文件夹。新项目要使用原文件夹；如果旧容器名为 `harbor-navigation`，停止后将其改名，给项目腾出名称。
+2. 在 `compose.yaml` 旁创建名为 `.env` 的纯文本文件。按实际情况填写下方配置，保留原站点端口、反向代理等设置。用密码管理器生成至少 32 个字符的随机字母和数字，填入 `UPDATER_TOKEN`。网站和 updater 都会读取这一个值。
+
+   ```dotenv
+   HOST_PORT=8088
+   DATA_DIR=/volume1/docker/QiangMacNav/data
+   UPDATE_STATE_DIR=/volume1/docker/QiangMacNav/updates
+   UPDATER_TOKEN=
+   ```
+
+3. 打开 Container Manager → 项目 → 新增，选择项目目录和其中的 `compose.yaml`，然后启动。`data-init` 以退出码 `0` 停止表示数据权限准备完成。`navigation` 和 `updater` 应持续运行。项目内部使用 `8090`，NAS 只需对外提供网站端口。
+4. 打开 `http://群晖IP:8088`（或原站点地址）。迁移旧站时，用原管理员账号登录并确认导航数据。进入「系统设置 → 系统更新」点击「检查更新」。如果页面提示需要启用 Docker 升级服务，先在项目中查看 updater 日志；发布了更高版本且 updater 就绪时，「在线升级」按钮可用。
+
+## 使用命令行首次启用
 
 原有单容器需先按新配置重建一次。之后兼容升级协议的应用版本可从网页升级。
 

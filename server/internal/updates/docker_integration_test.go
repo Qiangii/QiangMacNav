@@ -42,6 +42,8 @@ func TestDockerUpgradeAndRollback(t *testing.T) {
 	}
 	channel := "ghcr.io/qiangmacnav-test/navigation:latest"
 	config := map[string]any{"Image": image, "Labels": map[string]string{"io.qiangmacnav.update.enabled": "true", "io.qiangmacnav.update.channel": channel, "org.opencontainers.image.version": "0.9.0"}, "Env": []string{"SETUP_TOKEN=integration-setup", "APP_ORIGIN=http://" + target + ":8080", "UPDATE_MAINTENANCE_FILE=/data/.update-maintenance"}, "HostConfig": map[string]any{"Binds": []string{volume + ":/data"}, "RestartPolicy": map[string]string{"Name": "unless-stopped"}}, "NetworkingConfig": map[string]any{"EndpointsConfig": map[string]any{network: map[string]any{"Aliases": []string{target}}}}}
+	// Match the managed navigation service in compose.updates.yaml.
+	config["User"] = "10001:10001"
 	if err := engine.call(ctx, "POST", "/containers/create?name="+target, config, &created); err != nil {
 		t.Fatal(err)
 	}
