@@ -213,9 +213,10 @@ func TestExtensionOriginAndFailureLog(t *testing.T) {
 	if err := a.db.QueryRow("SELECT source FROM login_logs WHERE success=0 ORDER BY id DESC LIMIT 1").Scan(&source); err != nil || source != "extension" {
 		t.Fatal(source, err)
 	}
-	// Extension origin must not weaken the web API's existing Origin guard.
+	// Browser requests marked cross-site still use the extension API.
 	r := httptest.NewRequest("POST", "/api/auth/login", strings.NewReader(`{"username":"admin","password":"wrong123"}`))
 	r.Header.Set("Origin", testExtensionOrigin)
+	r.Header.Set("Sec-Fetch-Site", "cross-site")
 	r.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, r)

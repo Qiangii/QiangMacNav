@@ -12,7 +12,7 @@
 
 ## 群晖 Container Manager 首次启用
 
-使用已发布的 `v1.0.1` 即可启用。下载仓库中的[群晖项目配置](../compose.synology.yaml)，在 File Station 中保存为 `docker/QiangMacNav/compose.yaml`。同一个项目会启动网站和 updater。
+下载仓库中的[群晖项目配置](../compose.synology.yaml)，在 File Station 中保存为 `docker/QiangMacNav/compose.yaml`。同一个项目会启动网站和 updater。
 
 1. 在项目目录中准备 `data` 和 `updates` 两个文件夹。如果已有网站，先在旧容器的「存储空间」中核对 `/data` 对应的 NAS 文件夹，再停止旧容器并备份整个数据文件夹。新项目要使用原文件夹；如果旧容器名为 `harbor-navigation`，停止后将其改名，给项目腾出名称。
 2. 在 `compose.yaml` 旁创建名为 `.env` 的纯文本文件。按实际情况填写下方配置，保留原站点端口、反向代理等设置。用密码管理器生成至少 32 个字符的随机字母和数字，填入 `UPDATER_TOKEN`。网站和 updater 都会读取这一个值。
@@ -42,7 +42,7 @@ NAVIGATION_IMAGE=ghcr.io/qiangii/qiangmacnav:latest
 UPDATER_TOKEN=
 ```
 
-保留原DATA_DIR、HOST_PORT、APP_ORIGIN和可信代理配置。SETUP_TOKEN可选，配置后仅用于首次创建管理员，已有账号时不参与更新。UPDATER_TOKEN只在后端与updater之间使用，不进入浏览器；可用`openssl rand -hex 32`生成。UPDATE_IMAGE不含标签或digest。在线更新通道使用`:latest`；默认本地构建通道`harbor-navigation:local`也支持，不将固定版本标签悄悄改为新版本。
+保留原DATA_DIR、HOST_PORT和可信代理配置。SETUP_TOKEN可选，配置后仅用于首次创建管理员，已有账号时不参与更新。UPDATER_TOKEN只在后端与updater之间使用，不进入浏览器；可用`openssl rand -hex 32`生成。UPDATE_IMAGE不含标签或digest。在线更新通道使用`:latest`；默认本地构建通道`harbor-navigation:local`也支持，不将固定版本标签悄悄改为新版本。
 
 主应用和updater共用默认源解析：UPDATE_REPOSITORY空值采用项目仓库，其镜像未填写时采用上述GHCR地址；自定义仓库必须填写对应UPDATE_IMAGE。首次发布前保持NAVIGATION_IMAGE未设置，继续从本地源码构建，不能拉取尚不存在的镜像。默认源仅允许检查，在线安装仍要求有效稳定版清单、镜像摘要和可用updater。
 

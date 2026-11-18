@@ -40,7 +40,6 @@ services:
       io.qiangmacnav.update.channel: ghcr.io/qiangii/qiangmacnav:latest
     environment:
       SETUP_TOKEN: ${SETUP_TOKEN:-}
-      APP_ORIGIN: ${APP_ORIGIN:-}
       TRUST_PROXY: ${TRUST_PROXY:-false}
       TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
       UPDATER_URL: http://updater:8090

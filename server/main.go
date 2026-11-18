@@ -33,7 +33,6 @@ import (
 type app struct {
 	db             *sql.DB
 	setupToken     string
-	appOrigin      string
 	trustProxy     bool
 	trustedProxies []*net.IPNet
 	mu             sync.Mutex
@@ -149,31 +148,20 @@ func (a *app) registration() (bool, bool, error) {
 	return count > 0, enabled == "true", err
 }
 
-func (a *app) checkOrigin(next http.Handler) http.Handler {
+func checkWebRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" && r.Method != "HEAD" && r.Method != "OPTIONS" {
-			origin := r.Header.Get("Origin")
-			if origin == "" {
-				fail(w, 403, "Origin required")
+			// The browser knows the public origin even when a proxy rewrites Host.
+			switch r.Header.Get("Sec-Fetch-Site") {
+			case "cross-site", "same-site":
+				fail(w, 403, "请在当前网站页面中操作")
 				return
 			}
-			expected := a.appOrigin
-			if expected == "" {
-				scheme := "http"
-				if a.secure(r) {
-					scheme = "https"
-				}
-				expected = scheme + "://" + r.Host
-			}
-			if origin != strings.TrimRight(expected, "/") {
-				fail(w, 403, "Origin not allowed")
+			imageUpload := r.Method == "POST" && r.URL.Path == "/api/media" && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
+			if !imageUpload && !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+				fail(w, 415, "Content-Type must be application/json")
 				return
 			}
-		}
-		imageUpload := r.Method == "POST" && r.URL.Path == "/api/media" && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
-		if r.Method != "GET" && r.Method != "HEAD" && r.Method != "OPTIONS" && !imageUpload && !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
-			fail(w, 415, "Content-Type must be application/json")
-			return
 		}
 		next.ServeHTTP(w, r)
 	})
@@ -1202,7 +1190,7 @@ func (a *app) routes(staticDir string) http.Handler {
 		})
 	})
 	r.Route("/api", func(api chi.Router) {
-		api.Use(a.checkOrigin)
+		api.Use(checkWebRequest)
 		api.Use(a.updateMaintenance)
 		api.Get("/version", a.version)
 		api.Get("/bootstrap", a.bootstrap)
@@ -1303,7 +1291,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	a := &app{db: db, setupToken: token, appOrigin: os.Getenv("APP_ORIGIN"), trustProxy: os.Getenv("TRUST_PROXY") == "true", trustedProxies: proxies}
+	a := &app{db: db, setupToken: token, trustProxy: os.Getenv("TRUST_PROXY") == "true", trustedProxies: proxies}
 	a.updates = &updateService{source: updates.SourceFromEnv(), url: os.Getenv("UPDATER_URL"), token: os.Getenv("UPDATER_TOKEN"), maintenanceFile: os.Getenv("UPDATE_MAINTENANCE_FILE")}
 	port := os.Getenv("PORT")
 	if port == "" {

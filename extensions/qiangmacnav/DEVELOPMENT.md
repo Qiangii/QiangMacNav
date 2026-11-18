@@ -15,7 +15,7 @@
 | 未分类的 categoryId 为 null | siteInput | 提供「未分类」收藏目标 |
 | 登录日志个人隔离，管理员可看全站 | accounts.go | 明确记录和展示 web / extension 来源 |
 | 改密、重置、禁用和退出其他设备撤销会话 | accounts.go | 插件沿用 sessions 表和撤销链路 |
-| 网页 Cookie + Origin 同源检查 + 严格 JSON | checkOrigin、requireUser | 独立 Bearer API，不扩大网页白名单 |
+| 网页 Cookie、Sec-Fetch-Site 和严格 JSON | checkWebRequest、requireUser | 独立 Bearer API |
 
 管理员身份不授予读取其他用户私有导航或编辑其他管理员共享分类的权限。网站的 Dock、桌面快捷方式、分类 Launchpad、排序、媒体库和偏好仍由网页管理；插件聚焦浏览与收藏。
 
@@ -48,7 +48,7 @@ extensions/qiangmacnav/
 
 请求使用 credentials:omit、redirect:error、cache:no-store 和 15 秒超时。仅 401 清除登录；503、429 和网络失败保留会话。退出失败仍清除本机登录，但提示服务器会话未确认撤销，可在网页「退出其他设备」撤销。
 
-Origin 非空时只接受合法 `chrome-extension://<32 位 a–p ID>`，精确回显 Origin，不开放凭据 CORS。OPTIONS 允许 GET / POST 及 Authorization / Content-Type。无 Origin 的非浏览器客户端可用密码 / Bearer 协议；扩展 Origin **不是身份凭据**，权限不依赖扩展 ID。网页同源校验保持，不需要把插件加入 APP_ORIGIN。
+Origin 非空时只接受合法 `chrome-extension://<32 位 a–p ID>`，精确回显 Origin，不开放凭据 CORS。OPTIONS 允许 GET / POST 及 Authorization / Content-Type。无 Origin 的非浏览器客户端可用密码 / Bearer 协议；扩展 Origin **不是身份凭据**，权限不依赖扩展 ID。
 
 ## API 契约
 

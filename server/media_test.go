@@ -153,6 +153,7 @@ func TestInvalidMediaDoesNotPersist(t *testing.T) {
 	r.AddCookie(admin)
 	r.Header.Set("Content-Type", "multipart/form-data; boundary=test")
 	r.Header.Set("Origin", "http://other.example")
+	r.Header.Set("Sec-Fetch-Site", "same-site")
 	csrf := httptest.NewRecorder()
 	h.ServeHTTP(csrf, r)
 	if csrf.Code != 403 {

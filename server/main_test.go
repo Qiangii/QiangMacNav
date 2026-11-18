@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -213,10 +214,36 @@ func TestNavigationOwnershipAndOrdering(t *testing.T) {
 	}
 }
 
+func TestRegistrationThroughProxyAndLAN(t *testing.T) {
+	for _, tc := range []struct{ name, origin, fetchSite string }{
+		{"proxy", "https://nav.example.org", "same-origin"},
+		{"lan", "http://192.168.1.20:8088", ""},
+		{"no-origin", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, h := testApp(t)
+			r := httptest.NewRequest("POST", "http://navigation:8080/api/auth/register", strings.NewReader(`{"name":"Admin","username":"admin","password":"SafePassword123!","setupToken":"setup-secret"}`))
+			if tc.origin != "" {
+				r.Header.Set("Origin", tc.origin)
+			}
+			if tc.fetchSite != "" {
+				r.Header.Set("Sec-Fetch-Site", tc.fetchSite)
+			}
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			if w.Code != http.StatusCreated {
+				t.Fatalf("register: %d %s", w.Code, w.Body)
+			}
+		})
+	}
+}
+
 func TestRejectCrossOriginMutation(t *testing.T) {
 	_, h := testApp(t)
 	r := httptest.NewRequest("POST", "/api/auth/register", bytes.NewBufferString(`{}`))
 	r.Header.Set("Origin", "https://other.example")
+	r.Header.Set("Sec-Fetch-Site", "cross-site")
 	r.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, r)
