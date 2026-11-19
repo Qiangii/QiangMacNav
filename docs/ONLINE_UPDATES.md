@@ -2,7 +2,15 @@
 
 版本源文件为 `server/internal/buildinfo/version.txt`。管理员可在“系统设置 → 系统更新”查看运行版本、检查新版或打开项目仓库。发布构建同时记录提交和构建时间。
 
-## 当前能力与启用条件
+## 单容器网页升级
+
+在群晖「映像 → 运行」使用镜像默认启动命令，把站点专用文件夹读写挂载到 `/data`，映射网站端口即可。网站管理员在「系统设置 → 系统更新」点击「检查更新」，有更高版本时选择「在线升级」。外部 updater、Docker socket 和用户配置的密钥都是整容器替换模式使用的配置项。
+
+启动器以普通用户运行，按 CPU 架构下载同一 GitHub Release 下的 `navigation-linux-amd64.tar.gz` 或 `navigation-linux-arm64.tar.gz`，根据 `update.json` 校验 SHA-256。安装前停止网站并备份 SQLite，恢复写入前检查新程序报告的版本和网站接口。如果验证失败或在验证过程中重启，启动器恢复之前的网站和数据库。`/data/.navigation-updates` 存放安装状态、网站版本和数据库备份，迁移 NAS 时请备份整个 `/data`。正常重启后继续运行已安装的网站版本。基础系统与启动器由镜像提供，要升级这两项请手动拉取新镜像并沿用数据目录重建。
+
+本系列初始版本为 `v1.0.0`。之前安装的镜像需要手动更换一次。刚发布初始版时，页面显示已是最新版；以后发布的版本须包含对应架构的升级包和摘要。
+
+## 可选的整容器升级模式
 
 - 管理员可检查 GitHub 最新稳定版，查看说明，确认后升级前端和 Go 服务。普通用户无法调用管理接口。
 - 单实例 Docker Compose 部署使用独立 updater 服务替换应用容器，保留端口、环境变量、数据卷、网络及重启策略。主应用继续以10001:10001运行，不挂载Docker socket。
@@ -10,7 +18,7 @@
 - 升级器使用Docker API v1.41（Docker20.10及以上且支持该API）；目前在Docker Desktop29.3.1的Linux容器环境验证。默认目标容器为harbor-navigation，数据库必须为/data/navigation.db，updater必须挂载同一/data。
 - 原生Go运行可检查版本，但不执行自替换。Kubernetes/Swarm、多副本共享数据库、私有GitHub/GHCR认证及跨升级协议版本迁移不在当前在线升级范围。
 
-## 群晖 Container Manager 首次启用
+## 群晖项目启用整容器升级
 
 下载仓库中的[群晖项目配置](../compose.synology.yaml)，在 File Station 中保存为 `docker/QiangMacNav/compose.yaml`。同一个项目会启动网站和 updater。
 
@@ -27,7 +35,7 @@
 3. 打开 Container Manager → 项目 → 新增，选择项目目录和其中的 `compose.yaml`，然后启动。`data-init` 以退出码 `0` 停止表示数据权限准备完成。`navigation` 和 `updater` 应持续运行。项目内部使用 `8090`，NAS 只需对外提供网站端口。
 4. 打开 `http://群晖IP:8088`（或原站点地址）。迁移旧站时，用原管理员账号登录并确认导航数据。进入「系统设置 → 系统更新」点击「检查更新」。如果页面提示需要启用 Docker 升级服务，先在项目中查看 updater 日志；发布了更高版本且 updater 就绪时，「在线升级」按钮可用。
 
-## 使用命令行首次启用
+## 使用命令行启用整容器升级
 
 原有单容器需先按新配置重建一次。之后兼容升级协议的应用版本可从网页升级。
 
@@ -63,7 +71,7 @@ Compose文件新增了updater和持久卷navigation-updates，原navigation-data
 
 updater需要Docker socket权限，因此可以控制该Docker守护进程，属于高权限组件。它不发布8090端口，只允许携带私密token访问固定的状态/升级/恢复接口，并限制预配置的目标容器和镜像仓库。不要将socket挂到主应用，也不要把updater端口映射到公网。此权限是替换应用容器所必需的部署选择。
 
-## 网页流程
+## 整容器模式的网页流程
 
 1. 管理员打开系统设置，点击左侧“系统更新”。页面显示项目GitHub仓库入口及当前运行版本。
 2. 点击“检查更新”；成功结果缓存30秒，网络失败明确通知，可重试。只接受x.y.z稳定版，自动排除预发布、草稿、无清单或不兼容协议。
@@ -95,13 +103,17 @@ updater需要Docker socket权限，因此可以控制该Docker守护进程，属
 1. 修改`server/internal/buildinfo/version.txt`，使用递增的稳定版本，例如1.1.0。源码本地Docker构建时传`APP_VERSION=1.1.0`，或在`.env`同步该构建参数；构建会验证参数与源文件一致。
 2. 将发布提交推送到 GitHub，再为该提交推送与源文件版本一致的新标签，例如 `v1.1.0`。
 3. 工作流运行网页与插件的类型检查、测试及构建，运行 Go 测试与 vet，随后构建 `linux/amd64` 和 `linux/arm64` 镜像，推送版本标签及 `latest`。
-4. GitHub Release 附带已构建插件 ZIP 及 `update.json`。清单记录多架构镜像摘要。
+4. GitHub Release 附带插件 ZIP、两个架构的网站升级包及 `update.json`。清单记录镜像摘要和每个压缩包的 SHA-256。
 
 ```json
 {
   "version": "1.1.0",
   "digest": "sha256:这里是64位十六进制镜像摘要",
-  "protocol": 1
+  "protocol": 1,
+  "bundles": {
+    "linux-amd64": "sha256:AMD64升级包的64位十六进制摘要",
+    "linux-arm64": "sha256:ARM64升级包的64位十六进制摘要"
+  }
 }
 ```
 
@@ -109,7 +121,7 @@ updater需要Docker socket权限，因此可以控制该Docker守护进程，属
 
 版本源在Go二进制中嵌入；CI将提交和构建时间注入二进制，Docker镜像有版本/协议标签。应用镜像包含updater二进制；当前运行的独立updater保持原兼容协议，若升级器本身需要更新，用上述pull/up命令重建两个服务。协议不兼容时拒绝在线升级。
 
-## 备份与故障恢复
+## 整容器模式的备份与故障恢复
 
 任务状态存于updater的/state/job.json，备份存于/state/backups/任务ID/。该目录来自navigation-updates卷，重启updater仍保留状态和备份。备份使用停止数据库后的完整文件复制，避免仅复制主库而丢失WAL内容。
 

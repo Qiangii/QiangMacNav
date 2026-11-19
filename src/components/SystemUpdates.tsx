@@ -85,7 +85,7 @@ export function SystemUpdates() {
     {!status && !error && <p role="status">正在读取版本信息…</p>}
     {status && <>
       <dl className="update-versions"><div><dt>当前版本</dt><dd>v{status.current.version}</dd></div><div><dt>最新稳定版</dt><dd>{status.latest ? `v${status.latest.version}` : '尚未检查'}</dd></div></dl>
-      {!status.configured ? <p className="update-help">{status.configurationMessage || '发布源配置不完整，请检查发布仓库和镜像地址。'}</p> : !status.updater.available && <p className="update-help">{status.updater.message}。检查更新仍可使用，在线安装需要启用 Docker 升级服务。</p>}
+      {!status.configured ? <p className="update-help">{status.configurationMessage || '发布源配置不完整，请检查发布仓库和镜像地址。'}</p> : !status.updater.available && <p className="update-help">{status.updater.message}。单容器部署请使用支持网页升级的镜像、默认启动命令和可写的 /data。</p>}
       {status.checkedAt && <p className="update-checked">上次检查：{new Date(status.checkedAt).toLocaleString()}</p>}
       {watch && !job && <p role="status">正在重新确认升级状态，请稍候…</p>}
       {job && <div className={`update-job update-job-${job.stage}`} role="status" aria-live="polite">
@@ -97,7 +97,7 @@ export function SystemUpdates() {
         {complete && <MacButton variant="primary" onClick={() => window.location.reload()}>刷新使用新版本</MacButton>}
       </div>}
       {status.latest && <details className="update-release"><summary>v{status.latest.version} 更新说明</summary><p>{status.latest.notes || '此版本未提供更新说明。'}</p><a href={status.latest.url} target="_blank" rel="noopener noreferrer">查看版本发布页</a></details>}
-      <p className="update-help">升级会先下载镜像，再短暂停止服务并备份数据。新版本启动检查失败时自动恢复上一版本。请在开始前保存正在编辑的内容。</p>
+      <p className="update-help">升级会先下载新版本，再短暂停止服务并备份数据。新版本启动检查失败时自动恢复上一版本。请在开始前保存正在编辑的内容。</p>
     </>}
     {confirm && status?.latest && <ConfirmDialog title={`升级到 v${status.latest.version}？`} description="将更新整套系统。下载完成后会暂停服务、备份数据并重启；窗口可以关闭，升级会继续在后台进行。" confirmLabel="备份并升级" busyLabel="正在创建升级任务…" onClose={() => setConfirm(false)} onConfirm={install} />}
   </section>;

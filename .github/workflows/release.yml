@@ -71,6 +71,22 @@ jobs:
             APP_VERSION=${{ steps.metadata.outputs.version }}
             BUILD_COMMIT=${{ github.sha }}
             BUILD_TIME=${{ steps.metadata.outputs.time }}
+      - name: Package website programs from the published image
+        env:
+          IMAGE: ${{ steps.metadata.outputs.image }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            root=$(mktemp -d)
+            docker pull --platform "linux/$arch" "$IMAGE@$DIGEST"
+            cid=$(docker create --platform "linux/$arch" "$IMAGE@$DIGEST")
+            docker cp "$cid:/app/navigation" "$root/navigation"
+            docker cp "$cid:/app/dist" "$root/dist"
+            docker rm -v "$cid"
+            test -s "$root/dist/index.html"
+            tar -C "$root" -czf "navigation-linux-$arch.tar.gz" navigation dist
+          done
       - name: Publish stable release and digest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,5 +94,7 @@ jobs:
           DIGEST: ${{ steps.image.outputs.digest }}
         run: |
           [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
-          jq -n --arg version "$VERSION" --arg digest "$DIGEST" '{version:$version,digest:$digest,protocol:1}' > update.json
-          gh release create "$GITHUB_REF_NAME" update.json qiangmacnav-extension.zip --verify-tag --generate-notes --title "QiangMacNav $VERSION"
+          checksum() { sha256sum "navigation-linux-$1.tar.gz" | cut -d ' ' -f 1; }
+          jq -n --arg version "$VERSION" --arg digest "$DIGEST" --arg amd "sha256:$(checksum amd64)" --arg arm "sha256:$(checksum arm64)" \
+            '{version:$version,digest:$digest,protocol:1,bundles:{"linux-amd64":$amd,"linux-arm64":$arm}}' > update.json
+          gh release create "$GITHUB_REF_NAME" update.json navigation-linux-{amd64,arm64}.tar.gz qiangmacnav-extension.zip --verify-tag --generate-notes --title "QiangMacNav $VERSION"

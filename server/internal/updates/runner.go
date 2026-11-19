@@ -437,7 +437,7 @@ func (r *Runner) clearMaintenance(id string) error {
 	return os.Remove(path)
 }
 
-var databaseFiles = []string{"navigation.db", "navigation.db-wal", "navigation.db-shm"}
+var databaseFiles = []string{"navigation.db", "navigation.db-wal", "navigation.db-shm", "navigation.db-journal"}
 
 func copyFile(source, target string, restore bool) error {
 	info, err := os.Lstat(source)
@@ -489,6 +489,10 @@ func (r *Runner) backup(id string) error {
 }
 
 func (r *Runner) restore(id string) error {
+	return r.restoreOwned(id, true)
+}
+
+func (r *Runner) restoreOwned(id string, chown bool) error {
 	dir := filepath.Join(r.StateDir, "backups", id)
 	for i, name := range databaseFiles {
 		source, target := filepath.Join(dir, name), filepath.Join(r.DataDir, name)
@@ -502,7 +506,7 @@ func (r *Runner) restore(id string) error {
 		if err := os.Remove(target + ".tmp"); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		if err := copyFile(source, target, true); err != nil {
+		if err := copyFile(source, target, chown); err != nil {
 			return err
 		}
 	}

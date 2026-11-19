@@ -3,11 +3,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"syscall"
+
+	"navigation/server/internal/updates"
 )
 
 const appID = 10001
@@ -78,5 +82,12 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	log.Fatal(syscall.Exec("/app/navigation", append([]string{"/app/navigation"}, os.Args[1:]...), os.Environ()))
+	if os.Getenv("UPDATER_URL") != "" || os.Getenv("DB_PATH") != "/data/navigation.db" {
+		log.Fatal(syscall.Exec("/app/navigation", append([]string{"/app/navigation"}, os.Args[1:]...), os.Environ()))
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
+	if err := updates.Supervise(ctx, "/data", "/app", updates.SourceFromEnv()); err != nil {
+		log.Fatal(err)
+	}
 }

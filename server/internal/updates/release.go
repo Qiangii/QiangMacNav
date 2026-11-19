@@ -54,18 +54,34 @@ func Newer(next, current string) bool {
 }
 
 type Release struct {
-	Version     string `json:"version"`
-	Digest      string `json:"digest"`
-	Protocol    int    `json:"protocol"`
-	Notes       string `json:"notes"`
-	URL         string `json:"url"`
-	PublishedAt string `json:"publishedAt"`
+	Bundles     map[string]string `json:"bundles,omitempty"`
+	Version     string            `json:"version"`
+	Digest      string            `json:"digest"`
+	Protocol    int               `json:"protocol"`
+	Notes       string            `json:"notes"`
+	URL         string            `json:"url"`
+	PublishedAt string            `json:"publishedAt"`
 }
 
 type Source struct {
 	Repository string
 	Image      string
 	Client     *http.Client
+}
+
+func (s Source) httpClient() *http.Client {
+	if s.Client != nil {
+		return s.Client
+	}
+	return &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) < 4 && req.URL.Scheme == "https" {
+			switch req.URL.Hostname() {
+			case "github.com", "api.github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com":
+				return nil
+			}
+		}
+		return errors.New("更新源重定向无效")
+	}}
 }
 
 func (s Source) Validate() error {
@@ -84,19 +100,7 @@ func (s Source) Fetch(ctx context.Context) (*Release, error) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	client := s.Client
-	if client == nil {
-		client = &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 4 || req.URL.Scheme != "https" {
-				return errors.New("更新源重定向无效")
-			}
-			switch req.URL.Hostname() {
-			case "github.com", "api.github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com":
-				return nil
-			}
-			return errors.New("更新源重定向无效")
-		}}
-	}
+	client := s.httpClient()
 	get := func(url string, target any) error {
 		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 		if err != nil {

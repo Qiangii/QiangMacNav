@@ -26,7 +26,7 @@ QiangMacNav 是一个 macOS 风格的自托管导航页。你可以在网页桌�
 3. 保留镜像默认启动命令和用户。启动器会准备 `/data` 和已有 SQLite 文件的权限，然后以 `10001:10001` 运行网站。若 NAS 的 ACL 或网络文件系统禁止修改所有者，可使用 Docker 命名卷或预先为该身份授予写权限。
 4. 打开 `http://群晖IP:8088` 创建管理员。如需限制首次注册，在启动前设置 `SETUP_TOKEN`。
 
-单容器用户可在 Container Manager 中下载新版并重建容器，沿用同一 `/data`。需要网页一键升级时，在「项目」中导入 [群晖项目配置](compose.synology.yaml)，配置 `UPDATER_TOKEN`，并将 `DATA_DIR` 指向同一专用文件夹。该项目会启动网站和独立 updater。[在线更新说明](docs/ONLINE_UPDATES.md)
+管理员可直接进入「系统设置 → 系统更新」检查并安装新版本。只需持久化 `/data`，网站程序、前端资源和升级前的数据库备份都保存在该目录。实际运行版本见网页，群晖显示创建容器时的镜像标签。[在线更新说明](docs/ONLINE_UPDATES.md)
 
 ### 从源码构建
 
@@ -129,6 +129,6 @@ bootstrap 的 `setupRequired` 表示尚无账号，需要创建首个管理员�
 
 备份前停止服务，复制整个数据库目录，保留存在的 `navigation.db-wal` 和 `navigation.db-shm`。更新程序时保留数据卷；`docker compose down -v` 会删除命名卷中的数据。
 
-版本号取自 `server/internal/buildinfo/version.txt`。发布工作流在推送匹配的 `vX.Y.Z` 标签时构建多架构镜像、插件 ZIP 和 `update.json`。公开发布后可使用 `ghcr.io/qiangii/qiangmacnav:latest`。管理员要从网页安装更新，还需启用 `compose.updates.yaml`，并为应用和 updater 配置同一个 `UPDATER_TOKEN`。[在线更新、首次发布与故障恢复](docs/ONLINE_UPDATES.md)
+版本号取自 `server/internal/buildinfo/version.txt`。推送匹配的 `vX.Y.Z` 标签后，发布流程从同一次构建的镜像提取 AMD64 和 ARM64 网站升级包，连同插件 ZIP 和校验清单 `update.json` 发布。单容器默认启用程序升级。需要从网页替换整个容器的部署可使用 `compose.updates.yaml`。[在线更新、首次发布与故障恢复](docs/ONLINE_UPDATES.md)
 
 组件及交互约定见 [组件指南](docs/COMPONENTS.md)。本地素材和许可证见 [ASSET_NOTICES.md](ASSET_NOTICES.md)。
