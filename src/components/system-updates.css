@@ -24,6 +24,9 @@
 .update-job svg { flex: none; margin-top: 3px; }
 .update-job p { margin: 4px 0 0; color: var(--muted); }
 .update-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 17px 0; }
+.update-failure { margin: -7px 0 17px; padding: 9px 11px; border: 1px solid color-mix(in srgb, var(--feedback-error) 28%, var(--border)); border-radius: 8px; background: var(--feedback-error-bg); color: var(--feedback-error); overflow-wrap: anywhere; }
+.update-failure p { margin: 3px 0; white-space: pre-wrap; user-select: text; }
+.update-failure small { color: var(--muted); }
 .update-release { border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 20px; }
 .update-release summary { cursor: pointer; }
 .update-release a { color: #438bea; }

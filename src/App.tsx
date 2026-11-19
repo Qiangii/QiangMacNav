@@ -89,7 +89,7 @@ export default function App() {
   const layoutRef = useSortLayout([(draft ?? data)?.categories, (draft ?? data)?.sites, (draft ?? data)?.sidebarOrder, phase, selectedCategory, query, finderOpen, finderMinimized]);
   const searchRef = useRef<HTMLInputElement>(null);
   const sessionVersion = useRef(0);
-  const dragInteraction = useNavigationDrag(data?.preferences.navigationDragMode ?? 'longPress');
+  const dragInteraction = useNavigationDrag(data?.preferences.navigationDragMode ?? 'handle');
   const sensors = useNavigationSensors(dragInteraction.mode);
   const view = useMemo(() => navigationView(data, draft ?? data, selectedCategory), [data, draft ?? data, selectedCategory]);
   const searching = !!query.trim();

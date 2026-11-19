@@ -9,10 +9,11 @@ import (
 )
 
 type Status struct {
-	UploadArch string `json:"uploadArch,omitempty"`
-	Available  bool   `json:"available"`
-	Message    string `json:"message"`
-	Job        *Job   `json:"job"`
+	LocalUpload bool   `json:"localUpload,omitempty"`
+	UploadArch  string `json:"uploadArch,omitempty"`
+	Available   bool   `json:"available"`
+	Message     string `json:"message"`
+	Job         *Job   `json:"job"`
 }
 
 func Handler(runner *Runner, token string) http.Handler {

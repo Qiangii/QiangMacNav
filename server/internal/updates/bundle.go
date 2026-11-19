@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"net/http"
 	"os"
@@ -45,7 +46,7 @@ func (s Source) downloadBundle(ctx context.Context, r *Release, dir string) erro
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("下载升级包失败（HTTP %d）", res.StatusCode)
 	}
-	f, err := verifiedBundle(dir, res.Body, digest)
+	f, err := stageBundle(dir, res.Body, digest)
 	if err != nil {
 		return err
 	}
@@ -54,15 +55,23 @@ func (s Source) downloadBundle(ctx context.Context, r *Release, dir string) erro
 	return extractBundle(f, dir)
 }
 
-// Only a complete archive matching the trusted release manifest is returned.
-func verifiedBundle(dir string, body io.Reader, digest string) (*os.File, error) {
+// Downloads and legacy manifest-based uploads supply a digest. Local uploads do not.
+func stageBundle(dir string, body io.Reader, digest string) (*os.File, error) {
 	f, err := os.CreateTemp(dir, ".bundle-")
 	if err != nil {
 		return nil, err
 	}
-	h := sha256.New()
-	n, err := io.Copy(io.MultiWriter(f, h), io.LimitReader(body, MaxBundleBytes+1))
-	if err == nil && (n > MaxBundleBytes || fmt.Sprintf("sha256:%x", h.Sum(nil)) != digest) {
+	var dst io.Writer = f
+	var h hash.Hash
+	if digest != "" {
+		h = sha256.New()
+		dst = io.MultiWriter(f, h)
+	}
+	n, err := io.Copy(dst, io.LimitReader(body, MaxBundleBytes+1))
+	if err == nil && (n == 0 || n > MaxBundleBytes) {
+		err = errors.New("请选择非空且不超过 256 MiB 的安装包")
+	}
+	if err == nil && h != nil && fmt.Sprintf("sha256:%x", h.Sum(nil)) != digest {
 		err = errors.New("升级包大小或 SHA-256 校验失败，请选择对应版本和架构的完整安装包")
 	}
 	if err == nil {
@@ -121,6 +130,10 @@ func extractBundle(archive io.Reader, dir string) error {
 		default:
 			return errors.New("升级包包含不支持的文件类型")
 		}
+	}
+	// tar can finish before gzip has read its trailer. Check it before stopping the old site.
+	if n, err := io.Copy(io.Discard, io.LimitReader(gz, remaining+1)); err != nil || n > remaining {
+		return errors.New("安装包压缩数据不完整或超出大小限制")
 	}
 	for _, name := range []string{"navigation", "dist/index.html"} {
 		info, err := os.Stat(filepath.Join(dir, name))

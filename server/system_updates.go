@@ -172,13 +172,6 @@ func (a *app) uploadSystemUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := a.updateService()
-	s.mu.Lock()
-	latest := s.latest
-	s.mu.Unlock()
-	if latest == nil || latest.Version != r.URL.Query().Get("version") || !updates.Newer(latest.Version, buildinfo.Version()) {
-		fail(w, 409, "请先检查更新并选择对应版本的安装包")
-		return
-	}
 	if r.ContentLength > updates.MaxBundleBytes || r.ContentLength == 0 {
 		fail(w, 400, "请选择不超过 256 MiB 的网站安装包")
 		return
@@ -196,9 +189,22 @@ func (a *app) uploadSystemUpdate(w http.ResponseWriter, r *http.Request) {
 		fail(w, 409, "已有升级任务正在处理")
 		return
 	}
-	digest := latest.Bundles["linux-"+status.UploadArch]
-	if digest == "" {
-		fail(w, 409, "发布清单缺少当前架构的升级包")
+	path := "/upload-local"
+	headers := http.Header{"Content-Type": {"application/octet-stream"}}
+	if version := r.URL.Query().Get("version"); version != "" {
+		// Preserve the manifest check requested by pre-local-upload clients.
+		s.mu.Lock()
+		latest := s.latest
+		s.mu.Unlock()
+		if latest == nil || latest.Version != version || !updates.Newer(version, buildinfo.Version()) || latest.Bundles["linux-"+status.UploadArch] == "" {
+			fail(w, 409, "请先检查更新并选择对应版本的安装包")
+			return
+		}
+		path = "/upload"
+		headers.Set("X-Release-Version", version)
+		headers.Set("X-Bundle-Digest", latest.Bundles["linux-"+status.UploadArch])
+	} else if !status.LocalUpload {
+		fail(w, 409, "请更新单容器镜像以启用本地安装包升级")
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Minute)
@@ -207,9 +213,8 @@ func (a *app) uploadSystemUpdate(w http.ResponseWriter, r *http.Request) {
 	controller := http.NewResponseController(w)
 	_ = controller.SetReadDeadline(deadline)
 	_ = controller.SetWriteDeadline(deadline)
-	headers := http.Header{"Content-Type": {"application/octet-stream"}, "X-Release-Version": {latest.Version}, "X-Bundle-Digest": {digest}}
 	var job updates.Job
-	if err := s.sendUpstream(ctx, "POST", "/upload", http.MaxBytesReader(w, r.Body, updates.MaxBundleBytes), headers, &job); err != nil {
+	if err := s.sendUpstream(ctx, "POST", path, http.MaxBytesReader(w, r.Body, updates.MaxBundleBytes), headers, &job); err != nil {
 		code := http.StatusBadGateway
 		var upstreamError updaterResponseError
 		if errors.As(err, &upstreamError) && (upstreamError.status == 400 || upstreamError.status == 409) {

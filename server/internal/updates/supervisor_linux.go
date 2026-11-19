@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/subtle"
+	"debug/elf"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -174,7 +175,7 @@ func (s *supervisor) stop() {
 	s.exited = nil
 }
 
-func (s *supervisor) healthy(ctx context.Context, version string) error {
+func (s *supervisor) healthy(ctx context.Context, expected string) (string, error) {
 	host := os.Getenv("HOST")
 	if host == "" || host == "0.0.0.0" {
 		host = "127.0.0.1"
@@ -207,16 +208,21 @@ func (s *supervisor) healthy(ctx context.Context, version string) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return "", ctx.Err()
 		case <-s.exited:
-			return errors.New("新版网站进程提前退出")
+			return "", errors.New("新版网站进程提前退出")
 		case <-deadline.C:
-			return errors.New("新版网站健康检查超时")
+			return "", errors.New("新版网站健康检查超时")
 		case <-ticker.C:
 			var info buildinfo.Info
 			var bootstrap map[string]any
-			if probe("/api/version", &info) && info.Version == version && probe("/api/bootstrap", &bootstrap) {
-				return nil
+			if probe("/api/version", &info) {
+				if !Newer(info.Version, s.version()) || (expected != "" && info.Version != expected) {
+					return "", errors.New("安装包版本不匹配或未高于当前版本")
+				}
+				if probe("/api/bootstrap", &bootstrap) {
+					return info.Version, nil
+				}
 			}
 		}
 	}
@@ -237,6 +243,17 @@ func (s *supervisor) install(ctx context.Context, req installRequest) error {
 	}
 	if err != nil {
 		return err
+	}
+	if req.archive != nil {
+		binary, err := elf.Open(filepath.Join(dir, "navigation"))
+		if err != nil {
+			return errors.New("安装包缺少有效的 Linux 网站程序")
+		}
+		machine := binary.Machine
+		binary.Close()
+		if (runtime.GOARCH == "amd64" && machine != elf.EM_X86_64) || (runtime.GOARCH == "arm64" && machine != elf.EM_AARCH64) {
+			return errors.New("安装包架构不适用于当前设备")
+		}
 	}
 	if err := s.stage("backing_up", "正在备份数据库"); err != nil {
 		return err
@@ -262,10 +279,12 @@ func (s *supervisor) install(ctx context.Context, req installRequest) error {
 	if err := s.start(next); err != nil {
 		return err
 	}
-	if err := s.healthy(ctx, r.Version); err != nil {
+	next.Version, err = s.healthy(ctx, r.Version)
+	if err != nil {
 		return err
 	}
 	completed := *state.Job
+	completed.Version = next.Version
 	completed.Stage, completed.Message, completed.UpdatedAt = "succeeded", "网站已升级，请刷新页面", time.Now().UTC()
 	state.Active = next
 	state.Job = &completed
@@ -294,7 +313,7 @@ func (s *supervisor) run(ctx context.Context) error {
 		case <-s.exited:
 			return fmt.Errorf("网站进程已退出: %v", s.child.ProcessState)
 		case req := <-s.requests:
-			if !Newer(req.release.Version, s.version()) {
+			if req.release.Version != "" && !Newer(req.release.Version, s.version()) {
 				if req.archive != nil {
 					req.archive.Close()
 				}
@@ -312,7 +331,7 @@ func (s *supervisor) run(ctx context.Context) error {
 			now := time.Now().UTC()
 			job := Job{ID: hex.EncodeToString(id), Version: req.release.Version, StartedAt: now, UpdatedAt: now, Stage: "pulling", Message: "正在下载并校验网站升级包"}
 			if req.archive != nil {
-				job.Stage, job.Message = "queued", "安装包校验通过，正在准备安装"
+				job.Stage, job.Message = "queued", "安装包已上传，正在准备安装"
 			}
 			if err := s.save(installState{Active: s.state.Active, Job: &job}); err != nil {
 				if req.archive != nil {
@@ -371,15 +390,17 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" && r.URL.Path == "/status" {
 		s.mu.RLock()
 		defer s.mu.RUnlock()
-		_ = json.NewEncoder(w).Encode(Status{Available: true, UploadArch: runtime.GOARCH, Job: s.state.Job})
+		_ = json.NewEncoder(w).Encode(Status{Available: true, UploadArch: runtime.GOARCH, LocalUpload: true, Job: s.state.Job})
 		return
 	}
-	if r.Method == "POST" && r.URL.Path == "/upload" {
-		// The authenticated website sets these headers from its server-side release check.
-		version, digest := r.Header.Get("X-Release-Version"), r.Header.Get("X-Bundle-Digest")
-		if _, err := ParseVersion(version); err != nil || !digestPattern.MatchString(digest) {
-			fail(400, "安装包缺少有效的版本校验信息")
-			return
+	if r.Method == "POST" && (r.URL.Path == "/upload-local" || r.URL.Path == "/upload") {
+		var version, digest string
+		if r.URL.Path == "/upload" { // Older websites request a manifest-verified upload.
+			version, digest = r.Header.Get("X-Release-Version"), r.Header.Get("X-Bundle-Digest")
+			if _, err := ParseVersion(version); err != nil || !digestPattern.MatchString(digest) {
+				fail(400, "安装包缺少有效的版本校验信息")
+				return
+			}
 		}
 		if !s.upload.TryLock() {
 			fail(409, "已有安装包正在上传")
@@ -387,7 +408,7 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		defer s.upload.Unlock()
 		s.mu.RLock()
-		ready := !s.state.Job.Active() && Newer(version, s.version())
+		ready := !s.state.Job.Active() && (version == "" || Newer(version, s.version()))
 		s.mu.RUnlock()
 		if !ready {
 			fail(409, "版本已安装或正在升级")
@@ -397,7 +418,7 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		deadline := time.Now().Add(15 * time.Minute)
 		_ = controller.SetReadDeadline(deadline)
 		_ = controller.SetWriteDeadline(deadline)
-		archive, err := verifiedBundle(s.execDir, r.Body, digest)
+		archive, err := stageBundle(s.execDir, r.Body, digest)
 		if err != nil {
 			fail(400, err.Error())
 			return

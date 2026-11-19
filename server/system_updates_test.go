@@ -80,18 +80,24 @@ func TestPackageUploadRequiresCapableLauncherAndUsesCheckedManifest(t *testing.T
 	const version = "90.0.0"
 	digest := "sha256:" + strings.Repeat("a", 64)
 	var enabled atomic.Bool
+	var local atomic.Bool
 	var uploads atomic.Int32
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/status" {
 			status := updates.Status{Available: true}
 			if enabled.Load() {
 				status.UploadArch = "arm64"
+				status.LocalUpload = local.Load()
 			}
 			send(w, 200, status)
 			return
 		}
 		data, err := io.ReadAll(r.Body)
-		if r.URL.Path != "/upload" || err != nil || string(data) != body || r.Header.Get("X-Bundle-Digest") != digest || r.Header.Get("X-Release-Version") != version {
+		if r.URL.Path == "/upload-local" {
+			if err != nil || string(data) != body || r.Header.Get("X-Bundle-Digest") != "" || r.Header.Get("X-Release-Version") != "" {
+				t.Error("local upload must forward only the file")
+			}
+		} else if r.URL.Path != "/upload" || err != nil || string(data) != body || r.Header.Get("X-Bundle-Digest") != digest || r.Header.Get("X-Release-Version") != version {
 			t.Error("upload must use server-side release metadata and original bytes")
 		}
 		uploads.Add(1)
@@ -121,6 +127,14 @@ func TestPackageUploadRequiresCapableLauncherAndUsesCheckedManifest(t *testing.T
 	}
 	if code := upload(version); code != 202 || uploads.Load() != 1 {
 		t.Fatalf("package upload: HTTP %d", code)
+	}
+	a.updates.latest = nil
+	if upload("") != 409 {
+		t.Fatal("old launcher accepted local upload")
+	}
+	local.Store(true)
+	if code := upload(""); code != 202 || uploads.Load() != 2 {
+		t.Fatalf("offline upload: HTTP %d", code)
 	}
 }
 

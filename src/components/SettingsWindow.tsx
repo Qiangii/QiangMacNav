@@ -118,7 +118,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
           {section === 'security' && <SecuritySettings onChangePassword={() => setPasswordOpen(true)} />}
           {section === 'users' && user.role === 'admin' && <UserManagement key={userSearch} currentUser={user} search={userSearch} />}
           {section === 'logs' && user.role === 'admin' && <LoginLogs admin />}
-          {section === 'updates' && user.role === 'admin' && <SystemUpdates />}
+          {section === 'updates' && user.role === 'admin' && <SystemUpdates hidden={hidden} />}
           {error && <div className="settings-error" role="alert">{error}</div>}
           {section === 'account' && <><div className="settings-list">
             <ProfileSettings user={user} onUser={onUser} />
@@ -128,7 +128,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
           </div></>}
           {section === 'applications' && <>
             <h3 className="settings-subheading">网站导航</h3>
-            <div className="settings-list"><MacSettingChoice<Preferences['navigationDragMode']> label="网站导航排序方式" description="可长按分类标题或网站，也可使用拖拽标识排序" value={preferences.navigationDragMode ?? 'longPress'} options={[{ value: 'longPress', label: '长按' }, { value: 'handle', label: '拖拽标识' }]} disabled={busy} onChange={navigationDragMode => changePreferences({ ...preferences, navigationDragMode })} /><IconBackgroundSettings preferences={preferences} busy={busy} onChange={changePreferences} /></div>
+            <div className="settings-list"><MacSettingChoice<Preferences['navigationDragMode']> label="网站导航排序方式" description="可长按分类标题或网站，也可使用拖拽标识排序" value={preferences.navigationDragMode ?? 'handle'} options={[{ value: 'longPress', label: '长按' }, { value: 'handle', label: '标识' }]} disabled={busy} onChange={navigationDragMode => changePreferences({ ...preferences, navigationDragMode })} /><IconBackgroundSettings preferences={preferences} busy={busy} onChange={changePreferences} /></div>
             <DesktopSearchSettings preferences={preferences} busy={busy} hidden={hidden} onChange={changePreferences} />
           </>}
           {section === 'appearance' && <>

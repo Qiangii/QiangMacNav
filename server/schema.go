@@ -74,7 +74,7 @@ CREATE TABLE preferences (
  theme TEXT NOT NULL DEFAULT 'light' CHECK(theme IN ('light','dark')),
  wallpaper TEXT NOT NULL DEFAULT 'shinchan',
  titlebar_position TEXT NOT NULL DEFAULT 'left' CHECK(titlebar_position IN ('left','right')),
- navigation_drag_mode TEXT NOT NULL DEFAULT 'longPress' CHECK(navigation_drag_mode IN ('handle','longPress')),
+ navigation_drag_mode TEXT NOT NULL DEFAULT 'handle' CHECK(navigation_drag_mode IN ('handle','longPress')),
  wallpaper_url TEXT NOT NULL DEFAULT '',
  icon_background_enabled INTEGER NOT NULL DEFAULT 1 CHECK(icon_background_enabled IN (0,1)),
  icon_background_color TEXT NOT NULL DEFAULT '#f7f8fa',

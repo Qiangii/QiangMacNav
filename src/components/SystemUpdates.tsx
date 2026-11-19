@@ -10,10 +10,11 @@ import './system-updates.css';
 const running = (job?: UpdateJob | null) => !!job && ['queued', 'pulling', 'backing_up', 'replacing', 'starting', 'verifying', 'rolling_back'].includes(job.stage);
 const ReleaseNotes = lazy(() => import('./ReleaseNotes'));
 
-export function SystemUpdates() {
+export function SystemUpdates({ hidden = false }: { hidden?: boolean }) {
   const [status, setStatus] = useState<SystemUpdateStatus>();
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
+  const [failure, setFailure] = useState<{ message: string; version: string } | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [bundle, setBundle] = useState<File | null>(null);
@@ -27,8 +28,14 @@ export function SystemUpdates() {
   const mounted = useRef(true);
   const busy = starting || checking || running(status?.updater.job) || watch;
 
-  function accept(result: SystemUpdateStatus) {
+  function accept(result: SystemUpdateStatus, showFailure = true) {
     if (!result.updater.job && running(lastJob.current)) result = { ...result, updater: { ...result.updater, job: lastJob.current } };
+    const receivedJob = result.updater.job;
+    const failed = receivedJob && (receivedJob.stage === 'failed' || receivedJob.stage === 'rolled_back');
+    if (failed) {
+      if (showFailure || running(lastJob.current)) setFailure({ message: receivedJob.message, version: receivedJob.version });
+      result = { ...result, updater: { ...result.updater, job: null } };
+    }
     lastJob.current = result.updater.job;
     setStatus(result); setError(''); setReconnecting(false);
     if (!running(result.updater.job)) setWatch(false);
@@ -40,10 +47,14 @@ export function SystemUpdates() {
   }, []);
 
   useEffect(() => {
+    if (hidden) setFailure(null);
+  }, [hidden]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const load = async () => {
-      try { const result = await api.systemUpdates(controller.signal); if (!controller.signal.aborted) accept(result); }
+      try { const result = await api.systemUpdates(controller.signal); if (!controller.signal.aborted) { accept(result, false); } }
       catch (reason) { if (!controller.signal.aborted) { if (watch || running(lastJob.current)) setReconnecting(true); else setError(message(reason)); } }
       finally { if (!controller.signal.aborted && (watch || running(lastJob.current))) timer = setTimeout(load, 2000); }
     };
@@ -57,17 +68,18 @@ export function SystemUpdates() {
     try {
       const result = await api.checkSystemUpdates(controller.signal);
       if (controller.signal.aborted) return;
-      accept(result); notify(result.updateAvailable ? `发现新版本 v${result.latest!.version}` : '当前已是最新稳定版本');
+      setFailure(null); accept(result, false); notify(result.updateAvailable ? `发现新版本 v${result.latest!.version}` : '当前已是最新稳定版本');
     } catch (reason) { if (!controller.signal.aborted) notify(message(reason), 'error'); }
     finally { if (!controller.signal.aborted) setChecking(false); }
   }
 
   async function install() {
-    if (!status?.latest || busy) return;
+    if (!status || (!bundle && !status.latest) || busy) return;
     setStarting(true);
     try {
-      const job = bundle ? await api.uploadSystemUpdate(status.latest.version, bundle) : await api.installSystemUpdate(status.latest);
+      const job = bundle ? await api.uploadSystemUpdate(bundle) : await api.installSystemUpdate(status.latest!);
       if (!mounted.current) return;
+      setFailure(null);
       lastJob.current = job; setStatus(previous => previous ? { ...previous, updater: { ...previous.updater, job } } : previous);
       setWatch(true); notify('升级已开始，服务重启时会自动重新连接');
     } catch (reason) {
@@ -106,19 +118,15 @@ export function SystemUpdates() {
       {watch && !job && <p role="status">正在重新确认升级状态，请稍候…</p>}
       {job && <div className={`update-job update-job-${job.stage}`} role="status" aria-live="polite">
         {running(job) ? <LoaderCircle className="update-spinner" size={18} /> : complete ? <CheckCircle2 size={18} /> : <RefreshCw size={18} />}
-        <div><strong>{job.message}</strong><p>{reconnecting ? '服务正在重启或暂时不可达，正在自动重新连接…' : `目标版本 v${job.version}`}</p>{job.stage === 'interrupted' && <p>请在部署终端运行升级服务的恢复命令，备份会保留。</p>}</div>
+        <div><strong>{job.message}</strong>{(reconnecting || job.version) && <p>{reconnecting ? '服务正在重启或暂时不可达，正在自动重新连接…' : `目标版本 v${job.version}`}</p>}{job.stage === 'interrupted' && <p>请在部署终端运行升级服务的恢复命令，备份会保留。</p>}</div>
       </div>}
-      {(status.updateAvailable || complete) && <div className="update-actions">
+      <div className="update-actions">
         {status.updateAvailable && <MacButton variant="primary" disabled={!status.updater.available || busy || job?.stage === 'interrupted'} onClick={() => setConfirm(true)}>{running(job) || starting ? '升级进行中…' : '在线升级'}</MacButton>}
-        {status.updateAvailable && <>
-          <MacButton variant="secondary" disabled={!status.updater.available || !status.updater.uploadArch || busy || job?.stage === 'interrupted'} onClick={() => filePicker.current?.click()}>安装包升级</MacButton>
-          <input ref={filePicker} hidden type="file" accept=".tar.gz" aria-label="选择网站安装包" onChange={event => { selectBundle(event.target.files?.[0]); event.target.value = ''; }} />
-        </>}
+        <MacButton variant="secondary" title={status.updater.localUpload ? undefined : '需要支持本地上传的单容器镜像启动器'} disabled={!status.updater.available || !status.updater.localUpload || busy || job?.stage === 'interrupted'} onClick={() => filePicker.current?.click()}>上传安装包升级</MacButton>
+        <input ref={filePicker} hidden type="file" accept=".tar.gz" aria-label="选择网站安装包" onChange={event => { selectBundle(event.target.files?.[0]); event.target.value = ''; }} />
         {complete && <MacButton variant="primary" onClick={() => window.location.reload()}>刷新使用新版本</MacButton>}
-      </div>}
-      {status.updateAvailable && <p className="update-help">{status.updater.uploadArch
-        ? <>可从版本发布页下载 <code>navigation-linux-{status.updater.uploadArch}.tar.gz</code>，再选择「安装包升级」。</>
-        : '安装包升级需要支持上传的单容器镜像启动器。'}</p>}
+      </div>
+      {failure && <div className="update-failure" role="alert"><strong>升级失败</strong><p>{failure.message}</p>{failure.version && <small>目标版本 v{failure.version}</small>}</div>}
       {status.latest && <details className="update-release" onToggle={event => setNotesOpen(event.currentTarget.open)}>
         <summary>v{status.latest.version} 更新说明</summary>
         {notesOpen && (status.latest.notes.trim() ? <Suspense fallback={<p role="status">正在加载更新说明…</p>}>
@@ -126,10 +134,10 @@ export function SystemUpdates() {
         </Suspense> : <p>此版本未提供更新说明。</p>)}
         <a href={status.latest.url} target="_blank" rel="noopener noreferrer">查看版本发布页</a>
       </details>}
-      <p className="update-help">升级会先下载新版本，再短暂停止服务并备份数据。新版本启动检查失败时自动恢复上一版本。请在开始前保存正在编辑的内容。</p>
+      <p className="update-help">安装前会短暂停止服务并备份数据。新版本启动检查失败时自动恢复上一版本。请在开始前保存正在编辑的内容。</p>
     </>}
-    {confirm && status?.latest && <ConfirmDialog title={`升级到 v${status.latest.version}？`} description={bundle
-      ? `将上传 ${bundle.name}（${(bundle.size / 1024 / 1024).toFixed(1)} MiB）。请保持页面打开，校验通过后会自动备份数据并安装。`
-      : '将更新整套系统。下载完成后会暂停服务、备份数据并重启；窗口可以关闭，升级会继续在后台进行。'} confirmLabel={bundle ? '上传并升级' : '备份并升级'} busyLabel={bundle ? '正在上传并校验…' : '正在创建升级任务…'} onClose={() => { setConfirm(false); setBundle(null); }} onConfirm={install} />}
+    {confirm && (bundle || status?.latest) && <ConfirmDialog title={bundle ? '安装所选升级包？' : `升级到 v${status?.latest?.version}？`} description={bundle
+      ? `将上传并安装 ${bundle.name}（${(bundle.size / 1024 / 1024).toFixed(1)} MiB）。请在上传期间保持页面打开，安装前会自动备份数据。`
+      : '将更新整套系统。下载完成后会暂停服务、备份数据并重启；窗口可以关闭，升级会继续在后台进行。'} confirmLabel={bundle ? '上传并升级' : '备份并升级'} busyLabel={bundle ? '正在上传…' : '正在创建升级任务…'} onClose={() => { setConfirm(false); setBundle(null); }} onConfirm={install} />}
   </section>;
 }

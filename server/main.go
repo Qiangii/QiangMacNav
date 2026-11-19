@@ -333,7 +333,7 @@ func (a *app) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Existing databases can retain an older SQL column default.
-	if _, err = tx.Exec("INSERT INTO preferences(user_id,desktop_search) VALUES(?,?)", u.ID, defaultDesktopSearch); err != nil {
+	if _, err = tx.Exec("INSERT INTO preferences(user_id,desktop_search,navigation_drag_mode) VALUES(?,?,'handle')", u.ID, defaultDesktopSearch); err != nil {
 		fail(w, 500, "Could not create account")
 		return
 	}
