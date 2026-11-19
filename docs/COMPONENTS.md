@@ -29,7 +29,7 @@
 | `MacTooltip` | 无交互提示、Portal、边界调整；菜单打开、拖拽和触屏时不显示 |
 | `MacAlertDialog` | 异步确认、忙时防重入、失败保留重试；初始焦点在取消按钮 |
 
-`useDesktopWindows` 统一管理 finder／settings 的 closed、visible、minimized 与层级。`toggle(id)` 只切换目标窗口；`open(id)` 打开并置前；隐藏最前窗口后焦点回到仍可见窗口。窗口几何由各自的 `useMacWindow` 保存。
+`useDesktopWindows` 统一管理 finder／settings 的 closed、visible、minimized 与层级。点击 Dock 图标时，已关闭或最小化的窗口会打开并置前。对可见窗口，按点击时其他上层可见窗口遮住的面积判断：超过目标窗口面积的 20% 时置前，等于或低于 20% 时关闭。多个窗口的重叠部分只计一次。`open(id)` 直接打开并置前，关闭或最小化最前窗口后焦点回到仍可见窗口。窗口几何由各自的 `useMacWindow` 保存。
 
 TrafficLights 使用统一标题栏位置偏好，默认左侧；右侧按最小化、最大化、关闭排序。表单只有红色关闭按钮，忙时阻止关闭。`DesktopThemeContext` 和 `TitlebarPositionContext` 同样作用于 Portal。
 
@@ -82,5 +82,9 @@ workspace 保存当前窗口管理器状态、分类、查询与编辑目标；�
 `extensions/qiangmacnav` 共用网站主题变量、`MacButton`、`MacInput`／`MacTextarea`、自动填充样式和账号校验。浏览界面显示身份；收藏窗口仅显示表单，字段可滚动，分类和操作固定在底部。登录前跟随系统主题，登录后同步网站主题。首次确认导航地址时申请该主机权限；已配置主机缺少权限时由工具栏或右键点击触发申请。分类记忆按导航地址与用户 ID 隔离，右键采集信息可在授权和登录后继续使用。接口及权限见 [插件开发文档](../extensions/qiangmacnav/DEVELOPMENT.md)。
 
 `SiteBrandingSettings` 保存名称和 Logo；bootstrap 驱动加载画面、登录页、浏览器标题和 favicon。`SystemUpdates` 仅管理员挂载，展示后端真实版本和项目仓库入口；进度来自真实任务状态，安装 POST 响应丢失后只查询。源配置、发布及回滚见 [在线更新](ONLINE_UPDATES.md)。
+
+展开系统更新的版本说明时，按 GitHub Flavored Markdown 渲染正文，支持列表、表格、任务清单和代码块。相对链接以发布页为基准解析，网页链接在新标签页打开，原始 HTML 跳过渲染。
+
+发现新版本时，「安装包升级」位于「在线升级」右侧。依据启动器返回的上传能力和架构提示选择 `.tar.gz` 文件，管理员确认后上传，随后复用系统更新任务状态与刷新入口。
 
 自动检查：`npm run lint`、`node --test "scripts/*.test.mjs"`、`npm run build`。涉及权限或持久化时同时运行 Go 测试及 vet。

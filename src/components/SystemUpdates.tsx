@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowUpCircle, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
-import { api, message } from '../api';
+import { api, ApiError, message } from '../api';
 import type { SystemUpdateStatus, UpdateJob } from '../types';
 import { PROJECT_GITHUB_URL, PROJECT_REPOSITORY } from '../project';
 import { MacButton, notify } from './ui';
@@ -8,12 +8,16 @@ import { ConfirmDialog } from './ConfirmDialog';
 import './system-updates.css';
 
 const running = (job?: UpdateJob | null) => !!job && ['queued', 'pulling', 'backing_up', 'replacing', 'starting', 'verifying', 'rolling_back'].includes(job.stage);
+const ReleaseNotes = lazy(() => import('./ReleaseNotes'));
 
 export function SystemUpdates() {
   const [status, setStatus] = useState<SystemUpdateStatus>();
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [bundle, setBundle] = useState<File | null>(null);
+  const filePicker = useRef<HTMLInputElement>(null);
   const [starting, setStarting] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [watch, setWatch] = useState(false);
@@ -62,15 +66,27 @@ export function SystemUpdates() {
     if (!status?.latest || busy) return;
     setStarting(true);
     try {
-      const job = await api.installSystemUpdate(status.latest);
+      const job = bundle ? await api.uploadSystemUpdate(status.latest.version, bundle) : await api.installSystemUpdate(status.latest);
       if (!mounted.current) return;
       lastJob.current = job; setStatus(previous => previous ? { ...previous, updater: { ...previous.updater, job } } : previous);
       setWatch(true); notify('升级已开始，服务重启时会自动重新连接');
     } catch (reason) {
+      if (bundle && reason instanceof ApiError && reason.status >= 400 && reason.status < 500) {
+        if (mounted.current) notify(message(reason), 'error');
+        return;
+      }
       // The server may have accepted the job before the connection was lost.
       // Re-read status before offering another install instead of replaying POST.
       if (mounted.current) { setWatch(true); setRevision(value => value + 1); notify(`${message(reason)}；正在重新确认升级状态`, 'error'); }
-    } finally { if (mounted.current) { setStarting(false); setConfirm(false); } }
+    } finally { if (mounted.current) { setStarting(false); setConfirm(false); setBundle(null); } }
+  }
+
+  function selectBundle(file?: File) {
+    if (!file || busy) return;
+    if (!file.name.toLowerCase().endsWith('.tar.gz') || !file.size || file.size > 256 * 1024 * 1024) {
+      notify('请选择非空且不超过 256 MiB 的 .tar.gz 网站安装包', 'error'); return;
+    }
+    setBundle(file); setConfirm(true);
   }
 
   const job = status?.updater.job;
@@ -94,11 +110,26 @@ export function SystemUpdates() {
       </div>}
       {(status.updateAvailable || complete) && <div className="update-actions">
         {status.updateAvailable && <MacButton variant="primary" disabled={!status.updater.available || busy || job?.stage === 'interrupted'} onClick={() => setConfirm(true)}>{running(job) || starting ? '升级进行中…' : '在线升级'}</MacButton>}
+        {status.updateAvailable && <>
+          <MacButton variant="secondary" disabled={!status.updater.available || !status.updater.uploadArch || busy || job?.stage === 'interrupted'} onClick={() => filePicker.current?.click()}>安装包升级</MacButton>
+          <input ref={filePicker} hidden type="file" accept=".tar.gz" aria-label="选择网站安装包" onChange={event => { selectBundle(event.target.files?.[0]); event.target.value = ''; }} />
+        </>}
         {complete && <MacButton variant="primary" onClick={() => window.location.reload()}>刷新使用新版本</MacButton>}
       </div>}
-      {status.latest && <details className="update-release"><summary>v{status.latest.version} 更新说明</summary><p>{status.latest.notes || '此版本未提供更新说明。'}</p><a href={status.latest.url} target="_blank" rel="noopener noreferrer">查看版本发布页</a></details>}
+      {status.updateAvailable && <p className="update-help">{status.updater.uploadArch
+        ? <>可从版本发布页下载 <code>navigation-linux-{status.updater.uploadArch}.tar.gz</code>，再选择「安装包升级」。</>
+        : '安装包升级需要支持上传的单容器镜像启动器。'}</p>}
+      {status.latest && <details className="update-release" onToggle={event => setNotesOpen(event.currentTarget.open)}>
+        <summary>v{status.latest.version} 更新说明</summary>
+        {notesOpen && (status.latest.notes.trim() ? <Suspense fallback={<p role="status">正在加载更新说明…</p>}>
+          <ReleaseNotes notes={status.latest.notes} releaseUrl={status.latest.url} />
+        </Suspense> : <p>此版本未提供更新说明。</p>)}
+        <a href={status.latest.url} target="_blank" rel="noopener noreferrer">查看版本发布页</a>
+      </details>}
       <p className="update-help">升级会先下载新版本，再短暂停止服务并备份数据。新版本启动检查失败时自动恢复上一版本。请在开始前保存正在编辑的内容。</p>
     </>}
-    {confirm && status?.latest && <ConfirmDialog title={`升级到 v${status.latest.version}？`} description="将更新整套系统。下载完成后会暂停服务、备份数据并重启；窗口可以关闭，升级会继续在后台进行。" confirmLabel="备份并升级" busyLabel="正在创建升级任务…" onClose={() => setConfirm(false)} onConfirm={install} />}
+    {confirm && status?.latest && <ConfirmDialog title={`升级到 v${status.latest.version}？`} description={bundle
+      ? `将上传 ${bundle.name}（${(bundle.size / 1024 / 1024).toFixed(1)} MiB）。请保持页面打开，校验通过后会自动备份数据并安装。`
+      : '将更新整套系统。下载完成后会暂停服务、备份数据并重启；窗口可以关闭，升级会继续在后台进行。'} confirmLabel={bundle ? '上传并升级' : '备份并升级'} busyLabel={bundle ? '正在上传并校验…' : '正在创建升级任务…'} onClose={() => { setConfirm(false); setBundle(null); }} onConfirm={install} />}
   </section>;
 }

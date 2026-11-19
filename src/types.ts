@@ -81,7 +81,7 @@ export interface SystemUpdateStatus {
   latest: SystemRelease | null;
   checkedAt: string | null;
   updateAvailable: boolean;
-  updater: { available: boolean; message: string; job: UpdateJob | null };
+  updater: { available: boolean; uploadArch?: string; message: string; job: UpdateJob | null };
 }
 
 export interface Bootstrap extends SiteBranding {

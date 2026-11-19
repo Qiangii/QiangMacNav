@@ -7,12 +7,13 @@ export class ApiError extends Error {
 
 export async function request<T>(path: string, method = 'GET', body?: object, signal?: AbortSignal): Promise<T> {
   const multipart = body instanceof FormData;
+  const binary = body instanceof Blob;
   const response = await fetch(`/api${path}`, {
     method,
     credentials: 'same-origin',
     signal,
-    headers: !multipart && (body || method !== 'GET') ? { 'Content-Type': 'application/json' } : undefined,
-    body: method === 'GET' ? undefined : multipart ? body : JSON.stringify(body ?? {}),
+    headers: binary ? { 'Content-Type': 'application/octet-stream' } : !multipart && (body || method !== 'GET') ? { 'Content-Type': 'application/json' } : undefined,
+    body: method === 'GET' ? undefined : multipart || binary ? body : JSON.stringify(body ?? {}),
   });
   const result: unknown = await response.json().catch(() => null);
   signal?.throwIfAborted();
@@ -28,6 +29,7 @@ export const api = {
   systemUpdates: (signal?: AbortSignal) => request<SystemUpdateStatus>('/admin/updates', 'GET', undefined, signal),
   checkSystemUpdates: (signal?: AbortSignal) => request<SystemUpdateStatus>('/admin/updates/check', 'POST', {}, signal),
   installSystemUpdate: (release: SystemRelease) => request<UpdateJob>('/admin/updates/install', 'POST', { version: release.version, digest: release.digest }),
+  uploadSystemUpdate: (version: string, file: File) => request<UpdateJob>(`/admin/updates/upload?version=${encodeURIComponent(version)}`, 'POST', file),
   bootstrap: () => request<Bootstrap>('/bootstrap'),
   session: () => request<User>('/session'),
   updateAccount: (name: string) => request<User>('/account', 'PATCH', { name }),

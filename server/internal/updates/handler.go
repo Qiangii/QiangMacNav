@@ -9,9 +9,10 @@ import (
 )
 
 type Status struct {
-	Available bool   `json:"available"`
-	Message   string `json:"message"`
-	Job       *Job   `json:"job"`
+	UploadArch string `json:"uploadArch,omitempty"`
+	Available  bool   `json:"available"`
+	Message    string `json:"message"`
+	Job        *Job   `json:"job"`
 }
 
 func Handler(runner *Runner, token string) http.Handler {
@@ -31,12 +32,12 @@ func Handler(runner *Runner, token string) http.Handler {
 			job := runner.Snapshot()
 			if job != nil && (job.Stage == "succeeded" || job.Stage == "rolled_back") {
 				if err := runner.clearMaintenance(job.ID); err != nil {
-					reply(200, Status{false, "维护状态清理失败，请检查升级服务日志", job})
+					reply(200, Status{Message: "维护状态清理失败，请检查升级服务日志", Job: job})
 					return
 				}
 			}
 			if job != nil && (job.Active() || job.Stage == "interrupted") {
-				reply(200, Status{true, "", job})
+				reply(200, Status{Available: true, Job: job})
 				return
 			}
 			_, err := runner.Ready(ctx)
@@ -44,7 +45,7 @@ func Handler(runner *Runner, token string) http.Handler {
 			if err != nil {
 				message = err.Error()
 			}
-			reply(200, Status{err == nil, message, job})
+			reply(200, Status{Available: err == nil, Message: message, Job: job})
 		case r.Method == "POST" && r.URL.Path == "/update":
 			var input struct {
 				Version string `json:"version"`

@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"syscall"
 	"time"
@@ -36,6 +37,7 @@ type installState struct {
 
 type installRequest struct {
 	release *Release
+	archive *os.File
 	reply   chan *Job
 }
 
@@ -44,6 +46,7 @@ type supervisor struct {
 	source                           Source
 	requests                         chan installRequest
 	mu                               sync.RWMutex
+	upload                           sync.Mutex
 	state                            installState
 	child                            *exec.Cmd
 	exited                           chan struct{}
@@ -219,13 +222,20 @@ func (s *supervisor) healthy(ctx context.Context, version string) error {
 	}
 }
 
-func (s *supervisor) install(ctx context.Context, r *Release) error {
+func (s *supervisor) install(ctx context.Context, req installRequest) error {
+	r := req.release
 	id := s.state.Job.ID
 	dir := filepath.Join(s.dir, "packages", id)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	if err := s.source.downloadBundle(ctx, r, dir); err != nil {
+	var err error
+	if req.archive != nil {
+		err = extractBundle(req.archive, dir)
+	} else {
+		err = s.source.downloadBundle(ctx, r, dir)
+	}
+	if err != nil {
 		return err
 	}
 	if err := s.stage("backing_up", "正在备份数据库"); err != nil {
@@ -285,22 +295,38 @@ func (s *supervisor) run(ctx context.Context) error {
 			return fmt.Errorf("网站进程已退出: %v", s.child.ProcessState)
 		case req := <-s.requests:
 			if !Newer(req.release.Version, s.version()) {
+				if req.archive != nil {
+					req.archive.Close()
+				}
 				req.reply <- nil
 				continue
 			}
 			id := make([]byte, 16)
 			if _, err := rand.Read(id); err != nil {
+				if req.archive != nil {
+					req.archive.Close()
+				}
+				req.reply <- nil
 				return err
 			}
 			now := time.Now().UTC()
 			job := Job{ID: hex.EncodeToString(id), Version: req.release.Version, StartedAt: now, UpdatedAt: now, Stage: "pulling", Message: "正在下载并校验网站升级包"}
+			if req.archive != nil {
+				job.Stage, job.Message = "queued", "安装包校验通过，正在准备安装"
+			}
 			if err := s.save(installState{Active: s.state.Active, Job: &job}); err != nil {
+				if req.archive != nil {
+					req.archive.Close()
+				}
 				req.reply <- nil
 				return err
 			}
 			req.reply <- &job
 			timed, cancel := context.WithTimeout(ctx, 15*time.Minute)
-			err := s.install(timed, req.release)
+			err := s.install(timed, req)
+			if req.archive != nil {
+				req.archive.Close()
+			}
 			cancel()
 			if err != nil {
 				log.Printf("网站升级失败: %v", err)
@@ -345,7 +371,44 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" && r.URL.Path == "/status" {
 		s.mu.RLock()
 		defer s.mu.RUnlock()
-		_ = json.NewEncoder(w).Encode(Status{Available: true, Job: s.state.Job})
+		_ = json.NewEncoder(w).Encode(Status{Available: true, UploadArch: runtime.GOARCH, Job: s.state.Job})
+		return
+	}
+	if r.Method == "POST" && r.URL.Path == "/upload" {
+		// The authenticated website sets these headers from its server-side release check.
+		version, digest := r.Header.Get("X-Release-Version"), r.Header.Get("X-Bundle-Digest")
+		if _, err := ParseVersion(version); err != nil || !digestPattern.MatchString(digest) {
+			fail(400, "安装包缺少有效的版本校验信息")
+			return
+		}
+		if !s.upload.TryLock() {
+			fail(409, "已有安装包正在上传")
+			return
+		}
+		defer s.upload.Unlock()
+		s.mu.RLock()
+		ready := !s.state.Job.Active() && Newer(version, s.version())
+		s.mu.RUnlock()
+		if !ready {
+			fail(409, "版本已安装或正在升级")
+			return
+		}
+		controller := http.NewResponseController(w)
+		deadline := time.Now().Add(15 * time.Minute)
+		_ = controller.SetReadDeadline(deadline)
+		_ = controller.SetWriteDeadline(deadline)
+		archive, err := verifiedBundle(s.execDir, r.Body, digest)
+		if err != nil {
+			fail(400, err.Error())
+			return
+		}
+		// On Linux the descriptor survives unlink and is reclaimed even if the process stops.
+		if err := os.Remove(archive.Name()); err != nil {
+			archive.Close()
+			fail(500, "无法暂存升级包")
+			return
+		}
+		s.enqueue(w, r, installRequest{release: &Release{Version: version}, archive: archive}, fail)
 		return
 	}
 	if r.Method != "POST" || r.URL.Path != "/update" {
@@ -372,15 +435,22 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fail(409, err.Error())
 		return
 	}
-	reply := make(chan *Job, 1)
+	s.enqueue(w, r, installRequest{release: release}, fail)
+}
+
+func (s *supervisor) enqueue(w http.ResponseWriter, r *http.Request, req installRequest, fail func(int, string)) {
+	req.reply = make(chan *Job, 1)
 	select {
-	case s.requests <- installRequest{release, reply}:
+	case s.requests <- req:
 	default:
+		if req.archive != nil {
+			req.archive.Close()
+		}
 		fail(409, "升级服务正忙")
 		return
 	}
 	select {
-	case job := <-reply:
+	case job := <-req.reply:
 		if job == nil {
 			fail(409, "无法安装此版本")
 			return

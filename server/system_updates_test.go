@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,7 +21,7 @@ func TestUpdatePermissionsAndMaintenance(t *testing.T) {
 	a, h := testApp(t)
 	admin := registerTestUser(t, h, "updadmin", "setup-secret")
 	member := registerTestUser(t, h, "updmember", "")
-	for _, path := range []string{"/api/admin/updates", "/api/admin/updates/check", "/api/admin/updates/install"} {
+	for _, path := range []string{"/api/admin/updates", "/api/admin/updates/check", "/api/admin/updates/install", "/api/admin/updates/upload"} {
 		method := "POST"
 		if path == "/api/admin/updates" {
 			method = "GET"
@@ -69,6 +70,57 @@ func TestUpdatePermissionsAndMaintenance(t *testing.T) {
 		if w = request(t, h, "GET", path, nil, admin); w.Code != 200 {
 			t.Fatalf("maintenance read %s %d", path, w.Code)
 		}
+	}
+}
+
+func TestPackageUploadRequiresCapableLauncherAndUsesCheckedManifest(t *testing.T) {
+	a, handler := testApp(t)
+	admin := registerTestUser(t, handler, "uploadadmin", "setup-secret")
+	const body = "test archive bytes"
+	const version = "90.0.0"
+	digest := "sha256:" + strings.Repeat("a", 64)
+	var enabled atomic.Bool
+	var uploads atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/status" {
+			status := updates.Status{Available: true}
+			if enabled.Load() {
+				status.UploadArch = "arm64"
+			}
+			send(w, 200, status)
+			return
+		}
+		data, err := io.ReadAll(r.Body)
+		if r.URL.Path != "/upload" || err != nil || string(data) != body || r.Header.Get("X-Bundle-Digest") != digest || r.Header.Get("X-Release-Version") != version {
+			t.Error("upload must use server-side release metadata and original bytes")
+		}
+		uploads.Add(1)
+		send(w, 202, updates.Job{Version: version, Stage: "queued"})
+	}))
+	defer upstream.Close()
+	a.updates = &updateService{url: upstream.URL, token: strings.Repeat("t", 32)}
+	upload := func(v string) int {
+		r := httptest.NewRequest("POST", "/api/admin/updates/upload?version="+v, strings.NewReader(body))
+		r.AddCookie(admin)
+		r.Header.Set("Content-Type", "application/octet-stream")
+		r.Header.Set("X-Bundle-Digest", "browser-supplied")
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		return w.Code
+	}
+	if upload(version) != 409 {
+		t.Fatal("accepted upload without release check")
+	}
+	a.updates.latest = &updates.Release{Version: version, Bundles: map[string]string{"linux-arm64": digest}}
+	if upload(version) != 409 {
+		t.Fatal("old launcher advertised package support")
+	}
+	enabled.Store(true)
+	if upload("89.0.0") != 409 || uploads.Load() != 0 {
+		t.Fatal("accepted a different version")
+	}
+	if code := upload(version); code != 202 || uploads.Load() != 1 {
+		t.Fatalf("package upload: HTTP %d", code)
 	}
 }
 

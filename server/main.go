@@ -158,7 +158,8 @@ func checkWebRequest(next http.Handler) http.Handler {
 				return
 			}
 			imageUpload := r.Method == "POST" && r.URL.Path == "/api/media" && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
-			if !imageUpload && !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+			bundleUpload := r.Method == "POST" && r.URL.Path == "/api/admin/updates/upload" && r.Header.Get("Content-Type") == "application/octet-stream"
+			if !imageUpload && !bundleUpload && !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
 				fail(w, 415, "Content-Type must be application/json")
 				return
 			}
@@ -1243,6 +1244,7 @@ func (a *app) routes(staticDir string) http.Handler {
 		api.With(a.requireAdmin).Get("/admin/updates", a.systemUpdates)
 		api.With(a.requireAdmin).Post("/admin/updates/check", a.systemUpdates)
 		api.With(a.requireAdmin).Post("/admin/updates/install", a.startSystemUpdate)
+		api.With(a.requireAdmin).Post("/admin/updates/upload", a.uploadSystemUpdate)
 	})
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/api" || strings.HasPrefix(req.URL.Path, "/api/") {

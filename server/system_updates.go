@@ -27,6 +27,13 @@ type updateService struct {
 	checkedAt                   *time.Time
 }
 
+type updaterResponseError struct {
+	status  int
+	message string
+}
+
+func (e updaterResponseError) Error() string { return e.message }
+
 func (a *app) updateService() *updateService {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -50,15 +57,19 @@ func (s *updateService) upstream(ctx context.Context, method, path string, input
 		}
 		body = bytes.NewReader(data)
 	}
+	return s.sendUpstream(ctx, method, path, body, http.Header{"Content-Type": {"application/json"}}, output)
+}
+
+func (s *updateService) sendUpstream(ctx context.Context, method, path string, body io.Reader, headers http.Header, output any) error {
 	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(s.url, "/")+path, body)
 	if err != nil {
 		return err
 	}
+	req.Header = headers
 	req.Header.Set("Authorization", "Bearer "+s.token)
-	req.Header.Set("Content-Type", "application/json")
 	client := s.client
 	if client == nil {
-		client = &http.Client{Timeout: 25 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+		client = &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	}
 	res, err := client.Do(req)
 	if err != nil {
@@ -77,7 +88,7 @@ func (s *updateService) upstream(ctx context.Context, method, path string, input
 		if e.Error == "" {
 			e.Error = fmt.Sprintf("升级服务返回%d", res.StatusCode)
 		}
-		return errors.New(e.Error)
+		return updaterResponseError{res.StatusCode, e.Error}
 	}
 	return json.Unmarshal(data, output)
 }
@@ -150,6 +161,61 @@ func (a *app) startSystemUpdate(w http.ResponseWriter, r *http.Request) {
 	var job updates.Job
 	if err := s.upstream(r.Context(), "POST", "/update", input, &job); err != nil {
 		fail(w, 503, err.Error())
+		return
+	}
+	send(w, 202, job)
+}
+
+func (a *app) uploadSystemUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") != "application/octet-stream" {
+		fail(w, 415, "请上传 .tar.gz 安装包")
+		return
+	}
+	s := a.updateService()
+	s.mu.Lock()
+	latest := s.latest
+	s.mu.Unlock()
+	if latest == nil || latest.Version != r.URL.Query().Get("version") || !updates.Newer(latest.Version, buildinfo.Version()) {
+		fail(w, 409, "请先检查更新并选择对应版本的安装包")
+		return
+	}
+	if r.ContentLength > updates.MaxBundleBytes || r.ContentLength == 0 {
+		fail(w, 400, "请选择不超过 256 MiB 的网站安装包")
+		return
+	}
+	var status updates.Status
+	if err := s.upstream(r.Context(), "GET", "/status", nil, &status); err != nil {
+		fail(w, 503, err.Error())
+		return
+	}
+	if !status.Available || status.UploadArch == "" {
+		fail(w, 409, "此启动器不支持安装包升级，请更新单容器镜像")
+		return
+	}
+	if status.Job.Active() {
+		fail(w, 409, "已有升级任务正在处理")
+		return
+	}
+	digest := latest.Bundles["linux-"+status.UploadArch]
+	if digest == "" {
+		fail(w, 409, "发布清单缺少当前架构的升级包")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Minute)
+	defer cancel()
+	deadline, _ := ctx.Deadline()
+	controller := http.NewResponseController(w)
+	_ = controller.SetReadDeadline(deadline)
+	_ = controller.SetWriteDeadline(deadline)
+	headers := http.Header{"Content-Type": {"application/octet-stream"}, "X-Release-Version": {latest.Version}, "X-Bundle-Digest": {digest}}
+	var job updates.Job
+	if err := s.sendUpstream(ctx, "POST", "/upload", http.MaxBytesReader(w, r.Body, updates.MaxBundleBytes), headers, &job); err != nil {
+		code := http.StatusBadGateway
+		var upstreamError updaterResponseError
+		if errors.As(err, &upstreamError) && (upstreamError.status == 400 || upstreamError.status == 409) {
+			code = upstreamError.status
+		}
+		fail(w, code, err.Error())
 		return
 	}
 	send(w, 202, job)

@@ -16,6 +16,8 @@ import (
 	"strings"
 )
 
+const MaxBundleBytes = 256 << 20
+
 func (r *Release) bundleDigest() (string, error) {
 	digest := r.Bundles["linux-"+runtime.GOARCH]
 	if !digestPattern.MatchString(digest) {
@@ -43,25 +45,39 @@ func (s Source) downloadBundle(ctx context.Context, r *Release, dir string) erro
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("下载升级包失败（HTTP %d）", res.StatusCode)
 	}
-	f, err := os.CreateTemp(dir, ".download-")
+	f, err := verifiedBundle(dir, res.Body, digest)
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
 	defer f.Close()
-	h := sha256.New()
-	const maxDownload = 256 << 20
-	n, err := io.Copy(io.MultiWriter(f, h), io.LimitReader(res.Body, maxDownload+1))
+	return extractBundle(f, dir)
+}
+
+// Only a complete archive matching the trusted release manifest is returned.
+func verifiedBundle(dir string, body io.Reader, digest string) (*os.File, error) {
+	f, err := os.CreateTemp(dir, ".bundle-")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if n > maxDownload || fmt.Sprintf("sha256:%x", h.Sum(nil)) != digest {
-		return errors.New("升级包大小或 SHA-256 校验失败")
+	h := sha256.New()
+	n, err := io.Copy(io.MultiWriter(f, h), io.LimitReader(body, MaxBundleBytes+1))
+	if err == nil && (n > MaxBundleBytes || fmt.Sprintf("sha256:%x", h.Sum(nil)) != digest) {
+		err = errors.New("升级包大小或 SHA-256 校验失败，请选择对应版本和架构的完整安装包")
 	}
-	if _, err = f.Seek(0, io.SeekStart); err != nil {
-		return err
+	if err == nil {
+		_, err = f.Seek(0, io.SeekStart)
 	}
-	gz, err := gzip.NewReader(f)
+	if err != nil {
+		f.Close()
+		os.Remove(f.Name())
+		return nil, err
+	}
+	return f, nil
+}
+
+func extractBundle(archive io.Reader, dir string) error {
+	gz, err := gzip.NewReader(archive)
 	if err != nil {
 		return err
 	}

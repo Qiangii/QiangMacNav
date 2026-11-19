@@ -11,7 +11,13 @@ export function useDesktopWindows<K extends string>(defaults: Record<K, DesktopW
   const close = useCallback((id: K) => dispatch({ type: 'close', id }), []);
   const minimize = useCallback((id: K) => dispatch({ type: 'minimize', id }), []);
   const focus = useCallback((id: K) => dispatch({ type: 'focus', id }), []);
-  const toggle = useCallback((id: K) => dispatch({ type: 'toggle', id }), []);
+  const toggle = useCallback((id: K) => {
+    const bounds = new Map<string, DOMRect>();
+    for (const element of document.querySelectorAll<HTMLElement>('[data-desktop-window]')) {
+      bounds.set(element.dataset.desktopWindow!, element.getBoundingClientRect());
+    }
+    dispatch({ type: 'toggle', id, bounds });
+  }, []);
   const restore = useCallback((saved?: unknown) => dispatch({ type: 'restore', state: restoreWindows(defaults, saved) }), [defaults]);
   const focused = state.order.at(-1) ?? null;
   function window(id: K) {

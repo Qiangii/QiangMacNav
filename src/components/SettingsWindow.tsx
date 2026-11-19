@@ -102,7 +102,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
   ];
 
   return <>
-    <MacWindow controller={controller} aria-label="系统设置" className="settings-window" titlebarClassName="window-titlebar" style={{ position: 'fixed', zIndex }} onPointerDownCapture={onFocusWindow} onFocusCapture={onFocusWindow}
+    <MacWindow controller={controller} data-desktop-window="settings" aria-label="系统设置" className="settings-window" titlebarClassName="window-titlebar" style={{ position: 'fixed', zIndex }} onPointerDownCapture={onFocusWindow} onFocusCapture={onFocusWindow}
       labels={{ close: '关闭设置', minimize: '最小化设置', maximize: '放大窗口', restore: '还原窗口' }}
       titlebarContent={<><span>系统设置</span><span className="window-titlebar-spacer" aria-hidden="true" /></>}>
       <div className="settings-body">
