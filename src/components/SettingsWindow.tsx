@@ -128,7 +128,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
           </div></>}
           {section === 'applications' && <>
             <h3 className="settings-subheading">网站导航</h3>
-            <div className="settings-list"><MacSettingChoice<Preferences['navigationDragMode']> label="排序方式" description="长按分类标题或网站可拖动排序" value={preferences.navigationDragMode ?? 'handle'} options={[{ value: 'longPress', label: '长按' }, { value: 'handle', label: '拖拽标识' }]} disabled={busy} onChange={navigationDragMode => changePreferences({ ...preferences, navigationDragMode })} /><IconBackgroundSettings preferences={preferences} busy={busy} onChange={changePreferences} /></div>
+            <div className="settings-list"><MacSettingChoice<Preferences['navigationDragMode']> label="网站导航排序方式" description="可长按分类标题或网站，也可使用拖拽标识排序" value={preferences.navigationDragMode ?? 'longPress'} options={[{ value: 'longPress', label: '长按' }, { value: 'handle', label: '拖拽标识' }]} disabled={busy} onChange={navigationDragMode => changePreferences({ ...preferences, navigationDragMode })} /><IconBackgroundSettings preferences={preferences} busy={busy} onChange={changePreferences} /></div>
             <DesktopSearchSettings preferences={preferences} busy={busy} hidden={hidden} onChange={changePreferences} />
           </>}
           {section === 'appearance' && <>

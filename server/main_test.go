@@ -30,7 +30,7 @@ func request(t *testing.T, handler http.Handler, method, path string, body any, 
 	if method == "PUT" && path == "/api/preferences" {
 		payload := map[string]any{
 			"theme": "light", "wallpaper": "shinchan", "wallpaperUrl": "", "wallpaperMime": "",
-			"titlebarPosition": "left", "navigationDragMode": "handle",
+			"titlebarPosition": "left", "navigationDragMode": "longPress",
 			"iconBackgroundEnabled": true, "iconBackgroundColor": "#f7f8fa",
 			"desktopDragGrid": false, "launchpadScrollMode": "horizontal",
 			"dockTools":     []string{"navigation", "search", "settings"},

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QiangMacNav",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "同步你的 QiangMacNav 分类和站点，右键收藏当前网页。",
   "minimum_chrome_version": "114",
   "permissions": ["storage", "contextMenus", "activeTab", "scripting"],

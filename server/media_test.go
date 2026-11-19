@@ -179,7 +179,7 @@ func TestNavigationDragPreference(t *testing.T) {
 	admin := registerTestUser(t, h, "admindrag", "setup-secret")
 	member := registerTestUser(t, h, "memberdrag", "")
 	w := request(t, h, "GET", "/api/navigation", nil, admin)
-	if !strings.Contains(w.Body.String(), `"navigationDragMode":"handle"`) {
+	if !strings.Contains(w.Body.String(), `"navigationDragMode":"longPress"`) {
 		t.Fatalf("default: %s", w.Body)
 	}
 	w = request(t, h, "PUT", "/api/preferences", map[string]string{"theme": "dark", "wallpaper": "coast", "navigationDragMode": "longPress"}, admin)
@@ -187,7 +187,7 @@ func TestNavigationDragPreference(t *testing.T) {
 		t.Fatalf("set mode: %s", w.Body)
 	}
 	w = request(t, h, "GET", "/api/navigation", nil, member)
-	if !strings.Contains(w.Body.String(), `"navigationDragMode":"handle"`) {
+	if !strings.Contains(w.Body.String(), `"navigationDragMode":"longPress"`) {
 		t.Fatalf("account isolation: %s", w.Body)
 	}
 	w = request(t, h, "PUT", "/api/preferences", map[string]string{"theme": "dark", "wallpaper": "coast", "navigationDragMode": "invalid"}, admin)

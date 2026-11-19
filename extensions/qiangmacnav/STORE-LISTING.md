@@ -18,7 +18,7 @@ QiangMacNav 让你在浏览网页时，把值得保留的链接直接存进自�
 
 ## 隐私表单
 
-Chrome 和 Edge 商店的「隐私政策 URL」填写以下公开地址：
+隐私政策已发布，无需登录即可访问。Chrome 和 Edge 商店的「隐私政策 URL」均填写下方链接。
 
 <https://github.com/Qiangii/QiangMacNav/blob/main/extensions/qiangmacnav/PRIVACY.md>
 
@@ -34,12 +34,12 @@ Chrome 和 Edge 商店的「隐私政策 URL」填写以下公开地址：
 
 **远程代码**　选择「否」。页面信息读取函数、界面和后台脚本均随插件打包。服务器返回导航数据和图片。
 
-**数据用途和去向**　发布者填写数据类型和公开隐私政策时，应覆盖以下实际行为。
+**数据用途和去向**　填写商店的数据使用披露时，请与已发布的隐私政策保持一致。
 
 - 账号名、密码用于向用户配置的导航服务器登录。插件保存返回的账号资料和独立会话令牌，密码只用于当次请求。退出插件时会清除本地登录会话。
 - 触发收藏时读取该页的网址、标题、描述、图标链接，以及通过右键选中的文字。草稿暂存在浏览器会话中。用户确认保存后，插件把标题、网址、图标引用、备注和分类发送到其导航服务器。收藏在该服务器上的可见范围取决于所选分类。
 - 为浏览和搜索，插件从导航服务器读取该账号可见的分类与站点。显示外链图标时，浏览器会联系图片主机。用户点击图标「上传」时，插件会读取图片，再将图片上传至导航服务器的账号图标库。读取外部图片用于上传的请求省略凭据和来源网址。
-- 发布公开隐私政策时，填写发布者的实际联系方式，说明用户如何删除本地信息和服务器上的收藏，并按实际运营情况说明留存、共享和有限使用情况。Chrome 后台的数据类型应核对个人标识信息（账号名）、身份验证信息、网络浏览记录（主动收藏的网址）和网站内容（标题、描述、选中文字及图片）。[Chrome 隐私表单](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy) · [用户数据说明](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)
+- Chrome 后台的数据类型应核对个人标识信息（账号名）、身份验证信息、网络浏览记录（主动收藏的网址）和网站内容（标题、描述、选中文字及图片）。[Chrome 隐私表单](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy) · [用户数据说明](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)
 
 ## 审核员测试说明
 

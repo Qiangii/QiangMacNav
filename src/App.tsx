@@ -89,7 +89,7 @@ export default function App() {
   const layoutRef = useSortLayout([(draft ?? data)?.categories, (draft ?? data)?.sites, (draft ?? data)?.sidebarOrder, phase, selectedCategory, query, finderOpen, finderMinimized]);
   const searchRef = useRef<HTMLInputElement>(null);
   const sessionVersion = useRef(0);
-  const dragInteraction = useNavigationDrag(data?.preferences.navigationDragMode ?? 'handle');
+  const dragInteraction = useNavigationDrag(data?.preferences.navigationDragMode ?? 'longPress');
   const sensors = useNavigationSensors(dragInteraction.mode);
   const view = useMemo(() => navigationView(data, draft ?? data, selectedCategory), [data, draft ?? data, selectedCategory]);
   const searching = !!query.trim();
@@ -277,7 +277,7 @@ export default function App() {
   const showCategoryMenu = useEventCallback((event: MouseEvent, category: Category) => showMenu(event, categoryMenuItems(category)));
 
   if (phase === 'boot' || phase === 'failed') return <div className="boot-screen">
-    <img className="boot-apple" src={bootstrap?.siteLogoUrl || DEFAULT_BRANDING.siteLogoUrl} alt={bootstrap?.siteTitle || DEFAULT_BRANDING.siteTitle} onError={event => { if (event.currentTarget.getAttribute('src') !== DEFAULT_BRANDING.siteLogoUrl) event.currentTarget.src = DEFAULT_BRANDING.siteLogoUrl; }} />
+    <img className="boot-apple" src="/assets/boot-apple.svg" alt="Apple" />
     <div className="boot-progress"><span /></div>
     {phase === 'failed' && <div className="boot-failed"><p>无法连接到导航服务</p><small>{bootError}</small><button onClick={initialize}>重试</button></div>}
   </div>;

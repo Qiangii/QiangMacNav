@@ -52,6 +52,10 @@ the complete bundled collection and report. Pass `--ffmpeg PATH` only when the
 video changes or its poster needs generation. These tools are not runtime or
 Docker build dependencies.
 
+## Boot screen icon
+
+`public/assets/boot-apple.svg` uses the Apple path from Simple Icons 11.15.0 with a white fill. [Source SVG](https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/icons/apple.svg) · [CC0 license](public/assets/icons/simple-icons-LICENSE.md)
+
 ## Bundled search engine icons
 
 The default Google, Twitter, Baidu and Bing icons are served only from
