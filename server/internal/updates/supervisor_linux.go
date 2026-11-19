@@ -394,7 +394,11 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Supervise runs as the same unprivileged user as the website. The internal
 // control listener is loopback-only; its per-process secret never leaves the container.
 func Supervise(ctx context.Context, data, base string, source Source) error {
-	s := supervisor{data: data, base: base, dir: filepath.Join(data, ".navigation-updates"), source: source, token: rand.Text() + rand.Text(), requests: make(chan installRequest)}
+	var secret [32]byte
+	if _, err := rand.Read(secret[:]); err != nil {
+		return err
+	}
+	s := supervisor{data: data, base: base, dir: filepath.Join(data, ".navigation-updates"), source: source, token: hex.EncodeToString(secret[:]), requests: make(chan installRequest)}
 	if err := os.MkdirAll(s.dir, 0700); err != nil {
 		return err
 	}
