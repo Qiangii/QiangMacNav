@@ -18,6 +18,10 @@ QiangMacNav 让你在浏览网页时，把值得保留的链接直接存进自�
 
 ## 隐私表单
 
+Chrome 和 Edge 商店的「隐私政策 URL」填写以下公开地址：
+
+<https://github.com/Qiangii/QiangMacNav/blob/main/extensions/qiangmacnav/PRIVACY.md>
+
 **单一用途**　让用户从浏览器收藏当前网页，并浏览、搜索和同步自己在 QiangMacNav 导航站有权查看的收藏。
 
 | 权限 | 可填入后台的用途说明 |

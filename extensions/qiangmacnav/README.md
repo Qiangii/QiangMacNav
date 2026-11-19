@@ -1,5 +1,7 @@
 # QiangMacNav 浏览器插件
 
+[插件隐私政策](https://github.com/Qiangii/QiangMacNav/blob/main/extensions/qiangmacnav/PRIVACY.md)
+
 Chrome / Edge 114+（Chromium、Manifest V3）插件。使用现有导航账号登录，查看个人及管理员共享分类、按分类浏览和搜索站点，通过网页右键「收藏进导航」保存当前网页。
 
 ## 构建与安装
