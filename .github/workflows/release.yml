@@ -97,4 +97,8 @@ jobs:
           checksum() { sha256sum "navigation-linux-$1.tar.gz" | cut -d ' ' -f 1; }
           jq -n --arg version "$VERSION" --arg digest "$DIGEST" --arg amd "sha256:$(checksum amd64)" --arg arm "sha256:$(checksum arm64)" \
             '{version:$version,digest:$digest,protocol:1,bundles:{"linux-amd64":$amd,"linux-arm64":$arm}}' > update.json
-          gh release create "$GITHUB_REF_NAME" update.json navigation-linux-{amd64,arm64}.tar.gz qiangmacnav-extension.zip --verify-tag --generate-notes --title "QiangMacNav $VERSION"
+          notes=(--generate-notes)
+          if [[ -f "docs/releases/$GITHUB_REF_NAME.md" ]]; then
+            notes=(--notes-file "docs/releases/$GITHUB_REF_NAME.md")
+          fi
+          gh release create "$GITHUB_REF_NAME" update.json navigation-linux-{amd64,arm64}.tar.gz qiangmacnav-extension.zip --verify-tag "${notes[@]}" --title "QiangMacNav $VERSION"

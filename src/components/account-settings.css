@@ -1,35 +1,35 @@
 .settings-account-form { display: grid; gap: 14px; margin: 18px 0 24px; }
 .settings-account-form label { display: grid; gap: 8px; font-size: 13px; }
 .settings-account-form p, .settings-record-toolbar > span { color: var(--muted); font-size: 12px; line-height: 1.6; }
-.settings-record-toolbar, .settings-pagination, .settings-user-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.settings-record-toolbar, .settings-user-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .settings-record-toolbar input { flex: 1; }
 .settings-record-toolbar { margin: 12px 0; }
-.settings-record { padding: 14px 0; border-bottom: 1px solid var(--border); display: grid; gap: 8px; overflow-wrap: anywhere; }
-.settings-record > div:first-child { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; }
-.settings-record small { color: var(--muted); font-size: 11px; line-height: 1.6; }
-.settings-record > .login-log-heading:first-child { align-items: center; gap: 6px 12px; }
-.login-log-heading > strong { min-width: 0; }
+.record-name { font-weight: 600; }
+.record-secondary, .record-time small, .record-status { display: block; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.record-time, .record-ip, .settings-pagination { font-variant-numeric: tabular-nums; }
+.record-source, .record-actions { display: inline-flex; align-items: center; gap: 4px; }
+.record-source { white-space: nowrap; }
+.record-source svg { width: 13px; height: 13px; color: var(--muted); }
+.record-client { margin-top: 2px; font-size: 11px; color: var(--muted); }
+.record-client summary { cursor: pointer; width: fit-content; }
+.record-client summary:hover { color: var(--text); }
+.record-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--feedback-success); vertical-align: 1px; }
+.record-status.is-disabled::before { background: var(--feedback-error); }
+.record-actions .icon-button { width: 26px; height: 28px; color: var(--compact-button-text); }
+.record-actions .icon-button svg { width: 14px; height: 14px; }
+.record-actions .record-delete { color: var(--feedback-error); }
 .login-result-badge { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 5px; box-sizing: border-box; min-height: 22px; padding: 2px 8px 2px 6px; border: 1px solid color-mix(in srgb, var(--login-result-color) 18%, transparent); border-radius: 999px; background: var(--login-result-bg); color: var(--login-result-color); font-size: 11px; font-weight: 500; line-height: 16px; white-space: nowrap; overflow-wrap: normal; }
 .login-result-badge.is-success { --login-result-color: var(--feedback-success); --login-result-bg: var(--feedback-success-bg); }
 .login-result-badge.is-failure { --login-result-color: var(--feedback-error); --login-result-bg: var(--feedback-error-bg); }
 .login-result-symbol { display: inline-grid; place-items: center; flex: none; width: 13px; height: 13px; border-radius: 50%; background: var(--login-result-color); color: var(--panel); }
 .login-result-symbol > svg { display: block; }
-.settings-pagination { justify-content: space-between; margin-top: 18px; font-size: 12px; }
+.settings-pagination, .settings-pagination > div { display: flex; align-items: center; gap: 8px; }
+.settings-pagination { justify-content: space-between; color: var(--compact-button-text); font-size: 11px; }
+.settings-pagination .icon-button { width: 26px; height: 24px; }
 .settings-role-field { border: 0; padding: 0; min-width: 0; }
 .settings-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .settings-page-heading h2 { margin: 0; flex: none; }
 .settings-user-search.settings-record-toolbar { margin: 0; flex-wrap: nowrap; max-width: 270px; min-width: 0; }
-.settings-user-record { grid-template-columns: minmax(0, 1fr) auto; }
-.settings-record > .settings-user-heading:first-child { display: flex; justify-content: flex-start; align-items: center; gap: 6px; }
-.settings-user-details { grid-column: 1 / -1; }
-.settings-user-record .settings-user-actions { flex-wrap: nowrap; justify-content: flex-end; gap: 5px; }
-.user-badge { font-size: 10px; line-height: 18px; padding: 0 6px; border-radius: 5px; white-space: nowrap; }
-.badge-admin { background: #9d73ff29; color: #c6a9ff; }
-.badge-user { background: #5ba8ff29; color: #8bc2ff; }
-.badge-enabled { background: #42c68c26; color: #6fdda8; }
-.badge-disabled { background: #f26e7d26; color: #ff96a1; }
-.theme-light .badge-admin { color: #7040b5; }.theme-light .badge-user { color: #236bb0; }
-.theme-light .badge-enabled { color: #197447; }.theme-light .badge-disabled { color: #b32b43; }
 .account-name-row > strong { flex: none; font-size: 12px; }
 .account-name-value { min-width: 0; text-align: right; }
 .account-name-display, .account-name-editor { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
@@ -44,8 +44,6 @@
 @media (max-width: 600px) {
   .settings-page-heading { flex-wrap: wrap; gap: 10px; }
   .settings-user-search.settings-record-toolbar { max-width: 100%; }
-  .settings-user-record { grid-template-columns: minmax(0, 1fr); }
-  .settings-user-record .settings-user-actions { grid-row: 4; justify-content: flex-start; flex-wrap: wrap; }
   .account-name-row { flex-wrap: wrap; }
   .account-name-editor input { width: 130px; }
 }

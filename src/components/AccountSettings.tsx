@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Check, Pencil, X } from 'lucide-react';
+import { Ban, Check, ChevronLeft, ChevronRight, CircleCheck, Globe, Pencil, Puzzle, Trash2, X } from 'lucide-react';
 import { api, message } from '../api';
 import { validPassword, PASSWORD_HINT, PASSWORD_PLACEHOLDER } from '../accountValidation';
 import type { User, ManagedUser, LoginLog } from '../types';
-import { MacButton, MacFormDialog, MacInput, MacSelect, notify } from './ui';
+import { MacButton, MacFormDialog, MacInput, MacSelect, MacTable, MacTooltip, notify, type MacTableColumn } from './ui';
 import { ConfirmDialog } from './ConfirmDialog';
 import './account-settings.css';
 
-const date = (value: string | null) => value ? new Date(value.replace(' ', 'T') + 'Z').toLocaleString() : '暂无记录';
+function RecordTime({ value }: { value: string | null }) {
+  if (!value) return <span className="record-secondary">暂无记录</span>;
+  const iso = value.replace(' ', 'T') + 'Z';
+  const local = new Date(iso);
+  return <time className="record-time" dateTime={iso}>{local.toLocaleDateString()}<small>{local.toLocaleTimeString()}</small></time>;
+}
 
 export function ProfileSettings({ user, onUser }: { user: User; onUser: (user: User) => void }) {
   const [name, setName] = useState(user.name), [busy, setBusy] = useState(false);
@@ -64,21 +69,25 @@ export function SecuritySettings({ onChangePassword }: { onChangePassword: () =>
 export function LoginLogs({ admin = false }: { admin?: boolean }) {
   const [page, setPage] = useState(1), [items, setItems] = useState<LoginLog[]>([]), [total, setTotal] = useState(0), [busy, setBusy] = useState(true), [error, setError] = useState('');
   useEffect(() => { const controller = new AbortController(); let alive = true; setBusy(true); setError(''); api.loginLogs(admin, page, controller.signal).then(result => { if (alive) { setItems(result.items); setTotal(result.total); } }).catch(e => { if (alive) setError(message(e)); }).finally(() => { if (alive) setBusy(false); }); return () => { alive = false; controller.abort(); }; }, [admin, page]);
-  return <div className="settings-records">
-    {error && <p role="alert" className="form-error">{error}</p>}
-    {busy ? <p role="status">正在加载…</p> : items.length ? items.map(item => <article className="settings-record" key={item.id}>
-      <div className="login-log-heading"><strong>{admin ? item.username : item.source === 'extension' ? '插件登录' : '网页登录'}</strong><span className={`login-result-badge ${item.success ? 'is-success' : 'is-failure'}`}>
-        <span className="login-result-symbol" aria-hidden="true">{item.success ? <Check size={9} strokeWidth={3} /> : <X size={9} strokeWidth={3} />}</span>
-        {item.success ? '登录成功' : '登录失败'}
-      </span></div>
-      <small>{admin && (item.source === 'extension' ? '插件登录 · ' : '网页登录 · ')}{date(item.createdAt)} · {item.ip}</small><small>{item.userAgent || '未知客户端'}</small>
-    </article>) : <p>暂无登录记录</p>}
-    <Pagination page={page} total={total} busy={busy} onPage={setPage} />
-  </div>;
+  const columns: MacTableColumn<LoginLog>[] = [];
+  if (admin) columns.push({ heading: '账号', cell: item => <strong className="record-name">{item.username}</strong> });
+  columns.push(
+    { heading: '登录时间', width: '96px', cell: item => <RecordTime value={item.createdAt} /> },
+    { heading: '来源', width: '88px', cell: item => <span className="record-source">{item.source === 'extension' ? <><Puzzle />插件登录</> : <><Globe />网页登录</>}</span> },
+    { heading: 'IP / 客户端', width: '32%', cell: item => <><span className="record-ip">{item.ip}</span>{item.userAgent ? <details className="record-client"><summary>客户端信息</summary>{item.userAgent}</details> : <small className="record-secondary">未知客户端</small>}</> },
+    { heading: '结果', width: '92px', cell: item => <span className={`login-result-badge ${item.success ? 'is-success' : 'is-failure'}`}><span className="login-result-symbol" aria-hidden="true">{item.success ? <Check size={9} /> : <X size={9} />}</span>{item.success ? '登录成功' : '登录失败'}</span> },
+  );
+  return <MacTable label={admin ? '登录日志' : '我的登录记录'} minWidth={admin ? 520 : 420} columns={columns} rows={items} rowKey={item => item.id}
+    loading={busy} error={error} emptyText="暂无登录记录" footer={<Pagination page={page} total={total} busy={busy} onPage={setPage} />} />;
 }
 
 function Pagination({ page, total, busy, onPage }: { page: number; total: number; busy: boolean; onPage: (page: number) => void }) {
-  return <div className="settings-pagination"><MacButton variant="secondary" disabled={busy || page <= 1} onClick={() => onPage(page - 1)}>上一页</MacButton><span>{page} / {Math.max(1, Math.ceil(total / 20))} · {total} 条</span><MacButton variant="secondary" disabled={busy || page * 20 >= total} onClick={() => onPage(page + 1)}>下一页</MacButton></div>;
+  const pages = Math.max(1, Math.ceil(total / 20));
+  return <nav className="settings-pagination" aria-label="表格分页"><span>共 {total} 条</span><div>
+    <MacButton variant="icon" aria-label="上一页" disabled={busy || page <= 1} onClick={() => onPage(page - 1)}><ChevronLeft size={15} /></MacButton>
+    <span aria-label={`第 ${page} 页，共 ${pages} 页`}>{page} / {pages}</span>
+    <MacButton variant="icon" aria-label="下一页" disabled={busy || page >= pages} onClick={() => onPage(page + 1)}><ChevronRight size={15} /></MacButton>
+  </div></nav>;
 }
 
 export function UserManagement({ currentUser, search }: { currentUser: User; search: string }) {
@@ -114,19 +123,20 @@ export function UserManagement({ currentUser, search }: { currentUser: User; sea
     try { await api.manageUser(editing.id, { name, ...(role !== editing.role ? { role } : {}), ...(password ? { password } : {}) }); setEditing(null); setPassword(''); refresh(password ? '用户资料已保存，密码已重置' : '用户资料已保存'); }
     catch (reason) { notify(message(reason), 'error'); } finally { setBusy(false); }
   }
+  const columns: MacTableColumn<ManagedUser>[] = [
+    { heading: '用户', cell: item => <><strong className="record-name">{item.name}</strong><small className="record-secondary">{item.username}</small></> },
+    { heading: '角色 / 状态', width: '82px', cell: item => <>{item.role === 'admin' ? '管理员' : '普通用户'}<small className={`record-status ${item.disabled ? 'is-disabled' : ''}`}>{item.disabled ? '已禁用' : '正常'}</small></> },
+    { heading: '注册时间', width: '96px', cell: item => <RecordTime value={item.createdAt} /> },
+    { heading: '最近登录', width: '96px', cell: item => <RecordTime value={item.lastLogin} /> },
+    { heading: '操作', width: '110px', cell: item => item.id === currentUser.id ? <small className="record-secondary">当前账户</small> : <div className="record-actions">
+      <MacTooltip content="编辑"><MacButton variant="icon" aria-label={`编辑 ${item.username}`} onClick={() => { setEditing(item); setName(item.name); setRole(item.role); setPassword(''); setPasswordInvalid(false); }}><Pencil /></MacButton></MacTooltip>
+      <MacTooltip content={item.disabled ? '启用' : '禁用'}><MacButton variant="icon" aria-label={`${item.disabled ? '启用' : '禁用'} ${item.username}`} onClick={() => setConfirm({ title: `${item.disabled ? '启用' : '禁用'} ${item.username}？`, description: item.disabled ? '该用户将可以重新登录。' : '现有登录会话将失效，用户数据会保留。', successMessage: item.disabled ? '用户已启用' : '用户已禁用', action: () => api.manageUser(item.id, { disabled: !item.disabled }) })}>{item.disabled ? <CircleCheck /> : <Ban />}</MacButton></MacTooltip>
+      <MacTooltip content="删除"><MacButton variant="icon" className="record-delete" aria-label={`删除 ${item.username}`} onClick={() => setConfirm({ title: `删除 ${item.username}？`, description: '将永久删除此用户、个人分类、站点及其共享站点，无法撤销。', successMessage: '用户已删除', action: () => api.deleteUser(item.id) })}><Trash2 /></MacButton></MacTooltip>
+    </div> },
+  ];
   return <>
-    {error && <p role="alert" className="form-error">{error}</p>}
-    {loading ? <p role="status">正在加载用户…</p> : items.map(item => <article className="settings-record settings-user-record" key={item.id}>
-      <div className="settings-user-heading"><strong>{item.name}</strong><span className={`user-badge badge-${item.role}`}>{item.role === 'admin' ? '管理员' : '普通用户'}</span><span className={`user-badge ${item.disabled ? 'badge-disabled' : 'badge-enabled'}`}>{item.disabled ? '已禁用' : '正常'}</span></div>
-      {item.id !== currentUser.id && <div className="settings-user-actions">
-        <MacButton variant="secondary" onClick={() => { setEditing(item); setName(item.name); setRole(item.role); setPassword(''); setPasswordInvalid(false); }}>编辑</MacButton>
-        <MacButton variant="secondary" onClick={() => setConfirm({ title: `${item.disabled ? '启用' : '禁用'} ${item.username}？`, description: item.disabled ? '该用户将可以重新登录。' : '现有登录会话将失效，用户数据会保留。', successMessage: item.disabled ? '用户已启用' : '用户已禁用', action: () => api.manageUser(item.id, { disabled: !item.disabled }) })}>{item.disabled ? '启用' : '禁用'}</MacButton>
-        <MacButton variant="danger" onClick={() => setConfirm({ title: `删除 ${item.username}？`, description: '将永久删除此用户、个人分类、站点及其共享站点，无法撤销。', successMessage: '用户已删除', action: () => api.deleteUser(item.id) })}>删除</MacButton>
-      </div>}
-      <small className="settings-user-details">{item.username}{item.id === currentUser.id ? '（当前账户）' : ''}</small><small className="settings-user-details">注册：{date(item.createdAt)} · 最近登录：{date(item.lastLogin)}</small>
-    </article>)}
-    {!loading && !items.length && <p>没有匹配的用户</p>}
-    <Pagination page={page} total={total} busy={loading} onPage={setPage} />
+    <MacTable label="用户管理" minWidth={520} columns={columns} rows={items} rowKey={item => item.id} loading={loading} error={error}
+      emptyText="没有匹配的用户" footer={<Pagination page={page} total={total} busy={loading} onPage={setPage} />} />
     {editing && <MacFormDialog title="编辑用户" busy={busy} onClose={() => { setEditing(null); setPassword(''); }}><form className="editor-form" onSubmit={save}>
       <label>昵称<MacInput autoFocus value={name} onChange={e => setName(e.target.value)} required minLength={2} maxLength={60} disabled={busy} /></label>
       <fieldset disabled={busy} className="settings-role-field"><MacSelect label="账户角色" value={role} onChange={setRole} options={[{ value: 'user', label: '普通用户' }, { value: 'admin', label: '管理员' }]} /></fieldset>

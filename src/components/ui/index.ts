@@ -11,6 +11,7 @@ export { MacToastHost, notify } from './MacToast';
 export { MacPresence } from './MacPresence';
 export { MacScrollArea, type MacScrollAreaProps } from './MacScrollArea';
 export { MacTooltip, type MacTooltipProps } from './MacTooltip';
+export { MacTable, type MacTableColumn } from './MacTable';
 export { MacAlertDialog, type MacAlertDialogProps } from './MacAlertDialog';
 export { useMacWindow, type MacWindowOptions, type WindowGeometry } from './useMacWindow';
 export { useDesktopWindows } from './useDesktopWindows';

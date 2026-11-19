@@ -115,10 +115,13 @@
 .theme-light .site-item { background: #f2f3f6; border-color: rgba(0,0,0,.045); }
 .site-item:hover { background: #373940; box-shadow: 0 4px 15px rgba(0,0,0,.14); }
 .theme-light .site-item:hover { background: #e9ecf3; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .finder-content .site-item .site-icon { transition: transform 200ms cubic-bezier(.2, .75, .25, 1); }
+  .finder-content .site-item:not(.sort-placeholder):hover .site-icon { transform: scale(1.1); }
+}
 .site-open { gap: 10px; }
 .site-grip { width: 18px; color: #656872; }
-.site-icon { width: 38px; height: 38px; border-radius: 9px; background: #293f67; color: #b4c7ed; }
-.site-icon img { background: #f7f8fa; padding: 5px; }
+.site-icon { width: 38px; height: 38px; border-radius: 9px; }
 .site-copy { gap: 3px; }
 .site-copy strong { font-size: 12px; font-weight: 600; }
 .site-copy small { font-size: 10px; line-height: 1.3; }
@@ -147,8 +150,7 @@
 .wallpaper-grid button span { background-color: #284e68; }
 .dock-icon:active { filter: brightness(.9); }
 .dock-site { background: transparent; }
-.dock-site .site-icon { width: 100%; height: 100%; border-radius: inherit; background: #34629d; color: #fff; }
-.dock-site .site-icon img { border-radius: inherit; }
+.dock-site .site-icon { width: 100%; height: 100%; border-radius: inherit; }
 .dock-folder { background: transparent; color: #70b8eb; }
 .dock-folder > img { object-fit: contain; }
 .dock-dragging { opacity: .4; }
@@ -239,7 +241,8 @@
 .launchpad-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 28px 14px; }
 .launchpad-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; border: 0; background: none; color: white; animation: launchpad-in .36s cubic-bezier(.16,.7,.2,1) both; }
 .launchpad-item > span:last-child { max-width: 100%; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 5px rgba(0,0,0,.35); }
-.launchpad-item .site-icon, .launchpad-folder { width: 74px; height: 74px; border-radius: 17px; display: grid; place-items: center; filter: drop-shadow(0 8px 10px rgba(0,0,0,.24)); transition: transform .17s ease; }
+.launchpad-item .site-icon, .launchpad-folder { width: 74px; height: 74px; border-radius: 17px; filter: drop-shadow(0 8px 10px rgba(0,0,0,.24)); transition: transform .17s ease; }
+.launchpad-folder { display: grid; place-items: center; }
 .launchpad-folder { color: #6abdf2; background: linear-gradient(145deg,#278ecc,#136fc3); }
 .launchpad-item:hover .site-icon, .launchpad-item:hover .launchpad-folder { transform: scale(1.1); }
 @keyframes launchpad-in { from { opacity: 0; transform: translateY(18px) scale(.94); } to { opacity: 1; transform: translateY(0) scale(1); } }

@@ -58,14 +58,14 @@ Docker build dependencies.
 
 ## Bundled search engine icons
 
-The default Google, Twitter, Baidu and Bing icons are served only from
+The default Google, X (Twitter), Baidu and Bing icons are served only from
 `public/assets/icons/`; the application makes no external request for these images.
 Google reuses `google-icon-new.png` from the ThanasOS collection described below.
 The other three SVG paths come from **Simple Icons 11.15.0**, under CC0 1.0 Universal:
 
 | Local file | Pinned source | Added fill color |
 | --- | --- | --- |
-| `twitter.svg` | https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/icons/twitter.svg | `#1DA1F2` |
+| `twitter.svg` | https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/icons/x.svg | `#000000` |
 | `baidu.svg` | https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/icons/baidu.svg | `#2932E1` |
 | `bing.svg` | https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/icons/microsoftbing.svg | `#008373` |
 

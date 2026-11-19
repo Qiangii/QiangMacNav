@@ -207,6 +207,15 @@ export default function App() {
 
   useEffect(() => { void initialize(); }, []);
   useEffect(() => {
+    const preventF12 = (event: KeyboardEvent) => {
+      if (event.key === 'F12' && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', preventF12, true);
+    return () => window.removeEventListener('keydown', preventF12, true);
+  }, []);
+  useEffect(() => {
     const deleted = (event: Event) => {
       const url = (event as CustomEvent<string>).detail;
       setUser(previous => previous && previous.avatarUrl === url ? { ...previous, avatarUrl: '' } : previous);

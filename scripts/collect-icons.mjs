@@ -44,7 +44,7 @@ for (const [id, name, category] of upstream) {
 // Pinned Simple Icons shapes, with explicit colors for local <img> rendering.
 const simpleIconsBase = 'https://cdn.jsdelivr.net/npm/simple-icons@11.15.0/';
 for (const [id, source, name, color] of [
-  ['twitter', 'twitter', '推特 Twitter', '#1DA1F2'],
+  ['twitter', 'x', '推特 Twitter', '#000000'],
   ['baidu', 'baidu', '百度 Baidu', '#2932E1'],
   ['bing', 'microsoftbing', '必应 Bing', '#008373'],
 ]) {
