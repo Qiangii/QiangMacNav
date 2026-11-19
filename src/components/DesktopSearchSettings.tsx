@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { message } from '../api';
 import type { Preferences, SearchEngine } from '../types';
-import { MacAlertDialog, MacButton, MacFormDialog, MacInput, MacPresence, MacSwitch, MacTooltip, notify } from './ui';
+import { MacAlertDialog, MacButton, MacFormDialog, MacInput, MacPresence, MacSwitch, MacTooltip, useNotify } from './ui';
 import { DEFAULT_DESKTOP_SEARCH, searchEngineError } from './desktopSearch';
 import { useNavigationDrag, useNavigationSensors } from './navigationDrag';
 import { ImagePickerDialog } from './ImagePickerDialog';
@@ -40,6 +40,7 @@ function SortableEngine({ engine, disabled, dragging, onEdit, onDelete }: {
 }
 
 function EngineEditor({ engine, onSave, onClose }: { engine: SearchEngine; onSave: (engine: SearchEngine) => Promise<boolean>; onClose: () => void }) {
+  const notify = useNotify();
   const urlHintId = useId();
   const iconInputId = useId();
   const [draft, setDraft] = useState(engine), [busy, setBusy] = useState(false);
@@ -82,6 +83,7 @@ function EngineEditor({ engine, onSave, onClose }: { engine: SearchEngine; onSav
 }
 
 export function DesktopSearchSettings({ preferences, busy, hidden, onChange }: { preferences: Preferences; busy: boolean; hidden: boolean; onChange: (value: Preferences, successMessage?: string) => Promise<boolean> }) {
+  const notify = useNotify();
   const config = preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH;
   const [editing, setEditing] = useState<SearchEngine>(), [deleting, setDeleting] = useState<SearchEngine>();
   const [active, setActive] = useState<string>();

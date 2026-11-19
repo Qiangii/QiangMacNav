@@ -37,7 +37,7 @@ import { IconAppearanceContext } from './components/IconAppearance';
 import { DesktopWallpaper } from './components/DesktopWallpaper';
 import { CategorySidebar } from './components/CategorySidebar';
 import { SharedBadge } from './components/SharedBadge';
-import { MacInput, MacScrollArea, MacTooltip, MacToastHost, notify, useDesktopWindows, type DesktopWindowMode } from './components/ui';
+import { MacInput, MacScrollArea, MacTooltip, MacToastHost, dismissNotifications, useNotify, useDesktopWindows, type DesktopWindowMode } from './components/ui';
 import { MacPresence } from './components/ui/MacPresence';
 import { DesktopThemeContext, TitlebarPositionContext } from './components/ui/WindowPreferences';
 import { NavigationDragContext, useNavigationDrag, useNavigationSensors } from './components/navigationDrag';
@@ -45,6 +45,8 @@ import { useEventCallback } from './components/useEventCallback';
 import { useNavigationSync } from './components/useNavigationSync';
 import { useSessionActivity } from './components/useSessionActivity';
 import { navigationView, orderedCategories } from './navigationSelection';
+import { useWindowFeedback } from './viewFeedback';
+import { IconTransitions } from './components/IconTransitions';
 
 type ConfirmTarget = { title: string; description: string; action: () => Promise<void> };
 const desktopWindowDefaults = { finder: 'visible', settings: 'closed' } satisfies Record<string, DesktopWindowMode>;
@@ -59,6 +61,8 @@ const preferredCollision: CollisionDetection = args => {
 };
 
 export default function App() {
+  useWindowFeedback();
+  const notify = useNotify();
   const [phase, setPhase] = useState<'boot' | 'auth' | 'desktop' | 'failed'>('boot');
   const [bootError, setBootError] = useState('');
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
@@ -81,6 +85,7 @@ export default function App() {
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [launchpadOpen, setLaunchpadOpen] = useState(false);
   const [desktopCategoryId, setDesktopCategoryId] = useState<string | null>(null);
+  useLayoutEffect(dismissNotifications, [phase, windows.focused, finder.visible, settingsWindow.visible, selectedCategory, launchpadOpen, spotlightOpen, desktopCategoryId]);
   const [activeDrag, setActiveDrag] = useState<string | null>(null);
   const [draft, setDraft] = useState<NavigationData | null>(null);
   const draftRef = useRef<NavigationData | null>(null);
@@ -308,6 +313,11 @@ export default function App() {
   function deleteCategory(category: Category) {
     setConfirm({ title: `删除“${category.name}”？`, description: '只能删除空分类。请先移动或删除其中的网站。', action: async () => { const version = sessionVersion.current; await api.deleteCategory(category.id); await refreshAfterChange('分类已删除', version); } });
   }
+  function desktopShortcutAction(kind: DesktopItem['kind'], id: string): MenuItem {
+    const shortcut = data!.desktopItems?.find(item => item.kind === kind && item.id === id);
+    if (shortcut) return { label: '从桌面移除', icon: <X size={15} />, action: () => void perform(() => api.removeDesktopItems([shortcut]), '已从桌面移除') };
+    return { label: '添加到桌面', icon: <Monitor size={15} />, action: () => void perform(() => api.addDesktopItem(kind, id), '已添加到桌面') };
+  }
   function siteMenuItems(site: Site, dock = false): MenuItem[] {
     const editable = site.editable;
     const pinned = data!.dockItems.some(item => item.kind === 'site' && item.id === site.id);
@@ -321,7 +331,7 @@ export default function App() {
       { separator: true },
       { label: '编辑网站', icon: <Settings2 size={15} />, disabled: !editable, action: () => setEditor({ kind: 'site', site }) },
       { label: pinned ? '取消固定' : '固定到 Dock', icon: <Star size={15} />, action: () => void perform(() => pinned ? api.unpin(site.id) : api.pin(site.id), pinned ? '已取消 Dock 固定' : '已固定到 Dock') },
-      { label: '添加到桌面', icon: <Monitor size={15} />, disabled: (data!.desktopItems ?? []).some(item => item.kind === 'site' && item.id === site.id), action: () => void perform(() => api.addDesktopItem('site', site.id), '已添加到桌面') },
+      desktopShortcutAction('site', site.id),
       ...(!dock ? [
         { label: '移动到分类', icon: <LayoutGrid size={15} />, disabled: !editable, children: destinations.map(({ id, label }) => ({
           label, checked: site.categoryId === id, action: () => void perform(() => api.moveSite(site.id, id), '网站已移动'),
@@ -354,7 +364,7 @@ export default function App() {
       { label: '编辑分类', icon: <Settings2 size={15} />, disabled: !editable, action: () => setEditor({ kind: 'category', category }) },
       ...(user!.role === 'admin' && editable ? [{ label: category.shared ? '取消共享' : '共享分类', icon: <Globe2 size={15} />, action: () => void perform(() => api.setCategorySharing(category.id, !category.shared), category.shared ? '分类已取消共享' : '分类已共享，全站用户可见') }] : []),
       { label: pinned ? '取消固定' : '固定到 Dock', icon: <Star size={15} />, action: () => void perform(() => pinned ? api.unpinCategory(category.id) : api.pinCategory(category.id), pinned ? '已取消 Dock 固定' : '已固定到 Dock') },
-      { label: '添加到桌面', icon: <Monitor size={15} />, disabled: (data!.desktopItems ?? []).some(item => item.kind === 'category' && item.id === category.id), action: () => void perform(() => api.addDesktopItem('category', category.id), '已添加到桌面') },
+      desktopShortcutAction('category', category.id),
       { label: '删除分类', icon: <Trash2 size={15} />, disabled: !editable, action: () => deleteCategory(category) },
     ];
   }
@@ -481,7 +491,7 @@ export default function App() {
     <DesktopWallpaper preferences={data.preferences} />
     <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={data.categories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
       onInitialize={async (columns, rows) => { const version = sessionVersion.current; await api.initializeDesktopLayout(columns, rows); if (version === sessionVersion.current) await refresh(); }}
-      onRemove={async (items, animate) => { const version = sessionVersion.current; await api.removeDesktopItems(items); if (version === sessionVersion.current) { await animate(); await refreshAfterChange(items.length > 1 ? `已移除 ${items.length} 个桌面快捷方式` : '已从桌面移除', version); } }}
+      onRemove={async items => { const version = sessionVersion.current; await api.removeDesktopItems(items); await refreshAfterChange(items.length > 1 ? `已移除 ${items.length} 个桌面快捷方式` : '已从桌面移除', version); }}
       onMove={async (items, columns, rows) => { const version = sessionVersion.current; try { await api.saveDesktopLayout(items, columns, rows, data.desktopItems ?? [], data.desktopColumns ?? 0, data.desktopRows ?? 0); } catch (reason) { if (version === sessionVersion.current) await refresh().catch(() => {}); throw reason; } await refreshAfterChange('桌面布局已保存', version); }}
       onError={error => notify(error, 'error')} onDragStart={() => setMenu(null)} />
     <MacToastHost />
@@ -497,7 +507,7 @@ export default function App() {
         </aside>
         <div className="finder-content">
           <div className="finder-filterbar">
-            <div className="finder-category-heading" onContextMenu={!searching && activeCategory ? event => { event.stopPropagation(); showSidebarMenu(event, activeCategory.id); } : undefined}>
+            <div className="finder-category-heading" data-icon-motion={!searching && activeCategory ? `category:${activeCategory.id}` : undefined} onContextMenu={!searching && activeCategory ? event => { event.stopPropagation(); showSidebarMenu(event, activeCategory.id); } : undefined}>
               {searching ? <Search className="category-mark" size={19} aria-hidden="true" /> : <CategoryIcon className="category-mark" size={19} url={activeCategory?.iconUrl} />}
               <MacTooltip content={finderCategoryTitle}><h2>{finderCategoryTitle}</h2></MacTooltip>
               {!searching && activeCategory?.shared && <SharedBadge />}
@@ -530,6 +540,7 @@ export default function App() {
     {menu && <ContextMenu key={`${menu.x}-${menu.y}-${menu.items.length}`} menu={menu} onClose={closeMenu} restoreFocus={!!desktopCategory || launchpadOpen} />}
     <MacPresence open={!!editor}>{editor && <EditorDialog key={`${editor.kind}-${editor.kind === 'site' ? editor.site?.id ?? editor.categoryId ?? 'new' : editor.category?.id ?? 'new'}`} target={editor} categories={data.categories} onBusyChange={busy => { editorBusy.current = busy; }} onSave={async () => { await refresh(); }} onClose={() => { if (!editorBusy.current) setEditor(null); }} />}</MacPresence>
     <MacPresence open={!!confirm}>{confirm && <ConfirmDialog title={confirm.title} description={confirm.description} onConfirm={confirm.action} onClose={() => setConfirm(null)} />}</MacPresence>
-    <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
+    <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused && !launchpadOpen && !desktopCategory && !spotlightOpen && !editor} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
+    <IconTransitions data={data} />
   </div></NavigationDragContext.Provider></TitlebarPositionContext.Provider></DesktopThemeContext.Provider></IconAppearanceContext.Provider></DesktopAccountContext.Provider>;
 }

@@ -3,7 +3,7 @@ import { Ban, Check, ChevronLeft, ChevronRight, CircleCheck, Globe, Pencil, Puzz
 import { api, message } from '../api';
 import { validPassword, PASSWORD_HINT, PASSWORD_PLACEHOLDER } from '../accountValidation';
 import type { User, ManagedUser, LoginLog } from '../types';
-import { MacButton, MacFormDialog, MacInput, MacSelect, MacTable, MacTooltip, notify, type MacTableColumn } from './ui';
+import { MacButton, MacFormDialog, MacInput, MacSelect, MacTable, MacTooltip, useNotify, type MacTableColumn } from './ui';
 import { ConfirmDialog } from './ConfirmDialog';
 import './account-settings.css';
 
@@ -15,6 +15,7 @@ function RecordTime({ value }: { value: string | null }) {
 }
 
 export function ProfileSettings({ user, onUser }: { user: User; onUser: (user: User) => void }) {
+  const notify = useNotify();
   const [name, setName] = useState(user.name), [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   async function save(event: FormEvent) {
@@ -31,6 +32,7 @@ export function ProfileSettings({ user, onUser }: { user: User; onUser: (user: U
 }
 
 export function PasswordDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const notify = useNotify();
   const [current, setCurrent] = useState(''), [password, setPassword] = useState(''), [repeat, setRepeat] = useState('');
   const [busy, setBusy] = useState(false);
   const [invalidField, setInvalidField] = useState<'password' | 'repeat' | null>(null);
@@ -58,6 +60,7 @@ export function PasswordDialog({ onClose, onSaved }: { onClose: () => void; onSa
 }
 
 export function SecuritySettings({ onChangePassword }: { onChangePassword: () => void }) {
+  const notify = useNotify();
   const [confirm, setConfirm] = useState(false);
   return <>
     <div className="settings-user-actions"><MacButton variant="secondary" onClick={onChangePassword}>修改密码</MacButton><MacButton variant="secondary" onClick={() => setConfirm(true)}>退出其他设备</MacButton></div>
@@ -91,14 +94,15 @@ function Pagination({ page, total, busy, onPage }: { page: number; total: number
 }
 
 export function UserManagement({ currentUser, search }: { currentUser: User; search: string }) {
+  const notify = useNotify();
   const [page, setPage] = useState(1), [revision, setRevision] = useState(0);
   const [items, setItems] = useState<ManagedUser[]>([]), [total, setTotal] = useState(0), [loading, setLoading] = useState(true), [error, setError] = useState('');
   const [editing, setEditing] = useState<ManagedUser | null>(null), [name, setName] = useState(''), [role, setRole] = useState('user'), [password, setPassword] = useState(''), [busy, setBusy] = useState(false);
   const [passwordInvalid, setPasswordInvalid] = useState(false);
   const passwordInput = useRef<HTMLInputElement>(null);
   const [confirm, setConfirm] = useState<{ title: string; description: string; successMessage: string; action: () => Promise<unknown> } | null>(null);
-  const pendingFeedback = useRef('');
-  const refresh = (success: string) => { pendingFeedback.current = success; setRevision(x => x + 1); };
+  const pendingFeedback = useRef<{ success: string; notify: typeof notify } | null>(null);
+  const refresh = (success: string) => { pendingFeedback.current = { success, notify }; setRevision(x => x + 1); };
   useEffect(() => {
     const controller = new AbortController();
     let alive = true; setLoading(true); setError('');
@@ -106,12 +110,13 @@ export function UserManagement({ currentUser, search }: { currentUser: User; sea
       if (!alive) return;
       if (!result.items.length && page > 1) { setPage(Math.max(1, Math.min(page - 1, Math.ceil(result.total / 20)))); return; }
       setItems(result.items); setTotal(result.total);
-      if (pendingFeedback.current) { notify(pendingFeedback.current); pendingFeedback.current = ''; }
+      pendingFeedback.current?.notify(pendingFeedback.current.success);
+      pendingFeedback.current = null;
     }).catch(reason => {
       if (!alive) return;
-      const text = pendingFeedback.current ? `${pendingFeedback.current}，但用户列表刷新失败，请刷新页面` : message(reason);
-      if (pendingFeedback.current) { notify(text, 'error'); pendingFeedback.current = ''; }
-      else setError(text);
+      const feedback = pendingFeedback.current;
+      if (feedback) { feedback.notify(`${feedback.success}，但用户列表刷新失败，请刷新页面`, 'error'); pendingFeedback.current = null; }
+      else setError(message(reason));
     }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; controller.abort(); };
   }, [page, search, revision]);

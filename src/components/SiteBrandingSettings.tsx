@@ -5,10 +5,11 @@ import type { SiteBranding } from '../types';
 import { DEFAULT_BRANDING } from '../branding';
 import { ImagePickerDialog } from './ImagePickerDialog';
 import { MediaPreview } from './MediaPreview';
-import { MacButton, MacInput, MacPresence, notify } from './ui';
+import { MacButton, MacInput, MacPresence, useNotify } from './ui';
 import './site-branding.css';
 
 export function SiteBrandingSettings({ value, onSaved, disabled }: { value: SiteBranding; onSaved: (value: SiteBranding) => void; disabled: boolean }) {
+  const notify = useNotify();
   const [draft, setDraft] = useState(value);
   const [busy, setBusy] = useState(false), [pickerOpen, setPickerOpen] = useState(false), [pickerBusy, setPickerBusy] = useState(false);
   useEffect(() => { setDraft(value); }, [value.siteTitle, value.siteLogoUrl]);

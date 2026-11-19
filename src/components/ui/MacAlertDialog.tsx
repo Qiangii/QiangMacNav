@@ -5,7 +5,7 @@ import { usePresenceActive } from './MacPresence';
 import { AlertTriangle } from 'lucide-react';
 import { MacDialog } from './MacDialog';
 import { MacButton } from './MacButton';
-import { notify } from './MacToast';
+import { useNotify } from './MacToast';
 import './primitives.css';
 
 export type MacAlertDialogProps = {
@@ -22,6 +22,7 @@ export type MacAlertDialogProps = {
 };
 
 export function MacAlertDialog({ title, description, icon = <AlertTriangle size={32} />, confirmLabel = '确认删除', busyLabel = '正在删除…', cancelLabel = '取消', successMessage, notifyErrors = true, onConfirm, onClose }: MacAlertDialogProps) {
+  const notify = useNotify();
   const id = useId();
   const pending = useRef(false);
   const [busy, setBusy] = useState(false);

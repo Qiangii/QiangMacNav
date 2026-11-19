@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ComponentPropsWithoutRef } from 'react';
 import { usePresenceActive } from './MacPresence';
+import { dismissNotifications } from '../../viewFeedback';
 
 type ModalEntry = { node: HTMLElement; focus: () => void; layer: number };
 const modals: ModalEntry[] = [];
@@ -42,6 +43,7 @@ export function MacDialog({ onClose, onEscape, backdropClassName = 'modal-backdr
     modals.push(entry);
     modals.sort((a, b) => a.layer - b.layer);
     if (topModal() === entry) {
+      dismissNotifications();
       if (node.contains(document.activeElement)) lastFocus = document.activeElement as HTMLElement;
       else focus();
     }
@@ -77,6 +79,7 @@ export function MacDialog({ onClose, onEscape, backdropClassName = 'modal-backdr
       document.removeEventListener('focusin', focusin);
       document.removeEventListener('keydown', keydown);
       if (!wasTop) return;
+      dismissNotifications();
       // Wait for DOM removal and other dialogs in this commit (also safe in StrictMode).
       queueMicrotask(() => {
         const next = topModal();

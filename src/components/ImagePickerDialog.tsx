@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, ImagePlus, Search, Trash2, Upload } from 'lucide-react';
 import { api, message } from '../api';
 import type { IconCatalog, MediaImage, MediaKind } from '../types';
-import { MacAlertDialog, MacButton, MacFormDialog, MacInput, MacScrollArea, notify } from './ui';
+import { MacAlertDialog, MacButton, MacFormDialog, MacInput, MacScrollArea, useNotify, dismissNotifications } from './ui';
 import { MacPresence } from './ui/MacPresence';
 import { MediaPreview } from './MediaPreview';
 import './image-picker.css';
@@ -56,6 +56,7 @@ export function ImagePickerDialog({ title = '选择图片', value = '', valueMim
     return () => { active = false; clearTimeout(timer); controller.abort(); };
   }, [category, page, query, reload, kind]);
 
+  const notify = useNotify();
   async function upload(file?: File) {
     if (!file) return;
     const isVideo = file.type === 'video/mp4' || file.name.toLowerCase().endsWith('.mp4');
@@ -95,7 +96,7 @@ export function ImagePickerDialog({ title = '选择图片', value = '', valueMim
   return <><MacFormDialog title={title} busy={busy} className={`image-picker${isAvatar ? ' avatar-picker' : ''}`} onClose={onClose}>
     <div className="image-picker-categories" role="group" aria-label={isAvatar ? '头像分类' : '图片分类'}>
       {[...(kind === 'wallpaper' ? [] : [{ id: 'all', name: isAvatar ? '默认头像' : '全部图标' }, ...groups]), ...(allowUpload ? [{ id: 'uploads', name: isAvatar ? '我的头像' : '我的上传' }] : [])].map(group =>
-        <MacButton key={group.id} variant="secondary" aria-pressed={category === group.id} disabled={busy} onClick={() => { setCategory(group.id); setQuery(''); setPage(1); setError(''); }}>{group.name}</MacButton>)}
+        <MacButton key={group.id} variant="secondary" aria-pressed={category === group.id} disabled={busy} onClick={() => { if (category !== group.id) dismissNotifications(); setCategory(group.id); setQuery(''); setPage(1); setError(''); }}>{group.name}</MacButton>)}
     </div>
     <div className="image-picker-toolbar">
       <label><Search size={14} /><MacInput autoFocus aria-label={isAvatar ? '搜索头像' : '搜索图片'} placeholder={isAvatar ? '搜索头像名称' : category === 'uploads' ? '搜索上传的图片' : '搜索图标名称'} value={query} disabled={busy} onChange={event => { setQuery(event.target.value); setPage(1); }} /></label>

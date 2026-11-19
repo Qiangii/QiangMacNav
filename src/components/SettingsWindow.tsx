@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Camera, LogOut } from 'lucide-react';
 import { api, message } from '../api';
 import type { Preferences, User, SiteBranding } from '../types';
-import { MacButton, MacInput, MacScrollArea, MacSettingChoice, MacSwitch, MacWindow, useMacWindow, notify } from './ui';
+import { MacButton, MacInput, MacScrollArea, MacSettingChoice, MacSwitch, MacWindow, useMacWindow, useNotify, dismissNotifications } from './ui';
 import { hasOpenMacDialog } from './ui/MacDialog';
 import { ProfileSettings, PasswordDialog, SecuritySettings, UserManagement, LoginLogs } from './AccountSettings';
 import { MacPresence } from './ui/MacPresence';
@@ -46,6 +46,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
   const [section, setSection] = useDesktopState<Section>('settings:section', 'account', (value): value is Section =>
     typeof value === 'string' && (['account', 'security', 'applications', 'appearance'].includes(value) || user.role === 'admin' && ['users', 'logs', 'admin', 'updates'].includes(value)));
   const [registration, setRegistration] = useState<boolean | null>(null);
+  const notify = useNotify();
   const [error, setError] = useState('');
   const [localBusy, setBusy] = useState(false);
   const busy = localBusy || preferencesSaving;
@@ -67,10 +68,12 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
   }, [focused, hidden, controller.maximized, controller.toggleMaximize, close]);
 
   useEffect(() => {
+    if (section !== 'admin' || user.role !== 'admin' || hidden || !focused) return;
     const controller = new AbortController();
-    if (user.role === 'admin') api.adminSettings(controller.signal).then(result => { if (!controller.signal.aborted) setRegistration(result.registrationEnabled); }).catch(reason => { if (!controller.signal.aborted) setError(message(reason)); });
+    setError('');
+    api.adminSettings(controller.signal).then(result => { if (!controller.signal.aborted) setRegistration(result.registrationEnabled); }).catch(reason => { if (!controller.signal.aborted) setError(message(reason)); });
     return () => controller.abort();
-  }, [user.role]);
+  }, [section, user.role, hidden, focused]);
 
   async function changePreferences(value: Preferences, successMessage?: string) {
     if (busy) return false;
@@ -108,7 +111,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
       <div className="settings-body">
         <div className="settings-sidebar-column"><MacScrollArea role="complementary" className="settings-sidebar"><div className="settings-user"><MacButton className="settings-avatar settings-avatar-button" aria-label="修改头像" disabled={busy} onClick={() => setAvatarOpen(true)}><MediaPreview url={user.avatarUrl} fallback={user.name.slice(0, 1).toUpperCase()} /><span className="settings-avatar-edit"><Camera size={17} /></span></MacButton><span><strong>{user.name}</strong><small>{user.role === 'admin' ? '管理员' : '个人账户'}</small></span></div>
           <div className="sidebar-caption">设置</div>
-          <nav aria-label="设置分类">{sections.map(item => <MacButton key={item.id} aria-label={item.label} className={section === item.id ? 'selected' : ''} onClick={() => { if (canLeave()) { setSection(item.id); setError(''); } }}><span className="settings-section-icon" aria-hidden="true"><SystemIcon src={`/assets/icons/macos27/${item.icon}.png`} /></span><span className="settings-section-label">{item.label}</span></MacButton>)}</nav>
+           <nav aria-label="设置分类">{sections.map(item => <MacButton key={item.id} aria-label={item.label} className={section === item.id ? 'selected' : ''} onClick={() => { if (item.id !== section && canLeave()) { dismissNotifications(); setSection(item.id); setError(''); } }}><span className="settings-section-icon" aria-hidden="true"><SystemIcon src={`/assets/icons/macos27/${item.icon}.png`} /></span><span className="settings-section-label">{item.label}</span></MacButton>)}</nav>
         </MacScrollArea>
         </div>
         <MacScrollArea className="settings-content" cacheKey={`settings:${section}`}>
@@ -118,8 +121,8 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
           {section === 'security' && <SecuritySettings onChangePassword={() => setPasswordOpen(true)} />}
           {section === 'users' && user.role === 'admin' && <UserManagement key={userSearch} currentUser={user} search={userSearch} />}
           {section === 'logs' && user.role === 'admin' && <LoginLogs admin />}
-          {section === 'updates' && user.role === 'admin' && <SystemUpdates hidden={hidden} />}
-          {error && <div className="settings-error" role="alert">{error}</div>}
+          {section === 'updates' && user.role === 'admin' && <SystemUpdates active={focused && !hidden} />}
+          {section === 'admin' && focused && !hidden && error && <div className="settings-error" role="alert">{error}</div>}
           {section === 'account' && <><div className="settings-list">
             <ProfileSettings user={user} onUser={onUser} />
             <div className="setting-row"><div><strong>账号</strong><span>用于登录此桌面，不区分大小写</span></div><b className="settings-email">{user.username}</b></div>

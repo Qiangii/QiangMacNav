@@ -32,7 +32,7 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
     ...filteredCategories.map((category, index) => <MacTooltip key={`category:${category.id}`} content={category.name}><MacButton className="launchpad-item" style={{ animationDelay: `${Math.min(index, 8) * 22}ms` }} onClick={() => onCategory(category)}>
       <span className="launchpad-folder"><CategoryIcon size={38} url={category.iconUrl} /></span><span>{category.name}</span>
     </MacButton></MacTooltip>),
-    ...filteredSites.map((site, index) => <div key={`site:${site.id}`} className="launchpad-site" onContextMenu={event => { event.currentTarget.querySelector<HTMLButtonElement>('.launchpad-item')?.focus({ preventScroll: true }); onSiteMenu(event, site); }}>
+    ...filteredSites.map((site, index) => <div key={`site:${site.id}`} data-icon-motion={`site:${site.id}`} className="launchpad-site" onContextMenu={event => { event.currentTarget.querySelector<HTMLButtonElement>('.launchpad-item')?.focus({ preventScroll: true }); onSiteMenu(event, site); }}>
       <MacTooltip content={site.note.trim() || site.name}><MacButton className="launchpad-item" style={{ animationDelay: `${Math.min(index + filteredCategories.length, 8) * 22}ms` }} onClick={() => { openSite(site); onClose(); }} onKeyDown={event => {
         if (event.key === 'ContextMenu' || event.shiftKey && event.key === 'F10') {
           event.preventDefault(); event.stopPropagation();

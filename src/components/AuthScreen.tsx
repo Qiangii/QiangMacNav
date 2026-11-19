@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { dismissNotifications, useViewFeedback } from '../viewFeedback';
 import { ArrowRight, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react';
 import { api, message } from '../api';
 import { validPassword, validPasswordLength, validUsername, PASSWORD_HINT, PASSWORD_LENGTH_HINT, USERNAME_HINT, PASSWORD_PLACEHOLDER, USERNAME_PLACEHOLDER } from '../accountValidation';
@@ -19,8 +20,9 @@ export function AuthScreen({ bootstrap, onSuccess, onRefresh }: {
   const [setupToken, setSetupToken] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [invalidField, setInvalidField] = useState<'username' | 'password' | null>(null);
+  const [error, setError] = useViewFeedback('');
+  const [invalidField, setInvalidField] = useViewFeedback<'username' | 'password' | null>(null);
+  useLayoutEffect(dismissNotifications, [mode]);
   const usernameInput = useRef<HTMLInputElement>(null);
   const passwordInput = useRef<HTMLInputElement>(null);
   const [now, setNow] = useState(() => new Date());

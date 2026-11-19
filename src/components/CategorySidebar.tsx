@@ -27,7 +27,7 @@ function Row({ entry, selected, disabled, onSelect, onMenu }: {
   const { setNodeRef, setActivatorNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: entry.id, disabled });
   const drag = useContext(NavigationDragContext);
   const longPress = drag.mode === 'longPress';
-  return <div ref={setNodeRef} className={`sidebar-category-row ${selected ? 'selected' : ''} ${isDragging ? 'sorting' : ''}`} style={{ transform: CSS.Transform.toString(transform), transition }} onClickCapture={drag.guard} onContextMenuCapture={drag.guard} onContextMenu={event => onMenu(event, entry.id)}>
+  return <div ref={setNodeRef} data-icon-motion={`category:${entry.id}`} className={`sidebar-category-row ${selected ? 'selected' : ''} ${isDragging ? 'sorting' : ''}`} style={{ transform: CSS.Transform.toString(transform), transition }} onClickCapture={drag.guard} onContextMenuCapture={drag.guard} onContextMenu={event => onMenu(event, entry.id)}>
     <MacTooltip content={entry.name} disabled={isDragging}><MacButton ref={longPress ? setActivatorNodeRef : undefined} {...(longPress ? attributes : {})} {...(longPress ? listeners : {})} className={`finder-sidebar-item ${longPress ? 'long-press-target' : ''}`} aria-label={entry.name} aria-current={selected ? 'page' : undefined} onClick={() => onSelect(entry.id)}>
       <CategoryIcon url={entry.iconUrl} size={17} /><span>{entry.name}</span>{entry.shared && <SharedBadge />}
     </MacButton></MacTooltip>

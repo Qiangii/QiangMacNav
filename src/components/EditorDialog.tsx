@@ -2,7 +2,7 @@ import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type F
 import { DesktopAccountContext, clearDesktopCacheEntry, editorCacheKey, isCachedText, isRecord, readDesktopCache, writeDesktopCache } from '../desktopCache';
 import { api, message } from '../api';
 import type { Category, Site } from '../types';
-import { MacButton, MacFormDialog, MacInput, MacSelect, MacTextarea, notify } from './ui';
+import { MacButton, MacFormDialog, MacInput, MacSelect, MacTextarea, useNotify } from './ui';
 import { ImagePickerDialog } from './ImagePickerDialog';
 import { MacPresence } from './ui/MacPresence';
 import { MediaPreview } from './MediaPreview';
@@ -46,6 +46,7 @@ export function EditorDialog({ target, categories, onSave, onClose, onBusyChange
   }, [account, cacheKey, name, url, note, logoUrl, categoryId]);
   function close() { finished.current = true; clearDesktopCacheEntry(account, cacheKey); onClose(); }
 
+  const notify = useNotify();
   async function save(event: FormEvent) {
     event.preventDefault();
     if (busy || pickerOpen) return;

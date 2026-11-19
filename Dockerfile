@@ -16,7 +16,7 @@ RUN go mod download
 COPY server/ ./
 ARG BUILD_COMMIT=development
 ARG BUILD_TIME=
-ARG APP_VERSION=1.0.3
+ARG APP_VERSION=1.0.4
 RUN test "$APP_VERSION" = "$(cat internal/buildinfo/version.txt | tr -d '\r\n')" \
     && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w -X navigation/server/internal/buildinfo.Commit=${BUILD_COMMIT} -X navigation/server/internal/buildinfo.BuiltAt=${BUILD_TIME}" -o /out/navigation . \
     && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/updater ./cmd/updater \
@@ -30,7 +30,7 @@ COPY --from=backend /out/navigation ./navigation
 COPY --from=backend /out/start-navigation ./start-navigation
 COPY --from=backend /out/updater ./updater
 COPY ASSET_NOTICES.md ./ASSET_NOTICES.md
-ARG APP_VERSION=1.0.3
+ARG APP_VERSION=1.0.4
 ARG BUILD_COMMIT=development
 LABEL org.opencontainers.image.version=$APP_VERSION \
       org.opencontainers.image.revision=$BUILD_COMMIT \

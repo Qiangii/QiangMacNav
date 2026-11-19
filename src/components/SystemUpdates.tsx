@@ -1,20 +1,22 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUpCircle, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import { api, ApiError, message } from '../api';
 import type { SystemUpdateStatus, UpdateJob } from '../types';
 import { PROJECT_GITHUB_URL, PROJECT_REPOSITORY } from '../project';
-import { MacButton, notify } from './ui';
+import { MacButton, useNotify } from './ui';
 import { ConfirmDialog } from './ConfirmDialog';
+import { currentFeedbackVisit, useViewFeedback } from '../viewFeedback';
 import './system-updates.css';
 
 const running = (job?: UpdateJob | null) => !!job && ['queued', 'pulling', 'backing_up', 'replacing', 'starting', 'verifying', 'rolling_back'].includes(job.stage);
 const ReleaseNotes = lazy(() => import('./ReleaseNotes'));
 
-export function SystemUpdates({ hidden = false }: { hidden?: boolean }) {
+export function SystemUpdates({ active }: { active: boolean }) {
+  const notify = useNotify();
   const [status, setStatus] = useState<SystemUpdateStatus>();
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
-  const [failure, setFailure] = useState<{ message: string; version: string } | null>(null);
+  const [outcome, setOutcome] = useViewFeedback<UpdateJob | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [bundle, setBundle] = useState<File | null>(null);
@@ -24,43 +26,43 @@ export function SystemUpdates({ hidden = false }: { hidden?: boolean }) {
   const [watch, setWatch] = useState(false);
   const [revision, setRevision] = useState(0);
   const lastJob = useRef<UpdateJob | null>(null);
+  const lastJobVisit = useRef(0);
   const checkController = useRef<AbortController | null>(null);
-  const mounted = useRef(true);
+  const visit = useRef(0);
   const busy = starting || checking || running(status?.updater.job) || watch;
 
-  function accept(result: SystemUpdateStatus, showFailure = true) {
+  function accept(result: SystemUpdateStatus) {
     if (!result.updater.job && running(lastJob.current)) result = { ...result, updater: { ...result.updater, job: lastJob.current } };
     const receivedJob = result.updater.job;
-    const failed = receivedJob && (receivedJob.stage === 'failed' || receivedJob.stage === 'rolled_back');
-    if (failed) {
-      if (showFailure || running(lastJob.current)) setFailure({ message: receivedJob.message, version: receivedJob.version });
+    if (receivedJob && ['succeeded', 'failed', 'rolled_back'].includes(receivedJob.stage)) {
+      if (lastJobVisit.current === currentFeedbackVisit() && running(lastJob.current) && lastJob.current?.id === receivedJob.id) setOutcome(receivedJob);
       result = { ...result, updater: { ...result.updater, job: null } };
-    }
+    } else if (receivedJob) setOutcome(null);
     lastJob.current = result.updater.job;
+    lastJobVisit.current = currentFeedbackVisit();
     setStatus(result); setError(''); setReconnecting(false);
     if (!running(result.updater.job)) setWatch(false);
   }
 
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; checkController.current?.abort(); };
-  }, []);
+  useLayoutEffect(() => {
+    setOutcome(null); setWatch(false); setChecking(false); setReconnecting(false);
+    lastJob.current = null;
+    return () => { visit.current++; checkController.current?.abort(); };
+  }, [active]);
 
   useEffect(() => {
-    if (hidden) setFailure(null);
-  }, [hidden]);
-
-  useEffect(() => {
+    if (!active) return;
+    const origin = visit.current;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const load = async () => {
-      try { const result = await api.systemUpdates(controller.signal); if (!controller.signal.aborted) { accept(result, false); } }
+      try { const result = await api.systemUpdates(controller.signal); if (!controller.signal.aborted && visit.current === origin) accept(result); }
       catch (reason) { if (!controller.signal.aborted) { if (watch || running(lastJob.current)) setReconnecting(true); else setError(message(reason)); } }
       finally { if (!controller.signal.aborted && (watch || running(lastJob.current))) timer = setTimeout(load, 2000); }
     };
     void load();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [watch, revision]);
+  }, [active, watch, revision, setOutcome]);
 
   async function check() {
     if (busy) return;
@@ -68,29 +70,33 @@ export function SystemUpdates({ hidden = false }: { hidden?: boolean }) {
     try {
       const result = await api.checkSystemUpdates(controller.signal);
       if (controller.signal.aborted) return;
-      setFailure(null); accept(result, false); notify(result.updateAvailable ? `发现新版本 v${result.latest!.version}` : '当前已是最新稳定版本');
+      setOutcome(null); accept(result); notify(result.updateAvailable ? `发现新版本 v${result.latest!.version}` : '当前已是最新稳定版本');
     } catch (reason) { if (!controller.signal.aborted) notify(message(reason), 'error'); }
     finally { if (!controller.signal.aborted) setChecking(false); }
   }
 
   async function install() {
     if (!status || (!bundle && !status.latest) || busy) return;
-    setStarting(true);
+    const origin = visit.current;
+    setStarting(true); setOutcome(null);
     try {
       const job = bundle ? await api.uploadSystemUpdate(bundle) : await api.installSystemUpdate(status.latest!);
-      if (!mounted.current) return;
-      setFailure(null);
+      if (visit.current !== origin) return;
+      lastJobVisit.current = currentFeedbackVisit();
       lastJob.current = job; setStatus(previous => previous ? { ...previous, updater: { ...previous.updater, job } } : previous);
       setWatch(true); notify('升级已开始，服务重启时会自动重新连接');
     } catch (reason) {
       if (bundle && reason instanceof ApiError && reason.status >= 400 && reason.status < 500) {
-        if (mounted.current) notify(message(reason), 'error');
+        notify(message(reason), 'error');
         return;
       }
       // The server may have accepted the job before the connection was lost.
       // Re-read status before offering another install instead of replaying POST.
-      if (mounted.current) { setWatch(true); setRevision(value => value + 1); notify(`${message(reason)}；正在重新确认升级状态`, 'error'); }
-    } finally { if (mounted.current) { setStarting(false); setConfirm(false); setBundle(null); } }
+      if (visit.current === origin) { setWatch(true); setRevision(value => value + 1); notify(`${message(reason)}；正在重新确认升级状态`, 'error'); }
+    } finally {
+      setStarting(false); setConfirm(false); setBundle(null);
+      if (visit.current !== origin) setRevision(value => value + 1);
+    }
   }
 
   function selectBundle(file?: File) {
@@ -101,7 +107,8 @@ export function SystemUpdates({ hidden = false }: { hidden?: boolean }) {
     setBundle(file); setConfirm(true);
   }
 
-  const job = status?.updater.job;
+  const failure = active && outcome && outcome.stage !== 'succeeded' ? outcome : null;
+  const job = status?.updater.job ?? (active && outcome?.stage === 'succeeded' ? outcome : null);
   const complete = job?.stage === 'succeeded' && status?.current.version === job.version;
   return <section className="system-updates" aria-label="系统更新详情">
     <div className="update-summary"><span className="update-symbol"><ArrowUpCircle size={32} /></span><div className="update-summary-copy"><div className="update-summary-heading"><h3>保持系统更新</h3><MacButton className="update-check" variant="secondary" disabled={!status?.configured || busy || job?.stage === 'interrupted'} onClick={() => void check()}><RefreshCw size={14} aria-hidden="true" className={checking ? 'update-spinner' : undefined} />{checking ? '正在检查…' : '检查更新'}</MacButton></div><p>更新网页界面与服务程序，保留账户、导航和上传资源。</p></div></div>

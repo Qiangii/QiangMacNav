@@ -16,7 +16,7 @@ export type SortableSiteProps = {
 };
 
 export function SiteItem(props: Pick<SortableSiteProps, 'site' | 'onOpen' | 'onMenu'>) {
-  return <div className="site-item" data-site-id={props.site.id} role="listitem" onContextMenu={event => props.onMenu(event, props.site)}>
+  return <div className="site-item" data-site-id={props.site.id} data-icon-motion={`site:${props.site.id}`} role="listitem" onContextMenu={event => props.onMenu(event, props.site)}>
     <SiteControls {...props} canEdit={false} />
   </div>;
 }
@@ -25,7 +25,7 @@ export function SortableSite(props: SortableSiteProps) {
   const { site, canEdit, sortingDisabled, placeholder, onMenu } = props;
   const { attributes, listeners, setNodeRef, setActivatorNodeRef } = useSortable({ id: `site:${site.id}`, disabled: !canEdit || sortingDisabled });
   const drag = useContext(NavigationDragContext);
-  return <div ref={setNodeRef} data-sort-id={`site:${site.id}`} className={`site-item ${placeholder ? 'sort-placeholder' : ''}`} onClickCapture={drag.guard} onContextMenuCapture={drag.guard} onContextMenu={event => onMenu(event, site)}>
+  return <div ref={setNodeRef} data-sort-id={`site:${site.id}`} data-icon-motion={`site:${site.id}`} className={`site-item ${placeholder ? 'sort-placeholder' : ''}`} onClickCapture={drag.guard} onContextMenuCapture={drag.guard} onContextMenu={event => onMenu(event, site)}>
     <SiteControls {...props} attributes={attributes} listeners={listeners} activatorRef={setActivatorNodeRef} />
   </div>;
 }

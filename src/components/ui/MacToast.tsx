@@ -1,12 +1,16 @@
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { currentFeedbackVisit, subscribeFeedback, useFeedbackVisit } from '../../viewFeedback';
 import { createPortal } from 'react-dom';
 import { Check, CircleAlert } from 'lucide-react';
 import { DesktopThemeContext } from './WindowPreferences';
 import './feedback.css';
 
 type Toast = { message: string; kind: 'success' | 'error' };
-export function notify(message: string, kind: Toast['kind'] = 'success') {
-  window.dispatchEvent(new CustomEvent<Toast>('mac-notification', { detail: { message, kind } }));
+export function useNotify() {
+  const origin = useFeedbackVisit();
+  return useCallback((message: string, kind: Toast['kind'] = 'success') => {
+    if (origin === currentFeedbackVisit()) window.dispatchEvent(new CustomEvent<Toast>('mac-notification', { detail: { message, kind } }));
+  }, [origin]);
 }
 export function MacToastHost() {
   const theme = useContext(DesktopThemeContext) ?? 'dark';
@@ -14,8 +18,9 @@ export function MacToastHost() {
   useEffect(() => {
     let id = 0;
     const show = (event: Event) => setToast({ ...(event as CustomEvent<Toast>).detail, id: ++id });
+    const unsubscribe = subscribeFeedback(() => setToast(null));
     window.addEventListener('mac-notification', show);
-    return () => window.removeEventListener('mac-notification', show);
+    return () => { unsubscribe(); window.removeEventListener('mac-notification', show); };
   }, []);
   useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(null), 3500); return () => clearTimeout(timer); } }, [toast]);
   return toast && createPortal(<div key={toast.id} className={`mac-feedback-toast theme-${theme} ${toast.kind}`} role={toast.kind === 'error' ? 'alert' : 'status'} aria-atomic="true">

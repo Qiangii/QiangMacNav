@@ -3,12 +3,13 @@ import { Trash2, Upload } from 'lucide-react';
 import { api, message } from '../api';
 import type { MediaImage, Preferences } from '../types';
 import { WALLPAPERS } from '../visuals';
-import { MacAlertDialog, MacButton, notify } from './ui';
+import { MacAlertDialog, MacButton, useNotify } from './ui';
 import { MacPresence } from './ui/MacPresence';
 import { MediaPreview } from './MediaPreview';
 import './wallpapers.css';
 
 export function WallpaperSettings({ preferences, onChange }: { preferences: Preferences; onChange: (value: Preferences, successMessage?: string, errorContext?: string) => Promise<void> }) {
+  const notify = useNotify();
   const input = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<MediaImage[]>([]), [total, setTotal] = useState(0);
   const [page, setPage] = useState(1), [revision, setRevision] = useState(0);
@@ -21,7 +22,7 @@ export function WallpaperSettings({ preferences, onChange }: { preferences: Pref
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    let active = true; setLoading(true);
+     let active = true; setLoading(true); setError('');
     api.media(page, '', 'wallpaper', controller.signal).then(result => {
       if (active) { setTotal(result.total); setItems(previous => page === 1 ? result.items : [...previous, ...result.items.filter(item => !previous.some(old => old.id === item.id))]); }
     }).catch(reason => { if (active) setError(message(reason)); }).finally(() => { if (active) setLoading(false); });

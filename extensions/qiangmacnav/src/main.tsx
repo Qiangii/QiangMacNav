@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BookmarkPlus, Check, ExternalLink, Folder, LogOut, RefreshCw, Search, Upload } from 'lucide-react';
 import type { Category, Site, SessionActivity } from '../../../src/types';
@@ -11,6 +11,7 @@ import { PASSWORD_LENGTH_HINT, PASSWORD_PLACEHOLDER, USERNAME_HINT, USERNAME_PLA
 import { defaultCategory, message, normalizeBase, orderedCategories, permissionOrigin, safeURL, type Draft, type Session, type State } from './model';
 import './style.css';
 import { isMediaPath, loadLogo, uploadLogoFromURL } from './media';
+import { currentFeedbackVisit, dismissNotifications, useViewFeedback, useWindowFeedback } from '../../../src/viewFeedback';
 
 const params = new URLSearchParams(location.search);
 const captureId = params.get('capture') || undefined;
@@ -41,9 +42,10 @@ function Logo({ src, state, name }: { src: string; state: State; name: string })
 
 function Login({ base, needsAccess, signedIn, refresh }: { base: string; needsAccess: boolean; signedIn: boolean; refresh: () => Promise<void> }) {
   const [address, setAddress] = useState(base), [username, setUsername] = useState(''), [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [field, setField] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useViewFeedback(''), [field, setField] = useViewFeedback('');
   const [editingAddress, setEditingAddress] = useState(false);
   const connecting = needsAccess || editingAddress;
+  useLayoutEffect(dismissNotifications, [connecting]);
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (base) setAddress(base); }, [base]);
   const clear = () => { setError(''); setField(''); };
@@ -125,6 +127,7 @@ function Navigation({ state }: { state: State }) {
   const categories = orderedCategories(data);
   const [selected, setSelected] = useState(categories[0]?.id || ''), [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  useLayoutEffect(dismissNotifications, [selected]);
   const inComposition = useRef(false);
   useEffect(() => { if (selected && !categories.some(c => c.id === selected)) setSelected(categories[0]?.id || ''); }, [data]);
   const needle = search.trim().toLocaleLowerCase();
@@ -143,10 +146,18 @@ function Collection({ state, refresh }: { state: State; refresh: () => Promise<v
   const [draft, setDraft] = useState<Draft>(state.draft || { name: '', url: '', logoUrl: '', note: '' });
   const [category, setCategory] = useState<string | null>(() => defaultCategory(categories, state.lastCategory));
   const [uploading, setUploading] = useState(false);
-  const [busy, setBusy] = useState(false), [saved, setSaved] = useState(state.saved), [error, setError] = useState(''), [field, setField] = useState(''), [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false), [saved, setSaved] = useState(state.saved), [error, setError] = useViewFeedback(''), [field, setField] = useViewFeedback(''), [notice, setNotice] = useViewFeedback('');
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (category && !categories.some(c => c.id === category && c.editable)) { setCategory(defaultCategory(categories, undefined)); setNotice('原分类已不可用，已重新选择可收藏分类。'); } }, [state.navigation]);
   function change(key: keyof Draft, value: string) { setDraft(d => ({ ...d, [key]: value })); setError(''); setField(''); }
+  function selectCategory(value: string) {
+    const id = value || null;
+    if (id === category) return;
+    dismissNotifications();
+    const origin = currentFeedbackVisit();
+    setCategory(id);
+    void message({ type: 'category', identity: state.identity, categoryId: id }).catch(error => setError(errorText(error), origin));
+  }
   async function importLogo() {
     if (busy || uploading) return;
     setUploading(true); setNotice(''); setError(''); setField('');
@@ -187,17 +198,20 @@ function Collection({ state, refresh }: { state: State; refresh: () => Promise<v
       <fieldset disabled={busy || uploading} className="capture-bottom">
       {error && <p id="save-error" role="alert" className="mac-field-error">{error}</p>}
       {category && categories.find(c => c.id === category)?.shared && <p className="notice">此分类已共享，收藏后全站已登录用户可见。</p>}
-      <div className="bottom-controls"><div className="category-control"><MacSelect label="收藏分类" value={category || ''} options={categoryOptions(categories, true)} disabled={busy} onChange={value => { const id = value || null; setCategory(id); void message({ type: 'category', identity: state.identity, categoryId: id }).catch(error => setError(errorText(error))); }} /></div>
+      <div className="bottom-controls"><div className="category-control"><MacSelect label="收藏分类" value={category || ''} options={categoryOptions(categories, true)} disabled={busy} onChange={selectCategory} /></div>
       <div className="form-actions"><MacButton onClick={() => { void message({ type: 'discard', capture: captureId! }).then(() => window.close(), () => window.close()); }}>取消</MacButton><MacButton type="submit" variant="primary" disabled={!!state.syncError}>{busy ? '正在收藏…' : '收藏进导航'}</MacButton></div></div>
     </fieldset></form>
   </section>;
 }
 
 function App() {
+  useWindowFeedback();
   const [state, setState] = useState<State>({ base: '', user: null, identity: '' });
   const reportActivity = useCallback(() => message<SessionActivity>({ type: 'activity', identity: state.identity }), [state.identity]);
   useSessionActivity(state.needsAccess ? '' : state.identity, reportActivity);
-  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useViewFeedback('');
+  const [actionError, setActionError] = useViewFeedback('');
+  useLayoutEffect(dismissNotifications, [state.identity, state.needsAccess]);
   const generation = useRef(0);
   const refreshing = useRef<Promise<void> | null>(null), refreshAgain = useRef(false);
   const refresh = useCallback((): Promise<void> => {
@@ -251,7 +265,7 @@ function App() {
     window.addEventListener('focus', sync); window.addEventListener('online', sync); document.addEventListener('visibilitychange', sync);
     return () => { clearInterval(timer); window.removeEventListener('focus', sync); window.removeEventListener('online', sync); document.removeEventListener('visibilitychange', sync); };
   }, [busy, refresh]);
-  async function action(work: () => Promise<void>) { setBusy(true); setError(''); try { await work(); } catch (error) { setError(errorText(error)); } finally { setBusy(false); } }
+  async function action(work: () => Promise<void>) { setBusy(true); setActionError(''); setError(''); try { await work(); } catch (error) { setActionError(errorText(error)); } finally { setBusy(false); } }
   async function openCollection() {
     const source = params.get('sourceTab');
     const tabId = source ? Number(source) : (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
@@ -263,7 +277,7 @@ function App() {
   return <main className={captureId && !loading && state.user && !state.needsAccess ? 'capture-window' : showNavigation ? 'panel-window browse-window' : 'panel-window'}>
     {showNavigation && <header className="account-bar"><div className="identity"><strong>{state.user.name}</strong><span>@{state.user.username} · {state.user.role === 'admin' ? '管理员' : '普通用户'}</span></div>
       <div className="toolbar"><MacButton variant="primary" disabled={busy} onClick={() => void action(openCollection)}><BookmarkPlus size={14}/>收藏</MacButton><MacButton disabled={busy} onClick={() => void action(refresh)}><RefreshCw size={13}/>同步</MacButton><a href={state.base} target="_blank" rel="noopener noreferrer"><ExternalLink size={13}/>官网</a><MacButton aria-label="退出" title="退出登录" disabled={busy} onClick={() => void action(async () => { const result = await message<{ warning: string }>({ type: 'logout', identity: state.identity }); setNotice(result.warning); await refresh(); })}><LogOut size={15}/></MacButton></div></header>}
-    {(error || state.syncError) && <div className="banner" role="alert">{error || state.syncError}<button disabled={busy} onClick={() => void refresh()}>重试同步</button></div>}
+    {(actionError || error || state.syncError) && <div className="banner" role="alert">{actionError || error || state.syncError}<button disabled={busy} onClick={() => { setActionError(''); void refresh(); }}>重试同步</button></div>}
     {notice && <p className="notice" role="status">{notice}</p>}
     {captureError ? <p className="notice">此页面无法读取，请在普通 HTTP(S) 网页上重新右键收藏。</p> : loading ? <p className="empty" role="status">正在连接导航…</p> : !state.user || state.needsAccess ? <Login base={state.base} needsAccess={state.needsAccess ?? !state.base} signedIn={!!state.user} refresh={refresh} /> : <>
       {state.navigation ? captureId ? <Collection key={state.identity} state={state} refresh={refresh} /> : <Navigation key={state.identity} state={state} /> : <p className="empty">暂时无法获取导航数据，请重试同步。</p>}

@@ -1,0 +1,20 @@
+.icon-motion-host { display: contents; pointer-events: none; }
+.icon-particles { position: fixed; pointer-events: none; user-select: none; }
+.icon-particles > i {
+  position: absolute; inset: 0; border-radius: var(--particle-radius);
+  background: var(--particle-color) var(--particle-image, none) center / contain no-repeat;
+  animation: icon-shatter 430ms cubic-bezier(.2,.65,.35,1) both;
+}
+.icon-particles.assembling > i { animation-name: icon-assemble; }
+@keyframes icon-shatter {
+  0% { opacity: 1; transform: none; }
+  28% { opacity: .96; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--twist)) scale(.24); }
+}
+@keyframes icon-assemble {
+  0% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--twist)) scale(.28); }
+  38% { opacity: .85; }
+  78% { opacity: .95; transform: none; }
+  100% { opacity: 0; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .icon-particles { display: none; } }

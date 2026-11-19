@@ -28,7 +28,6 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
   const { item, site, category } = entry;
   const { setNodeRef, attributes, listeners } = useDraggable({ id: desktopKey(item), disabled: busy });
   const isDragging = !!groupOffset;
-  const touch = useRef(false);
   const element = useRef<HTMLButtonElement | null>(null);
   const lastDragRect = useRef<DOMRect | undefined>(undefined);
   const dropAnimation = useRef<Animation | undefined>(undefined);
@@ -59,14 +58,16 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
     }
   }, [isDragging, left, top, dx, dy]);
   useEffect(() => () => dropAnimation.current?.cancel(), []);
-  return <MacTooltip content={<>{name}<br />双击打开，拖动排列</>} disabled={busy || isDragging}><button ref={node => { element.current = node; setNodeRef(node); }} type="button" {...attributes} {...listeners}
+  return <MacTooltip content={<>{name}<br />单击打开，拖动排列</>} disabled={busy || isDragging}><button ref={node => { element.current = node; setNodeRef(node); }} type="button" {...attributes} {...listeners}
     className={`desktop-shortcut${selected ? ' selected' : ''}${isDragging ? ' dragging' : ''}`}
     style={{ left, top, width: grid.cellWidth, transition: isDragging || lastDragRect.current ? 'none' : undefined, transform: isDragging ? `translate3d(${dx}px,${dy}px,0)` : undefined }}
-    data-desktop-key={desktopKey(item)} data-position={item.position} aria-label={`桌面${site ? '网站' : '分类'} ${name}`} aria-pressed={selected} aria-disabled={busy}
-    onPointerDown={event => { touch.current = event.pointerType === 'touch'; }}
+    data-desktop-key={desktopKey(item)} data-icon-motion={`desktop:${desktopKey(item)}`} data-position={item.position} aria-label={`桌面${site ? '网站' : '分类'} ${name}`} aria-pressed={selected} aria-disabled={busy}
     onFocus={event => { if (event.currentTarget.matches(':focus-visible')) onSelect(); }}
-    onClick={event => { if (suppressOpen()) return; onSelect(event); if (touch.current) onOpen(); }}
-    onDoubleClick={() => { if (!suppressOpen() && !touch.current) onOpen(); }}
+    onClick={event => {
+      if (busy || suppressOpen() || event.detail > 1) return;
+      onSelect(event);
+      if (!event.ctrlKey && !event.metaKey && !event.shiftKey) onOpen();
+    }}
     onKeyDown={event => {
       if (event.key === 'Enter' && !isDragging) { event.preventDefault(); if (!suppressOpen()) onOpen(); return; }
       listeners?.onKeyDown?.(event);
@@ -86,7 +87,7 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   showDragGrid?: boolean;
   onOpenCategory: (category: Category) => void;
   onMenu: (event: MouseEvent, items: DesktopItem[], remove: () => void) => void;
-  onRemove: (items: DesktopItem[], animate: () => Promise<void>) => Promise<void>;
+  onRemove: (items: DesktopItem[]) => Promise<void>;
   onMove: (items: DesktopItem[], columns: number, rows: number) => Promise<void>;
   onError: (error: string) => void; onDragStart: () => void;
 }) {
@@ -221,18 +222,11 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
     if (locked.current) return;
     locked.current = true; setBusy(true);
     const keys = new Set(targets.map(desktopKey));
-    const animations: Animation[] = [];
     try {
-      await onRemove(targets, async () => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        for (const node of area.current?.querySelectorAll<HTMLButtonElement>('.desktop-shortcut') ?? []) {
-          if (keys.has(node.dataset.desktopKey!)) animations.push(node.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.75)' }], { duration: 180, easing: 'ease-out', fill: 'forwards' }));
-        }
-        await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
-      });
+      await onRemove(targets);
       setSelected(previous => new Set([...previous].filter(key => !keys.has(key))));
     } catch (reason) { onError(message(reason)); }
-    finally { animations.forEach(animation => animation.cancel()); locked.current = false; setBusy(false); }
+    finally { locked.current = false; setBusy(false); }
   }
   useLayoutEffect(() => {
     const element = area.current;
