@@ -4,6 +4,7 @@ import { api, message } from '../api';
 import type { Preferences, User, SiteBranding } from '../types';
 import { MacButton, MacInput, MacScrollArea, MacSettingChoice, MacSwitch, MacWindow, useMacWindow, useNotify, dismissNotifications } from './ui';
 import { hasOpenMacDialog } from './ui/MacDialog';
+import { WindowSidebar } from './WindowSidebar';
 import { ProfileSettings, PasswordDialog, SecuritySettings, UserManagement, LoginLogs } from './AccountSettings';
 import { MacPresence } from './ui/MacPresence';
 import { isCachedText, useDesktopState } from '../desktopCache';
@@ -109,11 +110,11 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
       labels={{ close: '关闭设置', minimize: '最小化设置', maximize: '放大窗口', restore: '还原窗口' }}
       titlebarContent={<><span>系统设置</span><span className="window-titlebar-spacer" aria-hidden="true" /></>}>
       <div className="settings-body">
-        <div className="settings-sidebar-column"><MacScrollArea role="complementary" className="settings-sidebar"><div className="settings-user"><MacButton className="settings-avatar settings-avatar-button" aria-label="修改头像" disabled={busy} onClick={() => setAvatarOpen(true)}><MediaPreview url={user.avatarUrl} fallback={user.name.slice(0, 1).toUpperCase()} /><span className="settings-avatar-edit"><Camera size={17} /></span></MacButton><span><strong>{user.name}</strong><small>{user.role === 'admin' ? '管理员' : '个人账户'}</small></span></div>
+        <WindowSidebar><div className="settings-sidebar-column"><MacScrollArea role="complementary" className="settings-sidebar"><div className="settings-user"><MacButton className="settings-avatar settings-avatar-button" aria-label="修改头像" disabled={busy} onClick={() => setAvatarOpen(true)}><MediaPreview url={user.avatarUrl} fallback={user.name.slice(0, 1).toUpperCase()} /><span className="settings-avatar-edit"><Camera size={17} /></span></MacButton><span><strong>{user.name}</strong><small>{user.role === 'admin' ? '管理员' : '个人账户'}</small></span></div>
           <div className="sidebar-caption">设置</div>
            <nav aria-label="设置分类">{sections.map(item => <MacButton key={item.id} aria-label={item.label} className={section === item.id ? 'selected' : ''} onClick={() => { if (item.id !== section && canLeave()) { dismissNotifications(); setSection(item.id); setError(''); } }}><span className="settings-section-icon" aria-hidden="true"><SystemIcon src={`/assets/icons/macos27/${item.icon}.png`} /></span><span className="settings-section-label">{item.label}</span></MacButton>)}</nav>
         </MacScrollArea>
-        </div>
+        </div></WindowSidebar>
         <MacScrollArea className="settings-content" cacheKey={`settings:${section}`}>
           <div className="settings-page-heading"><h2>{sections.find(item => item.id === section)?.label}</h2>
             {section === 'users' && user.role === 'admin' && <form className="settings-user-search settings-record-toolbar" onSubmit={event => { event.preventDefault(); setUserSearch(userQuery.trim()); }}><MacInput aria-label="搜索用户" placeholder="账号或昵称" value={userQuery} onChange={event => setUserQuery(event.target.value)} /><MacButton variant="secondary" type="submit">搜索</MacButton></form>}
@@ -139,7 +140,7 @@ export function SettingsWindow({ user, onUser, preferences, preferencesSaving, h
               <MacSettingChoice<Preferences['theme']> label="外观" description="选择桌面和窗口的颜色" value={preferences.theme} options={[{ value: 'dark', label: '深色' }, { value: 'light', label: '浅色' }]} disabled={busy} onChange={theme => changePreferences({ ...preferences, theme })} />
               <MacSettingChoice<Preferences['titlebarPosition']> label="标题栏按钮位置" description="选择窗口控制按钮的位置" value={preferences.titlebarPosition ?? 'left'} options={[{ value: 'left', label: '靠左' }, { value: 'right', label: '靠右' }]} disabled={busy} onChange={titlebarPosition => changePreferences({ ...preferences, titlebarPosition })} />
               <MacSettingChoice<Preferences['launchpadScrollMode']> label="启动台滚动方式" description="图标较多时，上下滚动或左右翻页查看" value={preferences.launchpadScrollMode ?? 'horizontal'} options={[{ value: 'vertical', label: '上下' }, { value: 'horizontal', label: '左右' }]} disabled={busy} onChange={launchpadScrollMode => changePreferences({ ...preferences, launchpadScrollMode })} />
-              <div className="setting-row"><div><strong>拖拽时显示定位网格</strong><span>显示桌面网格线和图标落位虚线框</span></div><MacSwitch aria-label="拖拽时显示定位网格" checked={preferences.desktopDragGrid ?? false} disabled={busy} onChange={event => { void changePreferences({ ...preferences, desktopDragGrid: event.target.checked }); }} /></div>
+              <div className="setting-row"><div><strong>拖拽时显示定位网格</strong><span>在桌面和启动台显示网格线和图标落位虚线框</span></div><MacSwitch aria-label="拖拽时显示定位网格" checked={preferences.desktopDragGrid ?? false} disabled={busy} onChange={event => { void changePreferences({ ...preferences, desktopDragGrid: event.target.checked }); }} /></div>
             </div>
             <DockToolSettings value={preferences.dockTools ?? DEFAULT_DOCK_TOOLS} busy={busy} onChange={dockTools => { void changePreferences({ ...preferences, dockTools }, 'Dock 图标设置已保存'); }} />
             <h3 className="settings-subheading">桌面壁纸</h3>

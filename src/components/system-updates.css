@@ -13,7 +13,9 @@
 .update-versions > div + div { border-top: 1px solid var(--border); }
 .update-versions dd { margin: 0; font-variant-numeric: tabular-nums; }
 .update-repository { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 13px 14px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--surface); text-decoration: none; }
-.update-repository:hover { background: var(--surface-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .update-repository:hover { background: var(--surface-hover); }
+}
 .update-repository:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 .update-github-logo { width: 30px; height: 30px; flex: none; }
 .update-repository-copy { display: grid; gap: 2px; flex: 1; min-width: 0; }

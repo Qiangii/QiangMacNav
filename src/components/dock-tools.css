@@ -2,7 +2,9 @@
 .dock-tool-description { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .dock-tool-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: min(100%, 360px); margin: 10px 0 0; }
 .dock-tool-option { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; }
-.dock-tool-option:hover { background: var(--surface-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .dock-tool-option:hover { background: var(--surface-hover); }
+}
 .dock-tool-option.selected { border-color: var(--control-focus-border); }
 .dock-tool-option > img, .dock-tool-option > .system-icon-fallback { flex: none; width: 24px; height: 24px; border-radius: 6px; }
 .dock-tool-option > span:not(.system-icon-fallback) { min-width: 0; font-size: 11px; white-space: nowrap; }

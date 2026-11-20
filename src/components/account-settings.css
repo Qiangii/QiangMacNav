@@ -12,7 +12,9 @@
 .record-source svg { width: 13px; height: 13px; color: var(--muted); }
 .record-client { margin-top: 2px; font-size: 11px; color: var(--muted); }
 .record-client summary { cursor: pointer; width: fit-content; }
-.record-client summary:hover { color: var(--text); }
+@media (hover: hover) and (pointer: fine) {
+  .record-client summary:hover { color: var(--text); }
+}
 .record-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--feedback-success); vertical-align: 1px; }
 .record-status.is-disabled::before { background: var(--feedback-error); }
 .record-actions .icon-button { width: 26px; height: 28px; color: var(--compact-button-text); }

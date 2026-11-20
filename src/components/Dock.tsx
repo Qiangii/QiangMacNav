@@ -27,7 +27,11 @@ export type DockPinnedItemProps = {
 function DockPinnedItem({ item, site, category, onSiteMenu, onCategoryMenu, onOpenCategory }: DockPinnedItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `dock:${item.kind}:${item.id}` });
   const label = site?.name ?? category?.name ?? '';
-  return <MacTooltip content={label} disabled={isDragging}><button ref={setNodeRef} data-icon-motion={`dock:${item.kind}:${item.id}`} className={`dock-icon ${site ? 'dock-site' : 'dock-folder'} ${isDragging ? 'dock-dragging' : ''}`} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={() => site ? openSite(site) : category && onOpenCategory(category)} onContextMenu={event => site ? onSiteMenu(event, site) : category && onCategoryMenu(event, category)} aria-label={`打开 ${label}`} {...attributes} {...listeners}>{site ? <SiteIcon site={site} /> : <MediaPreview url={category?.iconUrl} fallback={<SystemIcon src={APP_ICONS.folder} />} />}</button></MacTooltip>;
+  return <MacTooltip content={label} disabled={isDragging}><button ref={setNodeRef} data-icon-motion={`dock:${item.kind}:${item.id}`} className={`dock-icon ${site ? 'dock-site' : 'dock-folder'} ${isDragging ? 'dock-dragging' : ''}`} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={() => site ? openSite(site) : category && onOpenCategory(category)} onContextMenu={event => site ? onSiteMenu(event, site) : category && onCategoryMenu(event, category)} aria-label={`打开 ${label}`} {...attributes} {...listeners}
+    onPointerDown={event => {
+      // TouchSensor owns the hold delay. Let short swipes scroll the pinned group.
+      if (event.pointerType !== 'touch') listeners?.onPointerDown?.(event);
+    }}>{site ? <SiteIcon site={site} /> : <MediaPreview url={category?.iconUrl} fallback={<SystemIcon src={APP_ICONS.folder} />} />}</button></MacTooltip>;
 }
 
 export type DockProps = {

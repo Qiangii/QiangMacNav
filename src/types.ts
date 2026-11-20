@@ -52,6 +52,7 @@ export type DesktopSearchConfig = { enabled: boolean; engines: SearchEngine[] };
 export interface DesktopItem { kind: 'site' | 'category'; id: string; position: number }
 
 export interface NavigationData {
+  supportsCategorySiteOrder?: boolean;
   sidebarOrder: string[];
   categories: Category[];
   sites: Site[];
@@ -113,3 +114,8 @@ export interface IconCatalog {
   items: CatalogIcon[];
 }
 export type SessionActivity = { expiresAt: number; checkAfterSeconds: number };
+export interface CategorySiteOrder {
+  categoryId: string | null;
+  previousIds: string[];
+  ids: string[];
+}

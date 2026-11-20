@@ -1,0 +1,35 @@
+.window-sidebar, .window-sidebar-pane { display: contents; }
+.window-sidebar-toggle { display: none; }
+
+@media (max-width: 760px) {
+  .window-sidebar {
+    position: relative; z-index: 2; display: flex; flex-direction: column;
+    width: 100%; min-height: 0; overflow: hidden; background: var(--sidebar-background, var(--panel-side));
+    border-inline-end: 1px solid var(--sidebar-border, var(--border)); transition: width 190ms ease-out;
+  }
+  .window-sidebar[data-expanded="true"] { width: min(214px, 72vw); }
+  .window-sidebar-pane { display: flex; flex: 1; min-height: 0; }
+  .window-sidebar-pane .mac-scroll-area { overflow-x: hidden; overflow-y: auto; }
+  .window-sidebar-pane > :is(.finder-sidebar, .settings-sidebar-column) { flex: 1; min-width: 0; background: transparent; border-inline-end: 0; }
+  .window-sidebar .window-sidebar-toggle {
+    display: grid; place-items: center; flex: none; align-self: flex-end; width: 44px; height: 44px;
+    margin: 2px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--text);
+    touch-action: manipulation;
+  }
+  .window-sidebar[data-expanded="false"] :is(.sidebar-category-grip, .settings-section-label, .sidebar-caption, .settings-user > span:last-child) { display: none; }
+  .window-sidebar[data-expanded="false"] .settings-sidebar nav button { justify-content: center; padding-inline: 0; }
+  .window-sidebar[data-expanded="true"] .settings-sidebar nav button,
+  .window-sidebar[data-expanded="true"] .finder-sidebar-item { width: 100%; justify-content: flex-start; padding-inline: 10px; }
+  .window-sidebar[data-expanded="true"] .sidebar-category-row { flex-direction: row; }
+  .window-sidebar[data-expanded="true"] .sidebar-category-row .finder-sidebar-item { flex: 1; }
+  .window-sidebar[data-expanded="true"] .sidebar-category-grip { width: 32px; height: 38px; }
+  .window-sidebar[data-expanded="true"] .finder-sidebar-heading,
+  .window-sidebar[data-expanded="true"] .finder-sidebar-item > span,
+  .window-sidebar[data-expanded="true"] .sidebar-caption,
+  .window-sidebar[data-expanded="true"] .settings-section-label { display: block; }
+  .window-sidebar[data-expanded="true"] .finder-sidebar-item > .category-shared-badge { display: inline-flex; }
+  .window-sidebar[data-expanded="true"] .settings-user { justify-content: flex-start; padding-inline: 6px; }
+  .window-sidebar[data-expanded="true"] .settings-user > span:last-child { display: flex; }
+  .window-sidebar[data-expanded="true"] :is(.finder-sidebar-item > span:not(.category-image), .settings-section-label, .settings-user > span:last-child) { animation: sidebar-label-in 160ms ease-out; white-space: nowrap; }
+}
+@keyframes sidebar-label-in { from { opacity: 0; } to { opacity: 1; } }

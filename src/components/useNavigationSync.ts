@@ -3,7 +3,7 @@ import { api } from '../api';
 import type { NavigationData } from '../types';
 import { useEventCallback } from './useEventCallback';
 
-const interacting = () => !!document.querySelector('[aria-busy="true"], [role="menu"], .sorting, .dragging, .sort-placeholder, .desktop-selection-box');
+const interacting = () => !!document.querySelector('[aria-busy="true"], [role="menu"], .sorting, .dragging, .sort-placeholder, .desktop-selection-box, .launchpad-drag-overlay');
 
 // Refresh active desktops, including other signed-in accounts. Retain drafts
 // during edits and never overwrite a newer foreground response with a poll.

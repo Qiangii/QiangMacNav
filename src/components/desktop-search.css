@@ -27,7 +27,9 @@
 .setting-row.search-engine-row { position: relative; gap: 10px; }
 .search-engine-row.is-sorting { z-index: 1; border-radius: 8px; background: var(--surface-hover); box-shadow: 0 4px 14px #0002; }
 .search-engine-row .search-engine-grip { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 29px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: grab; touch-action: none; }
-.search-engine-grip:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+@media (hover: hover) and (pointer: fine) {
+  .search-engine-grip:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+}
 .search-engine-row.is-sorting .search-engine-grip { cursor: grabbing; }
 .search-engine-details { flex: 1; min-width: 0; }
 .search-engine-details > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }

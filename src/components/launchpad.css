@@ -1,10 +1,18 @@
-.launchpad-overlay.launchpad-horizontal { overflow: hidden; }
-.launchpad-site { position: relative; min-width: 0; }
-.launchpad-site > .launchpad-item { width: 100%; }
-.launchpad-site-more { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid #ffffff30; border-radius: 50%; background: #24262dce; color: #fff; opacity: 0; transition: opacity .15s ease; }
-.launchpad-site:hover .launchpad-site-more, .launchpad-site:focus-within .launchpad-site-more { opacity: 1; }
-@media (hover: none), (pointer: coarse) { .launchpad-site-more { opacity: 1; } }
-.launchpad-horizontal .launchpad-content { --launchpad-top: clamp(12px, 4vh, 48px); margin: var(--launchpad-top) auto 96px; height: calc(100dvh - var(--launchpad-top) - 96px); display: flex; flex-direction: column; min-height: 0; }
+.launchpad-overlay { --launchpad-top: calc(env(safe-area-inset-top, 0px) + 54px); }
+.launchpad-overlay .launchpad-content { margin-top: var(--launchpad-top); }
+.launchpad-overlay:not(.launchpad-horizontal) .launchpad-content { max-height: calc(100dvh - var(--launchpad-top) - 96px); margin-bottom: 0; overflow-y: auto; }
+.launchpad-content .launchpad-close { position: fixed; z-index: 2; top: calc(env(safe-area-inset-top, 0px) + 8px); right: calc(env(safe-area-inset-right, 0px) + 12px); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: white; cursor: pointer; }
+.launchpad-close:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+.launchpad-cell { position: relative; min-width: 0; align-self: stretch; }
+.launchpad-grid-host { display: contents; }
+.launchpad-grid-host[data-has-dragged] .launchpad-item { animation: none; }
+.launchpad-cell .launchpad-item { width: 100%; user-select: none; -webkit-touch-callout: none; }
+.launchpad-cell img { -webkit-user-drag: none; }
+.launchpad-grid[data-drag-grid] .launchpad-cell::before { content: ''; position: absolute; inset: 0; border: 1px solid #ffffff30; border-radius: 8px; pointer-events: none; }
+.launchpad-grid[data-drag-grid] .launchpad-cell[data-over]::before { border: 2px dashed #b6d8ff; background: #4384ce35; }
+.launchpad-drag-overlay { pointer-events: none; cursor: grabbing; }
+.launchpad-drag-overlay .launchpad-item { animation: none; color: white; }
+.launchpad-horizontal .launchpad-content { margin: var(--launchpad-top) auto 96px; height: calc(100dvh - var(--launchpad-top) - 96px); display: flex; flex-direction: column; min-height: 0; }
 .launchpad-horizontal .launchpad-category-heading { flex: 0 0 auto; margin-bottom: 12px; }
 .launchpad-horizontal .launchpad-search { flex: 0 0 37px; margin-bottom: 20px; }
 .launchpad-pages { display: flex; flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior: contain; scrollbar-width: none; touch-action: pan-x; outline-offset: -2px; }
@@ -15,7 +23,10 @@
 .launchpad-page .launchpad-empty { grid-column: 1 / -1; }
 .launchpad-pagination { display: flex; flex: 0 0 32px; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
 .launchpad-pagination button { display: grid; place-items: center; flex-shrink: 0; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #fff; }
-.launchpad-pagination button:hover, .launchpad-pagination button:active { background: transparent; }
+.launchpad-pagination button:active { background: transparent; }
+@media (hover: hover) and (pointer: fine) {
+  .launchpad-pagination button:hover { background: transparent; }
+}
 .launchpad-page-dots { display: flex; min-width: 0; max-width: 50%; overflow-x: auto; scrollbar-width: none; }
 .launchpad-page-dots button { width: 18px; }
 .launchpad-page-dots span { width: 6px; height: 6px; border-radius: 50%; background: #ffffff50; }

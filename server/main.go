@@ -18,6 +18,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -532,7 +533,7 @@ func (a *app) navigation(w http.ResponseWriter, r *http.Request) {
 		fail(w, 500, "读取桌面失败")
 		return
 	}
-	send(w, 200, map[string]any{"categories": categories, "sites": sites, "dockItems": dockItems, "desktopItems": desktopItems, "desktopColumns": desktopColumns, "desktopRows": desktopRows, "preferences": pref, "sidebarOrder": sidebarOrder})
+	send(w, 200, map[string]any{"categories": categories, "sites": sites, "dockItems": dockItems, "desktopItems": desktopItems, "desktopColumns": desktopColumns, "desktopRows": desktopRows, "preferences": pref, "sidebarOrder": sidebarOrder, "supportsCategorySiteOrder": true})
 }
 
 func (a *app) editable(w http.ResponseWriter, r *http.Request, table, id string) bool {
@@ -866,7 +867,11 @@ func (a *app) reorder(w http.ResponseWriter, r *http.Request) {
 		Kind, SiteID string
 		CategoryID   *string
 		IDs          []string
-		Index        int
+		Groups       []struct {
+			CategoryID       *string
+			IDs, PreviousIDs []string
+		}
+		Index int
 	}
 	if !decode(w, r, &input) {
 		return
@@ -957,6 +962,46 @@ func (a *app) reorder(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 		}
+	case "categorySites":
+		if len(input.Groups) == 0 {
+			fail(w, 400, "Missing site order")
+			return
+		}
+		for _, group := range input.Groups {
+			if group.CategoryID != nil && *group.CategoryID != "" {
+				var owner string
+				if tx.QueryRow("SELECT owner_id FROM categories WHERE id=?", *group.CategoryID).Scan(&owner) != nil || owner != u.ID {
+					fail(w, 403, "No permission to reorder this category")
+					return
+				}
+			} else {
+				group.CategoryID = nil
+			}
+			rows, e := tx.Query("SELECT id FROM sites WHERE owner_id=? AND category_id IS ? ORDER BY position,id", u.ID, group.CategoryID)
+			if e != nil {
+				fail(w, 500, "Database unavailable")
+				return
+			}
+			ids, e := readIDs(rows)
+			if e != nil {
+				fail(w, 500, "Database unavailable")
+				return
+			}
+			if !slices.Equal(ids, group.PreviousIDs) {
+				fail(w, 409, "分类内容已变更，请刷新后重试")
+				return
+			}
+			if len(ids) == 0 || !slices.Equal(sortedIDs(ids), sortedIDs(group.IDs)) {
+				fail(w, 400, "Invalid category site order")
+				return
+			}
+			for i, id := range group.IDs {
+				if _, err = tx.Exec("UPDATE sites SET position=? WHERE id=?", i, id); err != nil {
+					fail(w, 500, "Could not save order")
+					return
+				}
+			}
+		}
 	case "sites":
 		var owner string
 		if err = tx.QueryRow("SELECT owner_id FROM sites WHERE id=?", input.SiteID).Scan(&owner); err != nil {
@@ -1008,6 +1053,12 @@ func (a *app) reorder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	send(w, 200, map[string]bool{"ok": true})
+}
+
+func sortedIDs(ids []string) []string {
+	result := slices.Clone(ids)
+	slices.Sort(result)
+	return result
 }
 
 func (a *app) updatePreference(w http.ResponseWriter, r *http.Request) {

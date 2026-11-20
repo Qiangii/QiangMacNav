@@ -1,9 +1,14 @@
 .mac-scroll-area { overflow: auto; scrollbar-width: thin; scrollbar-color: var(--mac-scroll-thumb) transparent; }
-.mac-scroll-area:hover, .mac-scroll-area:focus-within { scrollbar-color: var(--mac-scroll-active, #999b) transparent; }
+.mac-scroll-area:focus-within { scrollbar-color: var(--mac-scroll-active, #999b) transparent; }
+@media (hover: hover) and (pointer: fine) {
+  .mac-scroll-area:hover { scrollbar-color: var(--mac-scroll-active, #999b) transparent; }
+}
 .mac-scroll-area::-webkit-scrollbar { width: 8px; height: 8px; }
 .mac-scroll-area::-webkit-scrollbar-track { background: transparent; }
 .mac-scroll-area::-webkit-scrollbar-thumb { background: var(--mac-scroll-thumb, #7778); border: 2px solid transparent; background-clip: padding-box; border-radius: 20px; }
-.mac-scroll-area:hover::-webkit-scrollbar-thumb { background-color: var(--mac-scroll-active, #999b); }
+@media (hover: hover) and (pointer: fine) {
+  .mac-scroll-area:hover::-webkit-scrollbar-thumb { background-color: var(--mac-scroll-active, #999b); }
+}
 .mac-scroll-area::-webkit-scrollbar-corner { background: transparent; }
 .mac-tooltip { position: fixed; z-index: 190; pointer-events: none; width: max-content; max-width: min(320px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: hidden; overflow-wrap: anywhere; padding: 5px 9px; border: 1px solid var(--tooltip-border); border-radius: 5px; background: var(--tooltip-bg); backdrop-filter: blur(14px); color: var(--tooltip-text); font: 11px/1.5 -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; box-shadow: 0 4px 14px #0003; animation: mac-tooltip-in .12s ease; }
 .confirm-dialog.mac-alert-dialog { text-align: center; width: min(340px, 100%); }

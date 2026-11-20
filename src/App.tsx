@@ -30,7 +30,9 @@ import { Spotlight } from './components/Spotlight';
 import { SiteItem } from './components/SortableSite';
 import { searchSites } from './components/siteSearch';
 import { useSearchInput } from './components/useSearchInput';
-import type { Bootstrap, Category, DesktopItem, DockTool, NavigationData, Preferences, Site, User } from './types';
+import type { Bootstrap, Category, CategorySiteOrder, DesktopItem, DockTool, NavigationData, Preferences, Site, User } from './types';
+import { saveLegacySiteOrder } from './legacySiteOrder';
+import { WindowSidebar } from './components/WindowSidebar';
 import { DEFAULT_BRANDING, useSiteBranding } from './branding';
 import { DesktopShortcuts } from './components/DesktopShortcuts';
 import { IconAppearanceContext } from './components/IconAppearance';
@@ -281,13 +283,14 @@ export default function App() {
       setEditor({ kind: 'site' });
     }
   }
-  const showMenu = (event: MouseEvent, items: MenuItem[]) => {
+  const showMenu = (event: MouseEvent | React.KeyboardEvent, items: MenuItem[]) => {
     event.preventDefault(); event.stopPropagation();
     document.dispatchEvent(new Event('mac-tooltip-dismiss'));
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    setMenu({ x: event.type === 'contextmenu' ? event.clientX : rect.right - 16, y: event.type === 'contextmenu' ? event.clientY : rect.bottom + 4, items });
+    const pointer = event.type === 'contextmenu' && 'clientX' in event ? event : null;
+    setMenu({ x: pointer ? pointer.clientX : rect.right - 16, y: pointer ? pointer.clientY : rect.bottom + 4, items });
   };
-  const showSiteMenu = useEventCallback((event: MouseEvent, site: Site) => showMenu(event, siteMenuItems(site)));
+  const showSiteMenu = useEventCallback((event: MouseEvent | React.KeyboardEvent, site: Site) => showMenu(event, siteMenuItems(site)));
   const showCategoryMenu = useEventCallback((event: MouseEvent, category: Category) => showMenu(event, categoryMenuItems(category)));
 
   if (phase === 'boot' || phase === 'failed') return <div className="boot-screen">
@@ -454,6 +457,30 @@ export default function App() {
     }
     draftRef.current = next; setDraft(next);
   }
+  async function saveLaunchpadSiteOrder(groups: CategorySiteOrder[]) {
+    if (savingSort) return false;
+    const version = sessionVersion.current;
+    setSavingSort(true);
+    try {
+      if (!data?.supportsCategorySiteOrder) {
+        const saved = await saveLegacySiteOrder(groups, () => version === sessionVersion.current);
+        if (!saved || version !== sessionVersion.current) return false;
+        setData(saved);
+        notify('排序已保存');
+        return true;
+      }
+      await api.reorder({ kind: 'categorySites', groups });
+      if (version !== sessionVersion.current) return false;
+      const positions = new Map<string, number>();
+      for (const { ids } of groups) ids.forEach((id, index) => positions.set(id, index));
+      setData(current => current && { ...current, sites: current.sites.map(s => positions.has(s.id) ? { ...s, position: positions.get(s.id)! } : s) });
+      await refreshAfterChange('排序已保存', version);
+      return version === sessionVersion.current;
+    } catch (reason) {
+      if (version === sessionVersion.current) { notify(message(reason), 'error'); await refresh().catch(() => {}); }
+      return false;
+    } finally { setSavingSort(false); }
+  }
   async function onDragEnd(event: DragEndEvent) {
     dragInteraction.end();
     const version = sessionVersion.current;
@@ -488,6 +515,7 @@ export default function App() {
   }
 
   return <DesktopAccountContext.Provider key={user.id} value={user.id}><IconAppearanceContext.Provider value={data.preferences}><DesktopThemeContext.Provider value={data.preferences.theme}><TitlebarPositionContext.Provider value={data.preferences.titlebarPosition ?? 'left'}><NavigationDragContext.Provider value={dragInteraction}><div data-navigation-drag-mode={dragInteraction.mode} className={`desktop theme-${data.preferences.theme}`} onContextMenu={blankMenu}>
+    <div className="desktop-scene">
     <DesktopWallpaper preferences={data.preferences} />
     <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={data.categories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
       onInitialize={async (columns, rows) => { const version = sessionVersion.current; await api.initializeDesktopLayout(columns, rows); if (version === sessionVersion.current) await refresh(); }}
@@ -497,14 +525,14 @@ export default function App() {
     <MacToastHost />
     <MacPresence open={finder.visible} keepMounted={finder.open}><FinderWindow focused={finder.focused} zIndex={finder.zIndex} hidden={!finder.visible} onFocusWindow={finder.onFocusWindow} onClose={finder.onClose} onMinimize={finder.onMinimize}>
       <div className="finder-layout">
-        <aside className="finder-sidebar" aria-label="导航侧边栏">
+        <WindowSidebar><aside className="finder-sidebar" aria-label="导航侧边栏">
           <div className="finder-sidebar-heading">分类</div>
           <CategorySidebar entries={sidebarEntries} selected={visibleCategory}
             onSelect={id => { const category = sidebarCategories.find(c => c.id === id); if (category) openCategory(category); }}
             onMenu={showSidebarMenu}
             onReorder={ids => perform(() => api.reorder({ kind: 'sidebar', ids }), '分类顺序已保存')} />
           {data.sites.some(s => !s.categoryId) && <button className={`finder-sidebar-item ${visibleCategory === 'uncategorized' ? 'selected' : ''}`} onClick={() => { setSelectedCategory('uncategorized'); setQuery(''); }} title="未分类"><Folder size={17} /><span>未分类</span></button>}
-        </aside>
+        </aside></WindowSidebar>
         <div className="finder-content">
           <div className="finder-filterbar">
             <div className="finder-category-heading" data-icon-motion={!searching && activeCategory ? `category:${activeCategory.id}` : undefined} onContextMenu={!searching && activeCategory ? event => { event.stopPropagation(); showSidebarMenu(event, activeCategory.id); } : undefined}>
@@ -513,7 +541,7 @@ export default function App() {
               {!searching && activeCategory?.shared && <SharedBadge />}
               {!searching && activeCategory && <MacTooltip content="分类操作"><button className="icon-button section-more" aria-label={`${finderCategoryTitle} 的操作`} aria-haspopup="menu" onClick={event => showSidebarMenu(event, activeCategory.id)}><MoreHorizontal size={18} /></button></MacTooltip>}
             </div>
-            <div className="finder-filter-actions"><label className="finder-search"><Search size={15} /><MacInput ref={searchRef} {...searchInput} placeholder="搜索全部网站" aria-label="搜索全部网站" />{searchInput.value && <MacTooltip content="清除搜索"><button aria-label="清除搜索" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={14} /></button></MacTooltip>}</label><MacTooltip content="新建分类"><button className="finder-tool-button" aria-label="新建分类" onClick={() => setEditor({ kind: 'category' })}><FolderPlus size={17} /></button></MacTooltip><button className="finder-add" onClick={() => setEditor({ kind: 'site', categoryId: activeCategory?.editable ? activeCategory.id : undefined })}><Plus size={17} /><span>添加网站</span></button></div>
+            <div className="finder-filter-actions"><label className="finder-search"><Search size={15} /><MacInput ref={searchRef} {...searchInput} placeholder="搜索全部网站" aria-label="搜索全部网站" />{searchInput.value && <MacTooltip content="清除搜索"><button aria-label="清除搜索" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={14} /></button></MacTooltip>}</label><MacTooltip content="新建分类"><button className="finder-tool-button" aria-label="新建分类" onClick={() => setEditor({ kind: 'category' })}><FolderPlus size={17} /></button></MacTooltip><button className="finder-add" aria-label="添加网站" onClick={() => setEditor({ kind: 'site', categoryId: activeCategory?.editable ? activeCategory.id : undefined })}><Plus size={17} /><span>添加网站</span></button></div>
           </div>
           <MacScrollArea key={searching ? `search:${query.trim()}` : visibleCategory} className="finder-scroll" cacheKey={searching ? undefined : `finder:${visibleCategory}`} ref={layoutRef}>
             {searching ? (searchResults.length ? <section className="category-section"><div className="site-grid" role="list" aria-label="网站搜索结果">
@@ -533,14 +561,15 @@ export default function App() {
         </div>
       </div>
     </FinderWindow></MacPresence>
+    <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused && !launchpadOpen && !desktopCategory && !spotlightOpen && !editor} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
+    </div>
     <Dock items={data.dockItems} sites={data.sites} categories={data.categories} tools={data.preferences.dockTools} onToolMenu={(event, tool) => showMenu(event, [{ label: '隐藏', disabled: preferencesSaving || !!document.querySelector('[aria-busy="true"]'), action: () => { void hideDockTool(tool); } }])} canEdit={true} onSiteMenu={(event, s) => showMenu(event, siteMenuItems(s, true))} onCategoryMenu={(event, c) => showMenu(event, categoryMenuItems(c, true))} onOpenCategory={openCategoryLaunchpad} onSettings={() => toggleTool('settings')} onSearch={() => toggleTool('search')} onHome={() => toggleTool('home')} onAdd={() => toggleTool('add')} onReorder={ids => { void perform(() => api.reorder({ kind: 'pins', ids }), 'Dock 顺序已保存'); }} />
-    <MacPresence open={launchpadOpen}><Launchpad categories={data.categories} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} /></MacPresence>
-    <MacPresence open={!!desktopCategory}>{desktopCategory && <Launchpad key={desktopCategory.id} category={desktopCategory} categories={[]} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} />}</MacPresence>
+    <MacPresence open={launchpadOpen}><Launchpad categories={data.categories} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} /></MacPresence>
+    <MacPresence open={!!desktopCategory}>{desktopCategory && <Launchpad key={desktopCategory.id} category={desktopCategory} categories={[]} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} />}</MacPresence>
     <MacPresence open={spotlightOpen}><Spotlight sites={data.sites} onClose={() => setSpotlightOpen(false)} /></MacPresence>
     {menu && <ContextMenu key={`${menu.x}-${menu.y}-${menu.items.length}`} menu={menu} onClose={closeMenu} restoreFocus={!!desktopCategory || launchpadOpen} />}
     <MacPresence open={!!editor}>{editor && <EditorDialog key={`${editor.kind}-${editor.kind === 'site' ? editor.site?.id ?? editor.categoryId ?? 'new' : editor.category?.id ?? 'new'}`} target={editor} categories={data.categories} onBusyChange={busy => { editorBusy.current = busy; }} onSave={async () => { await refresh(); }} onClose={() => { if (!editorBusy.current) setEditor(null); }} />}</MacPresence>
     <MacPresence open={!!confirm}>{confirm && <ConfirmDialog title={confirm.title} description={confirm.description} onConfirm={confirm.action} onClose={() => setConfirm(null)} />}</MacPresence>
-    <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused && !launchpadOpen && !desktopCategory && !spotlightOpen && !editor} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
     <IconTransitions data={data} />
   </div></NavigationDragContext.Provider></TitlebarPositionContext.Provider></DesktopThemeContext.Provider></IconAppearanceContext.Provider></DesktopAccountContext.Provider>;
 }

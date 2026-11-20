@@ -9,7 +9,9 @@
 .image-picker-results { height: min(320px, 42dvh); min-height: 100px; border-block: 1px solid var(--border-subtle, #80808025); padding: 8px 2px; overscroll-behavior: contain; }
 .image-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
 .image-picker-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; width: 100%; gap: 6px; padding: 9px 5px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--text); }
-.image-picker-item:hover { background: #80808015; }
+@media (hover: hover) and (pointer: fine) {
+  .image-picker-item:hover { background: #80808015; }
+}
 .image-picker-item[aria-pressed="true"] { background: #3478f61f; border-color: #3478f6; }
 .image-picker-item img, .image-picker-item video { width: 42px; height: 42px; object-fit: contain; }
 .image-picker-item span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; text-align: center; }
@@ -29,11 +31,17 @@
 .settings-avatar-button { position: relative; padding: 0; border: 0; overflow: hidden; cursor: pointer; flex-shrink: 0; }
 .settings-avatar-button img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .settings-avatar-edit { position: absolute; inset: 0; display: grid; place-items: center; background: #0007; color: white; opacity: 0; transition: opacity 120ms; }
-.settings-avatar-button:hover .settings-avatar-edit, .settings-avatar-button:focus-visible .settings-avatar-edit { opacity: 1; }
+.settings-avatar-button:focus-visible .settings-avatar-edit { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .settings-avatar-button:hover .settings-avatar-edit { opacity: 1; }
+}
 @media (max-width: 540px) { .image-picker-hint { display: none; } .image-picker-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); } }
 .media-tile { position: relative; min-width: 0; }
 .media-delete { position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #b9323ae8; color: white; opacity: 0; cursor: pointer; transition: opacity 120ms; }
-.media-tile:hover .media-delete, .media-tile:focus-within .media-delete { opacity: 1; }
+.media-tile:focus-within .media-delete { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .media-tile:hover .media-delete { opacity: 1; }
+}
 @media (hover: none) { .media-delete { opacity: 1; } }
 .category-image img { width: 100%; height: 100%; object-fit: contain; }
 .editor-icon-field { display: grid; gap: 7px; min-width: 0; }

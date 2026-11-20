@@ -156,6 +156,16 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
     if (!searchConfig.enabled) { setSearchGeometry(null); setSearchDrag(undefined); }
   }, [searchConfig.enabled, setSearchGeometry]);
   useEffect(() => () => selectionCleanup.current?.(), []);
+  const hasSelection = selected.size > 0;
+  useEffect(() => {
+    if (!hasSelection) return;
+    const clearOnTouch = (event: globalThis.PointerEvent) => {
+      if (event.pointerType === 'mouse' || !event.isPrimary || dragSession.current || !(event.target instanceof Element)) return;
+      if (!event.target.closest('[data-desktop-key], [role="menu"]')) setSelected(new Set());
+    };
+    document.addEventListener('pointerdown', clearOnTouch, true);
+    return () => document.removeEventListener('pointerdown', clearOnTouch, true);
+  }, [hasSelection]);
   useEffect(() => {
     const keys = new Set(items.map(desktopKey));
     setSelected(previous => new Set([...previous].filter(key => keys.has(key))));
