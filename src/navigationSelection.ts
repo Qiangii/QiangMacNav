@@ -1,4 +1,8 @@
-import type { NavigationData } from './types';
+import type { Category, NavigationData } from './types';
+
+export const uncategorizedCategory: Category = {
+  id: 'uncategorized', name: '未分类', iconUrl: '', shared: false, editable: true, position: 0,
+};
 
 export function orderedCategories(data: Pick<NavigationData, 'categories' | 'sidebarOrder'>) {
   const order = new Map(data.sidebarOrder.map((id, index) => [id, index]));

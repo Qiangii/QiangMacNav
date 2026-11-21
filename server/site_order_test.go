@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"slices"
 	"testing"
 )
@@ -31,7 +32,7 @@ func TestLaunchpadAndCategoryShareSiteOrder(t *testing.T) {
 	call("PUT", "/api/categories/"+c+"/sharing", map[string]bool{"shared": true}, owner, 200)
 	var ids []string
 	for _, name := range []string{"Visible 1", "Hidden", "Visible 2"} {
-		ids = append(ids, create("/api/sites", map[string]any{"categoryId": c, "name": name, "url": "https://example.org"}))
+		ids = append(ids, create("/api/sites", map[string]any{"categoryId": c, "name": name, "url": "https://example.org/?id=" + url.QueryEscape(name)}))
 	}
 	next := []string{ids[2], ids[1], ids[0]}
 	group := map[string]any{"categoryId": c, "previousIds": ids, "ids": next}
@@ -60,7 +61,7 @@ func TestLaunchpadAndCategoryShareSiteOrder(t *testing.T) {
 	group["ids"] = ids
 	loose := []string{
 		create("/api/sites", map[string]any{"name": "Loose A", "url": "https://example.org"}),
-		create("/api/sites", map[string]any{"name": "Loose B", "url": "https://example.org"}),
+		create("/api/sites", map[string]any{"name": "Loose B", "url": "https://example.org/b"}),
 	}
 	reverse := []string{loose[1], loose[0]}
 	uncategorized := map[string]any{"categoryId": nil, "previousIds": reverse, "ids": loose}

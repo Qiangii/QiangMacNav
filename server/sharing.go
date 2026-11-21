@@ -14,7 +14,21 @@ const sharedCategoriesSQL = `SELECT id FROM categories WHERE shared=1 AND owner_
 const visibleCategoriesSQL = `(owner_id=? OR id IN (` + sharedCategoriesSQL + `))`
 const sharedSiteSQL = `EXISTS (SELECT 1 FROM categories c WHERE c.id=sites.category_id AND c.owner_id=sites.owner_id AND c.id IN (` + sharedCategoriesSQL + `))`
 const visibleSitesSQL = `(owner_id=? OR ` + sharedSiteSQL + `)`
-const visiblePinsSQL = `((kind='site' AND target_id IN (SELECT id FROM sites WHERE ` + visibleSitesSQL + `)) OR (kind='category' AND target_id IN (SELECT id FROM categories WHERE ` + visibleCategoriesSQL + `)))`
+const uncategorizedShortcutID = "uncategorized"
+const visiblePinsSQL = `((kind='site' AND target_id IN (SELECT id FROM sites WHERE ` + visibleSitesSQL + `)) OR (kind='category' AND (target_id='` + uncategorizedShortcutID + `' OR target_id IN (SELECT id FROM categories WHERE ` + visibleCategoriesSQL + `))))`
+
+func shortcutTargetVisible(db interface{ QueryRow(string, ...any) *sql.Row }, owner, kind, id string) (bool, error) {
+	if kind == "category" && id == uncategorizedShortcutID {
+		return true, nil
+	}
+	table, visibility := "sites", visibleSitesSQL
+	if kind == "category" {
+		table, visibility = "categories", visibleCategoriesSQL
+	}
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM "+table+" WHERE id=? AND "+visibility+")", id, owner).Scan(&exists)
+	return exists, err
+}
 
 func (a *app) setCategorySharing(w http.ResponseWriter, r *http.Request) {
 	u := currentUser(r)

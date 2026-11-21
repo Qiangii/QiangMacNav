@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react';
 import { closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type CollisionDetection } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { Category, CategorySiteOrder, Preferences, Site } from '../types';
+import { uncategorizedCategory } from '../navigationSelection';
 import { LaunchpadArtwork, LaunchpadIcon, type LaunchpadEntry } from './LaunchpadIcon';
 import { MacButton, MacDialog, MacInput } from './ui';
 import { NAVIGATION_MENU_IDS } from './ContextMenu';
@@ -32,7 +33,8 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
   const release = useRef<{ key: string; rect: DOMRect } | null>(null);
   const blockedUntil = useRef(0);
   const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 7 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates, keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Enter'] } }));
-  const categorySites = category ? sites.filter(site => site.categoryId === category.id).sort((a, b) => a.position - b.position) : sites;
+  const categoryId = category?.id === uncategorizedCategory.id ? null : category?.id;
+  const categorySites = category ? sites.filter(site => site.categoryId === categoryId).sort((a, b) => a.position - b.position) : sites;
   const rank = new Map((category ? [] : order).map((key, i) => [key, i]));
   const source: LaunchpadEntry[] = [...(category ? [] : categories).map(item => ({ kind: 'category' as const, key: `category:${item.id}`, item })), ...categorySites.map(item => ({ kind: 'site' as const, key: `site:${item.id}`, item }))];
   const canSort = (entry: LaunchpadEntry) => (!category || category.editable) && entry.item.editable;

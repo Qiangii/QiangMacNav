@@ -95,16 +95,12 @@ func (a *app) desktopShortcut(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodDelete {
 		_, err = tx.Exec("DELETE FROM desktop_items WHERE user_id=? AND kind=? AND target_id=?", owner, kind, id)
 	} else {
-		table, visibility := "sites", visibleSitesSQL
-		if kind == "category" {
-			table, visibility = "categories", visibleCategoriesSQL
-		}
-		var exists int
-		if err = tx.QueryRow("SELECT COUNT(*) FROM "+table+" WHERE id=? AND "+visibility, id, owner).Scan(&exists); err != nil {
+		visible, lookupErr := shortcutTargetVisible(tx, owner, kind, id)
+		if lookupErr != nil {
 			fail(w, 500, "读取快捷方式失败")
 			return
 		}
-		if exists != 1 {
+		if !visible {
 			fail(w, 404, "站点或分类不存在")
 			return
 		}

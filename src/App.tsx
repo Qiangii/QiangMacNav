@@ -46,7 +46,7 @@ import { NavigationDragContext, useNavigationDrag, useNavigationSensors } from '
 import { useEventCallback } from './components/useEventCallback';
 import { useNavigationSync } from './components/useNavigationSync';
 import { useSessionActivity } from './components/useSessionActivity';
-import { navigationView, orderedCategories } from './navigationSelection';
+import { navigationView, orderedCategories, uncategorizedCategory } from './navigationSelection';
 import { useWindowFeedback } from './viewFeedback';
 import { IconTransitions } from './components/IconTransitions';
 
@@ -99,6 +99,7 @@ export default function App() {
   const dragInteraction = useNavigationDrag(data?.preferences.navigationDragMode ?? 'handle');
   const sensors = useNavigationSensors(dragInteraction.mode);
   const view = useMemo(() => navigationView(data, draft ?? data, selectedCategory), [data, draft ?? data, selectedCategory]);
+  const shortcutCategories = useMemo(() => [...(data?.categories ?? []), uncategorizedCategory], [data?.categories]);
   const searching = !!query.trim();
   const searchResults = useMemo(() => searchSites(data?.sites ?? [], query), [data?.sites, query]);
   useNavigationSync(data, setData, phase === 'desktop' && !activeDrag && !savingSort && !preferencesSaving && !editor && !confirm);
@@ -307,7 +308,7 @@ export default function App() {
   const orderedIDs = sidebarEntries.map(entry => entry.id);
   const canSort = canEdit && !query.trim() && !savingSort;
   const { activeCategory, categories, allSites, selectedCategory: visibleCategory } = view;
-  const desktopCategory = data.categories.find(category => category.id === desktopCategoryId);
+  const desktopCategory = shortcutCategories.find(category => category.id === desktopCategoryId);
   const finderCategoryTitle = searching ? '搜索结果' : activeCategory?.name ?? (visibleCategory === 'uncategorized' ? '未分类' : '我的导航');
 
   function deleteSite(site: Site) {
@@ -360,20 +361,25 @@ export default function App() {
   function categoryMenuItems(category: Category, dock = false): MenuItem[] {
     const editable = category.editable;
     const pinned = data!.dockItems.some(item => item.kind === 'category' && item.id === category.id);
+    const shortcuts: MenuItem[] = [
+      { label: pinned ? '取消固定' : '固定到 Dock', icon: <Star size={15} />, action: () => void perform(() => pinned ? api.unpinCategory(category.id) : api.pinCategory(category.id), pinned ? '已取消 Dock 固定' : '已固定到 Dock') },
+      desktopShortcutAction('category', category.id),
+    ];
+    const open: MenuItem[] = dock ? [{ label: '打开分类', icon: <Folder size={15} />, action: () => openCategoryLaunchpad(category) }, { separator: true }] : [];
+    if (category.id === uncategorizedCategory.id) return [...open, ...shortcuts];
     return [
-      ...(dock ? [{ label: '打开分类', icon: <Folder size={15} />, action: () => openCategoryLaunchpad(category) }, { separator: true }] as MenuItem[] : []),
+      ...open,
       { label: '在此添加网站', icon: <Plus size={15} />, disabled: !editable, action: () => setEditor({ kind: 'site', categoryId: category.id }) },
       { separator: true },
       { label: '编辑分类', icon: <Settings2 size={15} />, disabled: !editable, action: () => setEditor({ kind: 'category', category }) },
       ...(user!.role === 'admin' && editable ? [{ label: category.shared ? '取消共享' : '共享分类', icon: <Globe2 size={15} />, action: () => void perform(() => api.setCategorySharing(category.id, !category.shared), category.shared ? '分类已取消共享' : '分类已共享，全站用户可见') }] : []),
-      { label: pinned ? '取消固定' : '固定到 Dock', icon: <Star size={15} />, action: () => void perform(() => pinned ? api.unpinCategory(category.id) : api.pinCategory(category.id), pinned ? '已取消 Dock 固定' : '已固定到 Dock') },
-      desktopShortcutAction('category', category.id),
+      ...shortcuts,
       { label: '删除分类', icon: <Trash2 size={15} />, disabled: !editable, action: () => deleteCategory(category) },
     ];
   }
 
-  function showSidebarMenu(event: MouseEvent, id: string) {
-    const category = sidebarCategories.find(item => item.id === id);
+  function showSidebarMenu(event: MouseEvent | React.KeyboardEvent, id: string) {
+    const category = shortcutCategories.find(item => item.id === id);
     if (category) showMenu(event, categoryMenuItems(category));
   }
 
@@ -385,7 +391,7 @@ export default function App() {
     const item = items[0];
     if (!item) return;
     const site = item.kind === 'site' ? data!.sites.find(site => site.id === item.id) : undefined;
-    const category = item.kind === 'category' ? data!.categories.find(category => category.id === item.id) : undefined;
+    const category = item.kind === 'category' ? shortcutCategories.find(category => category.id === item.id) : undefined;
     showMenu(event, [
       { label: site ? '打开网站' : '打开分类', icon: <ArrowUpRight size={15} />, action: () => { if (site) openSite(site); else if (category) openCategoryLaunchpad(category); } },
       { separator: true },
@@ -517,7 +523,7 @@ export default function App() {
   return <DesktopAccountContext.Provider key={user.id} value={user.id}><IconAppearanceContext.Provider value={data.preferences}><DesktopThemeContext.Provider value={data.preferences.theme}><TitlebarPositionContext.Provider value={data.preferences.titlebarPosition ?? 'left'}><NavigationDragContext.Provider value={dragInteraction}><div data-navigation-drag-mode={dragInteraction.mode} className={`desktop theme-${data.preferences.theme}`} onContextMenu={blankMenu}>
     <div className="desktop-scene">
     <DesktopWallpaper preferences={data.preferences} />
-    <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={data.categories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
+    <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={shortcutCategories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
       onInitialize={async (columns, rows) => { const version = sessionVersion.current; await api.initializeDesktopLayout(columns, rows); if (version === sessionVersion.current) await refresh(); }}
       onRemove={async items => { const version = sessionVersion.current; await api.removeDesktopItems(items); await refreshAfterChange(items.length > 1 ? `已移除 ${items.length} 个桌面快捷方式` : '已从桌面移除', version); }}
       onMove={async (items, columns, rows) => { const version = sessionVersion.current; try { await api.saveDesktopLayout(items, columns, rows, data.desktopItems ?? [], data.desktopColumns ?? 0, data.desktopRows ?? 0); } catch (reason) { if (version === sessionVersion.current) await refresh().catch(() => {}); throw reason; } await refreshAfterChange('桌面布局已保存', version); }}
@@ -531,7 +537,10 @@ export default function App() {
             onSelect={id => { const category = sidebarCategories.find(c => c.id === id); if (category) openCategory(category); }}
             onMenu={showSidebarMenu}
             onReorder={ids => perform(() => api.reorder({ kind: 'sidebar', ids }), '分类顺序已保存')} />
-          {data.sites.some(s => !s.categoryId) && <button className={`finder-sidebar-item ${visibleCategory === 'uncategorized' ? 'selected' : ''}`} onClick={() => { setSelectedCategory('uncategorized'); setQuery(''); }} title="未分类"><Folder size={17} /><span>未分类</span></button>}
+          {data.sites.some(s => !s.categoryId) && <button className={`finder-sidebar-item ${visibleCategory === uncategorizedCategory.id ? 'selected' : ''}`}
+            onClick={() => { setSelectedCategory(uncategorizedCategory.id); setQuery(''); }} onContextMenu={event => showSidebarMenu(event, uncategorizedCategory.id)}
+            onKeyDown={event => { if (event.key === 'ContextMenu' || event.shiftKey && event.key === 'F10') showSidebarMenu(event, uncategorizedCategory.id); }}
+            aria-label="未分类" aria-haspopup="menu" aria-current={visibleCategory === uncategorizedCategory.id ? 'page' : undefined} title="未分类"><Folder size={17} /><span>未分类</span></button>}
         </aside></WindowSidebar>
         <div className="finder-content">
           <div className="finder-filterbar">
@@ -539,7 +548,7 @@ export default function App() {
               {searching ? <Search className="category-mark" size={19} aria-hidden="true" /> : <CategoryIcon className="category-mark" size={19} url={activeCategory?.iconUrl} />}
               <MacTooltip content={finderCategoryTitle}><h2>{finderCategoryTitle}</h2></MacTooltip>
               {!searching && activeCategory?.shared && <SharedBadge />}
-              {!searching && activeCategory && <MacTooltip content="分类操作"><button className="icon-button section-more" aria-label={`${finderCategoryTitle} 的操作`} aria-haspopup="menu" onClick={event => showSidebarMenu(event, activeCategory.id)}><MoreHorizontal size={18} /></button></MacTooltip>}
+              {!searching && visibleCategory && <MacTooltip content="分类操作"><button className="icon-button section-more" aria-label={`${finderCategoryTitle} 的操作`} aria-haspopup="menu" onClick={event => showSidebarMenu(event, visibleCategory)}><MoreHorizontal size={18} /></button></MacTooltip>}
             </div>
             <div className="finder-filter-actions"><label className="finder-search"><Search size={15} /><MacInput ref={searchRef} {...searchInput} placeholder="搜索全部网站" aria-label="搜索全部网站" />{searchInput.value && <MacTooltip content="清除搜索"><button aria-label="清除搜索" onClick={() => { setQuery(''); searchRef.current?.focus(); }}><X size={14} /></button></MacTooltip>}</label><MacTooltip content="新建分类"><button className="finder-tool-button" aria-label="新建分类" onClick={() => setEditor({ kind: 'category' })}><FolderPlus size={17} /></button></MacTooltip><button className="finder-add" aria-label="添加网站" onClick={() => setEditor({ kind: 'site', categoryId: activeCategory?.editable ? activeCategory.id : undefined })}><Plus size={17} /><span>添加网站</span></button></div>
           </div>
@@ -563,7 +572,7 @@ export default function App() {
     </FinderWindow></MacPresence>
     <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused && !launchpadOpen && !desktopCategory && !spotlightOpen && !editor} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
     </div>
-    <Dock items={data.dockItems} sites={data.sites} categories={data.categories} tools={data.preferences.dockTools} onToolMenu={(event, tool) => showMenu(event, [{ label: '隐藏', disabled: preferencesSaving || !!document.querySelector('[aria-busy="true"]'), action: () => { void hideDockTool(tool); } }])} canEdit={true} onSiteMenu={(event, s) => showMenu(event, siteMenuItems(s, true))} onCategoryMenu={(event, c) => showMenu(event, categoryMenuItems(c, true))} onOpenCategory={openCategoryLaunchpad} onSettings={() => toggleTool('settings')} onSearch={() => toggleTool('search')} onHome={() => toggleTool('home')} onAdd={() => toggleTool('add')} onReorder={ids => { void perform(() => api.reorder({ kind: 'pins', ids }), 'Dock 顺序已保存'); }} />
+    <Dock items={data.dockItems} sites={data.sites} categories={shortcutCategories} tools={data.preferences.dockTools} onToolMenu={(event, tool) => showMenu(event, [{ label: '隐藏', disabled: preferencesSaving || !!document.querySelector('[aria-busy="true"]'), action: () => { void hideDockTool(tool); } }])} canEdit={true} onSiteMenu={(event, s) => showMenu(event, siteMenuItems(s, true))} onCategoryMenu={(event, c) => showMenu(event, categoryMenuItems(c, true))} onOpenCategory={openCategoryLaunchpad} onSettings={() => toggleTool('settings')} onSearch={() => toggleTool('search')} onHome={() => toggleTool('home')} onAdd={() => toggleTool('add')} onReorder={ids => { void perform(() => api.reorder({ kind: 'pins', ids }), 'Dock 顺序已保存'); }} />
     <MacPresence open={launchpadOpen}><Launchpad categories={data.categories} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} /></MacPresence>
     <MacPresence open={!!desktopCategory}>{desktopCategory && <Launchpad key={desktopCategory.id} category={desktopCategory} categories={[]} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} />}</MacPresence>
     <MacPresence open={spotlightOpen}><Spotlight sites={data.sites} onClose={() => setSpotlightOpen(false)} /></MacPresence>

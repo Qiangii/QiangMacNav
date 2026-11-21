@@ -667,8 +667,20 @@ func (a *app) createSite(w http.ResponseWriter, r *http.Request) {
 	if !a.validateSite(w, &input, owner) {
 		return
 	}
+	tx, err := a.db.Begin()
+	if err != nil {
+		fail(w, 500, "Could not create site")
+		return
+	}
+	defer tx.Rollback()
+	if !siteURLAvailable(w, tx, owner, input.CategoryID, input.URL, "") {
+		return
+	}
 	id := randomID()
-	_, err := a.db.Exec(insertSiteSQL, id, owner, input.CategoryID, input.Name, input.URL, input.Note, input.LogoURL, owner, input.CategoryID)
+	_, err = tx.Exec(insertSiteSQL, id, owner, input.CategoryID, input.Name, input.URL, input.Note, input.LogoURL, owner, input.CategoryID)
+	if err == nil {
+		err = tx.Commit()
+	}
 	if err != nil {
 		fail(w, 500, "Could not create site")
 		return
@@ -700,6 +712,9 @@ func (a *app) copySite(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		fail(w, 500, "读取网站失败")
+		return
+	}
+	if !siteURLAvailable(w, tx, u.ID, input.CategoryID, source.URL, "") {
 		return
 	}
 	// An uploaded shared logo must remain usable under the copy owner's media permissions.
@@ -749,11 +764,17 @@ func (a *app) updateSite(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 	var previous sql.NullString
-	if err = tx.QueryRow("SELECT category_id FROM sites WHERE id=?", id).Scan(&previous); err != nil {
+	var previousURL string
+	if err = tx.QueryRow("SELECT category_id,url FROM sites WHERE id=?", id).Scan(&previous, &previousURL); err != nil {
 		fail(w, 404, "Site not found")
 		return
 	}
 	changed := previous.Valid != (cat != nil) || previous.Valid && previous.String != cat
+	if changed || siteURLKey(previousURL) != siteURLKey(input.URL) {
+		if !siteURLAvailable(w, tx, currentUser(r).ID, input.CategoryID, input.URL, id) {
+			return
+		}
+	}
 	if changed {
 		var nextPosition int
 		err = tx.QueryRow(`SELECT COALESCE(MAX(position)+1,0) FROM sites WHERE owner_id IS (SELECT owner_id FROM sites WHERE id=?) AND category_id IS ?`, id, cat).Scan(&nextPosition)
@@ -796,12 +817,16 @@ func (a *app) moveSite(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 	var previous sql.NullString
-	if err = tx.QueryRow("SELECT category_id FROM sites WHERE id=?", id).Scan(&previous); err != nil {
+	var siteURL string
+	if err = tx.QueryRow("SELECT category_id,url FROM sites WHERE id=?", id).Scan(&previous, &siteURL); err != nil {
 		fail(w, 404, "Site not found")
 		return
 	}
 	changed := previous.Valid != (cat != nil) || previous.Valid && previous.String != cat
 	if changed {
+		if !siteURLAvailable(w, tx, currentUser(r).ID, input.CategoryID, siteURL, id) {
+			return
+		}
 		var nextPosition int
 		err = tx.QueryRow(`SELECT COALESCE(MAX(position)+1,0) FROM sites WHERE owner_id IS (SELECT owner_id FROM sites WHERE id=?) AND category_id IS ?`, id, cat).Scan(&nextPosition)
 		if err == nil {
@@ -835,20 +860,14 @@ func (a *app) togglePin(w http.ResponseWriter, r *http.Request) {
 	u := currentUser(r)
 	id := chi.URLParam(r, "id")
 	kind := "site"
-	table := "sites"
 	if strings.HasPrefix(r.URL.Path, "/api/category-pins/") {
-		kind, table = "category", "categories"
+		kind = "category"
 	}
-	var exists int
-	visibility := visibleCategoriesSQL
-	if kind == "site" {
-		visibility = visibleSitesSQL
-	}
-	if err := a.db.QueryRow("SELECT COUNT(*) FROM "+table+" WHERE id=? AND ("+visibility+")", id, u.ID).Scan(&exists); err != nil || exists == 0 {
+	visible, err := shortcutTargetVisible(a.db, u.ID, kind, id)
+	if err != nil || !visible {
 		fail(w, 404, "Item not found")
 		return
 	}
-	var err error
 	if r.Method == "POST" {
 		_, err = a.db.Exec(`INSERT OR IGNORE INTO pinned_items(user_id,kind,target_id,position) VALUES(?,?,?,(SELECT COALESCE(MAX(position)+1,0) FROM pinned_items WHERE user_id=?))`, u.ID, kind, id, u.ID)
 	} else {
@@ -1003,8 +1022,9 @@ func (a *app) reorder(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	case "sites":
-		var owner string
-		if err = tx.QueryRow("SELECT owner_id FROM sites WHERE id=?", input.SiteID).Scan(&owner); err != nil {
+		var owner, siteURL string
+		var previous sql.NullString
+		if err = tx.QueryRow("SELECT owner_id,category_id,url FROM sites WHERE id=?", input.SiteID).Scan(&owner, &previous, &siteURL); err != nil {
 			fail(w, 404, "Site not found")
 			return
 		}
@@ -1018,6 +1038,11 @@ func (a *app) reorder(w http.ResponseWriter, r *http.Request) {
 			var categoryOwner string
 			if err = tx.QueryRow("SELECT owner_id FROM categories WHERE id=?", cat).Scan(&categoryOwner); err != nil || categoryOwner != owner {
 				fail(w, 400, "Invalid destination category")
+				return
+			}
+		}
+		if previous.Valid != (cat != nil) || previous.Valid && previous.String != cat {
+			if !siteURLAvailable(w, tx, owner, input.CategoryID, siteURL, input.SiteID) {
 				return
 			}
 		}

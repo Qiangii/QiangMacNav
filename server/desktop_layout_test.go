@@ -44,7 +44,7 @@ func TestDesktopLayoutCoordinatesAndAtomicSave(t *testing.T) {
 		var result struct {
 			ID string `json:"id"`
 		}
-		if err := json.Unmarshal(call("POST", "/api/sites", map[string]string{"name": name, "url": "https://example.com"}, admin, 201), &result); err != nil {
+		if err := json.Unmarshal(call("POST", "/api/sites", map[string]string{"name": name, "url": "https://example.com/" + name}, admin, 201), &result); err != nil {
 			t.Fatal(err)
 		}
 		call("POST", "/api/desktop-shortcuts/site/"+result.ID, nil, admin, 200)

@@ -147,6 +147,21 @@ function Collection({ state, refresh }: { state: State; refresh: () => Promise<v
   const [category, setCategory] = useState<string | null>(() => defaultCategory(categories, state.lastCategory));
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false), [saved, setSaved] = useState(state.saved), [error, setError] = useViewFeedback(''), [field, setField] = useViewFeedback(''), [notice, setNotice] = useViewFeedback('');
+  const [secondsLeft, setSecondsLeft] = useState(3);
+  useEffect(() => {
+    if (!saved) return;
+    const closesAt = Date.now() + 3000;
+    const tick = window.setInterval(() => {
+      const remaining = Math.ceil((closesAt - Date.now()) / 1000);
+      if (remaining <= 0) {
+        window.clearInterval(tick);
+        window.close();
+      } else {
+        setSecondsLeft(remaining);
+      }
+    }, 1000);
+    return () => window.clearInterval(tick);
+  }, [saved]);
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (category && !categories.some(c => c.id === category && c.editable)) { setCategory(defaultCategory(categories, undefined)); setNotice('原分类已不可用，已重新选择可收藏分类。'); } }, [state.navigation]);
   function change(key: keyof Draft, value: string) { setDraft(d => ({ ...d, [key]: value })); setError(''); setField(''); }
@@ -176,13 +191,20 @@ function Collection({ state, refresh }: { state: State; refresh: () => Promise<v
     setBusy(true); setError('');
     try {
       const result = await message<{ warning: string }>({ type: 'save', identity: state.identity, capture: captureId!, draft, categoryId: category });
-      setSaved(true); setNotice(result.warning || '已收藏进导航。');
+      setSaved(true); setNotice(result.warning);
       await refresh();
     } catch (error) { setError(errorText(error)); }
     finally { setBusy(false); }
   }
   if (!state.draft) return <div className="empty">收藏草稿已过期，请回到网页重新右键收藏。</div>;
-  if (saved) return <section className="success"><Check size={32} aria-hidden="true"/><h1>已收藏进导航</h1><p>{draft.name}</p>{state.syncError && <p role="status">已保存，但列表刷新失败，请稍后同步。</p>}{notice && notice !== '已收藏进导航。' && <p role="status">{notice}</p>}<MacButton variant="primary" onClick={() => window.close()}>完成</MacButton><a href={state.base} target="_blank" rel="noopener noreferrer">官网 ↗</a></section>;
+  if (saved) return <section className="success">
+    <Check size={32} aria-hidden="true"/>
+    <h1>已收藏进导航</h1>
+    {state.syncError && <p role="status">已保存，但列表刷新失败，请稍后同步。</p>}
+    {notice && <p role="status">{notice}</p>}
+    <p role="timer">{secondsLeft} 秒后自动关闭</p>
+    <MacButton variant="primary" onClick={() => window.close()}>完成</MacButton>
+  </section>;
   return <section className="collection"><h1 className="window-title">收藏进导航</h1>
     <form ref={form} onSubmit={submit} onKeyDown={composing} className="editor-form capture-form">
       <div className="scroll-fields"><fieldset disabled={busy}>
