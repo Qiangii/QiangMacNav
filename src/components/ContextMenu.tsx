@@ -42,14 +42,36 @@ export function ContextMenu({ menu, onClose, restoreFocus = false }: { menu: Men
     };
   }, [menu.x, menu.y, onClose, restoreFocus]);
 
+  useLayoutEffect(() => {
+    if (!submenu || !ref.current || !childRef.current) return;
+    const parent = ref.current;
+    const child = childRef.current;
+    const row = parent.querySelector<HTMLElement>(`[data-menu-index="${submenu.index}"]`);
+    if (!row) return;
+    const place = () => {
+      const parentRect = parent.getBoundingClientRect();
+      const childRect = child.getBoundingClientRect();
+      const rightSpace = window.innerWidth - 8 - parentRect.right;
+      const leftSpace = parentRect.left - 8;
+      const openRight = childRect.width <= rightSpace || childRect.width > leftSpace && rightSpace >= leftSpace;
+      const x = Math.max(8, Math.min(openRight ? parentRect.right : parentRect.left - childRect.width, window.innerWidth - childRect.width - 8));
+      const style = getComputedStyle(child);
+      const inset = parseFloat(style.paddingTop) + parseFloat(style.borderTopWidth);
+      const y = Math.max(8, Math.min(row.getBoundingClientRect().top - inset, window.innerHeight - childRect.height - 8));
+      setSubmenu(previous => previous?.index === submenu.index && (previous.x !== x || previous.y !== y) ? { ...previous, x, y } : previous);
+    };
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(parent); observer.observe(child);
+    parent.addEventListener('scroll', place);
+    return () => { observer.disconnect(); parent.removeEventListener('scroll', place); };
+  }, [submenu?.index, position.x, position.y, menu.items]);
+
   function openChild(index: number, element: HTMLElement) {
     const item = menu.items[index];
     if (!actionable(item) || !item.children || item.disabled) { setSubmenu(null); return; }
     const rect = element.getBoundingClientRect();
-    const width = 210;
-    const x = rect.right + width > window.innerWidth - 8 ? Math.max(8, rect.left - width) : rect.right;
-    const y = Math.min(rect.top - 5, window.innerHeight - (item.children.length * 31 + 20));
-    setSubmenu({ index, x, y: Math.max(8, y) });
+    setSubmenu(previous => previous?.index === index ? previous : { index, x: rect.right, y: rect.top });
   }
 
   function execute(item: MenuEntry) {

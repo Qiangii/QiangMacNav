@@ -1,7 +1,8 @@
 .mac-presence { display: contents; }
 .mac-presence[data-state="hidden"] { display: none; }
 .mac-presence[data-state="closing"] > * { animation: mac-presence-out 180ms ease-in both !important; pointer-events: none; }
-.mac-presence[data-state="open"] > * { animation: mac-presence-in 180ms ease-out both; }
+/* Entry ends at the element's normal styles; only exits retain their final frame. */
+.mac-presence[data-state="open"] > * { animation: mac-presence-in 180ms ease-out backwards; }
 .settings-dialog-shell { display: contents; }
 .dock-wrap { z-index: 130; }
 @keyframes mac-presence-out { from { opacity: 1; } to { opacity: 0; transform: translateY(8px) scale(.985); } }
