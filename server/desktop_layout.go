@@ -43,7 +43,7 @@ func (a *app) desktopLayout(w http.ResponseWriter, r *http.Request) {
 			fail(w, 409, "桌面布局已变化，请重试")
 			return
 		}
-		rows, queryErr := tx.Query("SELECT kind,target_id,position,("+visiblePinsSQL+") FROM desktop_items WHERE user_id=? ORDER BY position", owner, owner, owner)
+		rows, queryErr := tx.Query("SELECT kind,target_id,position,("+visibleDesktopItemsSQL+") FROM desktop_items WHERE user_id=? ORDER BY position", owner, owner, owner)
 		if queryErr != nil {
 			fail(w, 500, "读取桌面失败")
 			return

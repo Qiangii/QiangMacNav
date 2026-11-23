@@ -9,12 +9,13 @@ export type MacWindowOptions = {
   minSize?: { width: number; height: number };
   bottomInset?: number;
   hidden?: boolean;
+  allowCompact?: boolean;
   cacheKey?: string;
   onClose: () => void;
   onMinimize: () => void;
 };
 
-export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, bottomInset = 85, hidden = false, cacheKey, onClose, onMinimize }: MacWindowOptions) {
+export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, bottomInset = 85, hidden = false, allowCompact = false, cacheKey, onClose, onMinimize }: MacWindowOptions) {
   const active = usePresenceActive();
   const account = useContext(DesktopAccountContext);
   function clamp(value: WindowGeometry): WindowGeometry {
@@ -59,8 +60,8 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
     (kind === 'close' ? onClose : onMinimize)();
   }
 
-  function startGesture(event: PointerEvent<HTMLDivElement>, resize?: WindowResizeDirection) {
-    if (hidden || !active || maximized || window.innerWidth <= 760 || event.button !== 0) return;
+  function startGesture(event: PointerEvent<HTMLElement>, resize?: WindowResizeDirection) {
+    if (hidden || !active || maximized || (!allowCompact && window.innerWidth <= 760) || event.button !== 0) return;
     if (!resize && event.target instanceof Element && event.target.closest('button, input, textarea, select, a, [contenteditable="true"], [data-no-drag]')) return;
     event.preventDefault();
     gestureCleanup.current?.();
@@ -100,9 +101,9 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
   }
 
   return {
-    ...geometry, maximized,
+    ...geometry, maximized, allowCompact,
     style: maximized ? undefined : { left: geometry.position.x, top: geometry.position.y, ...geometry.size },
-    startMove: (event: PointerEvent<HTMLDivElement>) => startGesture(event),
+    startMove: (event: PointerEvent<HTMLElement>) => startGesture(event),
     startResize: (event: PointerEvent<HTMLDivElement>, direction: WindowResizeDirection) => startGesture(event, direction),
     toggleMaximize: () => { gestureCleanup.current?.(); setMaximized(value => !value); },
     close: () => exit('close'),

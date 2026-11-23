@@ -13,7 +13,7 @@
 .mac-window-resize[data-resize-direction="sw"] { bottom: 0; left: 0; cursor: nesw-resize; }
 .mac-window-resize[data-resize-direction="nw"] { top: 0; left: 0; cursor: nwse-resize; }
 @media (max-width: 760px) {
-  .mac-window-resize { display: none; }
+  .mac-window-resize:not([data-compact-resize]) { display: none; }
 }
 .window-titlebar-spacer { width: 84px; flex: 0 0 84px; }
 [data-titlebar-position="right"] > .finder-titlebar,

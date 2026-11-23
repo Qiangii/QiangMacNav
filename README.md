@@ -1,50 +1,173 @@
 # QiangMacNav
 
-QiangMacNav 是一个 macOS 风格的自托管导航页。你可以在网页桌面整理常用站点，在 Chrome 或 Edge 中右键收藏当前页面，并用同一账号访问自己的导航。
+QiangMacNav 是一个 macOS 风格的自托管导航页。你可以像使用桌面一样整理网站、搜索、设置快捷方式和写便签，也可以通过 Chrome 或 Edge 插件把网页收藏到自己的导航。
+
+[功能](#功能) · [首次初始化与防抢注](#首次初始化与防抢注) · [常规部署](#常规部署) · [Docker 部署](#docker-部署) · [NAS 部署](#nas-部署) · [数据持久化与备份](#数据持久化与备份) · [浏览器插件](#浏览器插件)
 
 ## 功能
 
-- 用户名登录、首次管理员初始化、注册开关、账户资料与头像、修改密码、会话管理；管理员可管理用户和查看登录日志。
-- 个人分类与网站、拖拽排序、跨分类移动、Dock 固定和桌面快捷方式。可将站点复制到自己的分类，独立编辑副本。管理员可共享整个分类，其他已登录用户可浏览并固定其中的站点。详见 [分类共享](docs/CATEGORY_SHARING.md)。
-- Finder 导航窗口、独立设置窗口、分类 Launchpad、Spotlight 全站点搜索和最近访问；支持右键、键盘、触屏及中文输入法。
-- 桌面网格、多选拖拽、窗口与搜索框禁区、响应式布局。每账号最多 256 个快捷方式，自动适配屏幕不改保存位置，手动移动才保存。
-- 深浅主题、10 项内置壁纸、24 个内置头像、图标库，以及按账号和用途隔离的头像／图标／壁纸上传库。支持图片、GIF 动图与 MP4 视频壁纸。
-- 桌面网页搜索默认开启，依次提供谷歌、推特、百度、必应，四个默认图标均从本地素材目录加载，可编辑、排序和配置引擎图标。搜索框位置和宽度仅保存在当前浏览器，按账号隔离；引擎与开关保存在服务端。
-- 网站名称和 Logo 配置、当前版本、GitHub 稳定版检查、可选 Docker 在线更新及失败回滚。
-- [QiangMacNav 浏览器插件](extensions/qiangmacnav/README.md)：Chrome / Edge 账号登录、身份区分、分类与站点同步，以及右键「收藏进导航」。
+- **桌面与窗口**。Finder 导航、设置和便签窗口支持拖动标题栏以及四边、四角缩放。桌面支持多选、网格布局、快捷方式和 Dock 固定，也适配触屏和窄屏。
+- **导航与搜索**。网站可分类、复制、移动和拖拽排序。桌面、导航窗口和 Launchpad 松手即显示排序结果，后台依次保存。Spotlight 支持站点搜索和最近访问，桌面搜索框支持自定义引擎。
+- **桌面便签**。在桌面空白处右键「新建便签」。标题同步到桌面图标，正文支持富文本与 Markdown 切换和预览，可设置文字颜色与背景色。粘贴或上传的图片可和文字排在同一行，拖动任一图片边缘即可按比例调整尺寸。标题、正文和图片加密存储，只有所属账号可访问。[便签说明](docs/NOTES.md)
+- **账号与共享**。支持防抢注令牌、注册开关、头像、密码和会话管理。管理员可管理用户、查看登录日志、共享自己的分类及配置网站名称和 Logo。[分类共享](docs/CATEGORY_SHARING.md)
+- **主题与媒体**。支持深浅主题、桌面壁纸、头像和图标库，可上传图片、GIF 和 MP4 壁纸。
+- **浏览器插件与系统更新**。Chrome、Edge 可右键「收藏进导航」。系统设置提供稳定版检查，Docker 部署支持在线更新、本地安装包升级及适用模式下的失败回滚。[浏览器插件](extensions/qiangmacnav/README.md) · [系统更新](docs/ONLINE_UPDATES.md)
 
-新账号默认浅色、蜡笔小新壁纸、标题栏按钮靠左、导航拖拽手柄、图标背景开启、桌面定位网格关闭、Launchpad 横向分页。Dock 默认显示导航、搜索和设置，可手动开启“添加网站”。
+桌面便签从 `v1.1.0` 开始提供。已有 Docker 或 NAS 部署可沿用原 `/data` 挂载升级。[GitHub Releases](https://github.com/Qiangii/QiangMacNav/releases)
 
-## Docker 快速部署
+## 首次初始化与防抢注
 
-### 群晖直接运行镜像
+空数据库启动后需要创建第一个账号，该账号会成为管理员。服务在局域网或公网开放前，建议先设置 `SETUP_TOKEN`，避免其他人先完成初始化。
 
-在 Container Manager 的「注册表」下载官方镜像后，可以在「映像 → 运行」中直接创建网站容器。
+1. 用密码管理器生成一段随机令牌，或执行 `openssl rand -hex 32`。将同一个值填入启动环境的 `SETUP_TOKEN`。常规部署用环境变量，Compose 用 `.env`，群晖运行镜像时在「环境变量」中添加。
+2. 打开网页的「创建管理员」页面，把令牌填入「初始化密钥」，再填写显示名称、账号和登录密码。账号为 3–16 位汉字、英文字母或数字；密码为 6–16 位，至少包含字母、数字、符号中的两类。
+3. 初始化完成后用登录密码进入站点。若只打算自己使用，在「系统设置 → 系统管理 → 访问设置」关闭「开放用户注册」。
 
-1. 在 File Station 新建网站专用文件夹，例如 `docker/QiangMacNav/data`。
-2. 将 NAS 的空闲 TCP 端口（例如 `8088`）映射至容器的 `8080`，将上述文件夹以读写方式挂载到 `/data`。
-3. 保留镜像默认启动命令和用户。启动器会准备 `/data` 和已有 SQLite 文件的权限，然后以 `10001:10001` 运行网站。若 NAS 的 ACL 或网络文件系统禁止修改所有者，可使用 Docker 命名卷或预先为该身份授予写权限。
-4. 打开 `http://群晖IP:8088` 创建管理员。如需限制首次注册，在启动前设置 `SETUP_TOKEN`。
+`SETUP_TOKEN` 可留空，留空时第一个访问者可直接创建管理员。它仅在没有账号时生效，对已有数据库中的账号无影响。已有站点迁移或重建容器后，挂回原数据目录即可用原账号登录。
 
-管理员可直接进入「系统设置 → 系统更新」检查并安装新版本。只需持久化 `/data`，网站程序、前端资源和升级前的数据库备份都保存在该目录。实际运行版本见网页，群晖显示创建容器时的镜像标签。[在线更新说明](docs/ONLINE_UPDATES.md)
+## 常规部署
+
+网页静态文件和 API 由同一个 Go 进程提供，访问时只需一个端口。
+
+### Linux 使用发布包
+
+从 [GitHub Releases](https://github.com/Qiangii/QiangMacNav/releases) 下载匹配设备架构的 `navigation-linux-amd64.tar.gz` 或 `navigation-linux-arm64.tar.gz`。解压到安装目录，确认 `navigation` 与 `dist/` 在同一级。下面在该目录执行，`SETUP_TOKEN` 请换成自己的随机值。
+
+```sh
+mkdir -p data
+chmod +x navigation
+export HOST=127.0.0.1
+export PORT=8080
+export STATIC_DIR="$PWD/dist"
+export DB_PATH="$PWD/data/navigation.db"
+export SETUP_TOKEN='替换为生成的随机令牌'
+./navigation
+```
+
+打开 `http://127.0.0.1:8080` 初始化。需要通过服务器的内网 IP 直接访问时，将 `HOST` 改为 `0.0.0.0`，并确认防火墙允许所用端口。长期运行时，可用系统服务或进程管理工具托管这个进程。
 
 ### 从源码构建
 
-安装 Docker Engine 和 Compose v2 或更高版本。在仓库根目录执行以下命令，从源码构建并启动网页和 API 共用的容器。
+需要 Node.js 22+、npm 和 Go 1.23+。在项目根目录执行：
+
+```sh
+npm ci
+npm run build
+go -C server build -o ../navigation .
+```
+
+Linux 或 macOS 构建后，使用上一节的启动配置。Windows PowerShell 使用以下命令构建并运行：
+
+```powershell
+npm ci
+npm run build
+go -C server build -o ../navigation.exe .
+$env:HOST = '127.0.0.1'
+$env:PORT = '8080'
+$env:STATIC_DIR = Join-Path (Get-Location) 'dist'
+$env:DB_PATH = Join-Path (Get-Location) 'data/navigation.db'
+$env:SETUP_TOKEN = '替换为生成的随机令牌'
+.\navigation.exe
+```
+
+直接运行时，`HOST` 默认 `127.0.0.1`，`PORT` 默认 `8080`。建议生产部署显式指定 `STATIC_DIR` 和 `DB_PATH` 的绝对路径，以免更换启动目录后读取了另一个数据库。
+
+## Docker 部署
+
+发布镜像同时支持 Linux AMD64 和 ARM64，可使用 `ghcr.io/qiangii/qiangmacnav:latest` 或 `docker.io/qiangiii/qiangmacnav:latest`。需要锁定基础镜像版本时，将 `latest` 替换为已发布的 `vX.Y.Z` 标签。
+
+### 使用 Docker Compose
+
+安装 Docker Engine 和 Compose v2 或更高版本，在仓库根目录复制 `.env.example` 为 `.env`。用 PowerShell 时可执行 `Copy-Item .env.example .env`。
 
 ```sh
 cp .env.example .env
-# 按需编辑 .env，再启动服务
+```
+
+在 `.env` 设置首次初始化令牌和宿主机端口。需要使用已发布的镜像时，再设置 `NAVIGATION_IMAGE`。
+
+```dotenv
+HOST_PORT=8088
+SETUP_TOKEN=替换为生成的随机令牌
+NAVIGATION_IMAGE=ghcr.io/qiangii/qiangmacnav:latest
+# 留空使用命名卷。指定目录时请先创建该目录
+# DATA_DIR=/volume1/docker/QiangMacNav/data
+```
+
+**使用发布镜像**
+
+```sh
+docker compose pull navigation
+docker compose up -d --no-build
+```
+
+**构建当前源码**
+
+在 `.env` 留空或省略 `NAVIGATION_IMAGE`，再执行：
+
+```sh
 docker compose up -d --build
 ```
 
-打开 `http://服务器地址:8080` 创建首个管理员。若服务在初始化前已可从公网访问，先在 `.env` 设置 `SETUP_TOKEN`，由持有密钥的人完成初始化。留空时可直接创建首个账号。
+打开 `http://服务器IP:8088`（按 `HOST_PORT` 调整）。可用 `docker compose logs -f navigation` 查看启动日志。
 
-`HOST_PORT` 修改宿主机端口。默认使用 `navigation-data` 命名卷；也可设置 `DATA_DIR=/volume1/docker/qiangmacnav/data`，提前创建该专用目录并授予容器 UID/GID `10001:10001` 写权限。数据库、密码哈希、导航、偏好、上传资源及网站 Logo 均在 `/data/navigation.db` 内。
+### 使用 docker run
 
-当前数据库结构定义在 `server/schema.go`，版本为 3。空库进入首次管理员初始化。版本 1 和 2 的数据库自动事务升级，保留原有账号、会话、导航与登录来源。
+无需仓库即可运行发布镜像。先准备一个本地 `.env` 文件，填入 `SETUP_TOKEN=你的随机令牌`，然后执行：
 
-可使用 NAS 的 IP、端口或反向代理域名访问网站。应用部署在域名根路径，网页、`/api` 和 `/assets` 使用同一个地址。使用可信反向代理时，设置 `TRUST_PROXY=true` 并将 `TRUSTED_PROXY_CIDRS` 填为 Go 服务实际看到的代理来源地址，以识别 HTTPS 和客户端 IP。直连使用默认值 `TRUST_PROXY=false`。
+```sh
+docker run -d --name qiangmacnav --restart unless-stopped \
+  -p 8088:8080 --env-file .env \
+  -v qiangmacnav-data:/data \
+  ghcr.io/qiangii/qiangmacnav:latest
+```
+
+如需使用宿主机文件夹，将 `qiangmacnav-data:/data` 替换为 `/宿主机绝对路径:/data`。确保容器使用镜像自带的启动命令。
+
+## NAS 部署
+
+以群晖 Container Manager 为例。其他 NAS 的 Docker 管理界面中，按相同的端口、目录和环境变量配置即可。
+
+1. 在 File Station 创建应用专用目录，例如 `/volume1/docker/QiangMacNav/data`。如果是重建或迁移已有容器，使用旧容器原来挂载到 `/data` 的目录。
+2. 在 Container Manager 的「注册表」下载 `qiangiii/qiangmacnav:latest`，或者通过 GHCR 拉取 `ghcr.io/qiangii/qiangmacnav:latest`。在「映像」中选择镜像并创建容器。
+3. 填写下表配置。端口 `8088` 是示例，可换成 NAS 上的空闲端口。
+
+   | 配置项 | 群晖示例 |
+   | --- | --- |
+   | 端口设置 | 本地端口 `8088` → 容器端口 `8080`，TCP |
+   | 存储空间 | `/volume1/docker/QiangMacNav/data` → `/data`，读写 |
+   | 环境变量 | `SETUP_TOKEN` = 自己的随机令牌，首次启动前配置 |
+   | 执行命令 | 保留镜像默认命令 `/app/start-navigation` |
+   | 重启策略 | 可开启自动重新启动 |
+
+4. 启动容器，访问 `http://NAS_IP:8088`，按[首次初始化与防抢注](#首次初始化与防抢注)完成设置。
+
+镜像启动器会准备目录和 SQLite 文件权限，网站进程以 UID/GID `10001:10001` 运行。如果日志出现 `unable to open database file` 或提示无法准备 `/data`，先检查映射路径、读写模式和 NAS ACL，确保该身份能读写数据目录及其中的数据库和便签密钥。无法调整绑定目录权限时，可考虑 Docker 命名卷。
+
+已有 SSH 或 Compose 环境时，也可按 [Docker Compose 部署](#使用-docker-compose)配置 `DATA_DIR=/volume1/docker/QiangMacNav/data`。需要通过网页替换整个容器时，可选择仓库的 [群晖项目配置](compose.synology.yaml) 及其配套 updater。[群晖项目与在线升级说明](docs/ONLINE_UPDATES.md#群晖项目启用整容器升级)
+
+## 数据持久化与备份
+
+Docker 部署请持久化**整个 `/data` 目录**。Compose 设置 `DATA_DIR` 时使用绑定目录，留空使用项目的 `navigation-data` 命名卷。NAS 已做整目录映射时，便签的数据库和密钥会随原目录一起持久化。
+
+| 容器内路径 | 用途 |
+| --- | --- |
+| `/data/navigation.db` | 账号、导航、偏好、媒体及加密后的便签标题、正文和图片 |
+| `/data/navigation.db.notes.key` | 便签加密密钥，包含便签功能的服务首次启动时自动生成 |
+| `/data/navigation.db-wal`、`/data/navigation.db-shm` | SQLite 运行文件，备份时一并保留仍存在的文件 |
+| `/data/.navigation-updates/` | 单容器网页升级安装的程序、状态和数据库备份（启用相应模式时） |
+
+例如，将 NAS 的 `/volume1/docker/QiangMacNav/data` 挂载到 `/data`，密钥在 NAS 上就是 `/volume1/docker/QiangMacNav/data/navigation.db.notes.key`。原生部署使用 `<DB_PATH>.notes.key`；如果自定义了 `NOTE_KEY_FILE`，请另外备份那个路径的文件。
+
+- **备份**。先停止服务，再复制整个数据目录。便签数据库和对应密钥必须一同保留，密钥请按敏感数据保管。
+- **迁移或重建**。挂回原目录或原命名卷，并保持目录可写；旧版数据库会在新版启动时按迁移顺序升级。备份时保留一份升级前的数据。若恢复的库已有便签却缺少对应密钥，服务无法启动。
+- **命名卷**。`docker compose down -v` 会删除该项目的命名卷。重建服务时沿用原卷；若更换项目名或安装目录，注意新项目可能会创建一个空卷。
+
+## 反向代理与更新
+
+站点部署在域名根路径，网页、`/api` 和 `/assets` 使用同一个地址。直连时保留 `TRUST_PROXY=false`。通过反向代理部署时，可开启 `TRUST_PROXY=true`，并把 `TRUSTED_PROXY_CIDRS` 限定为 Go 实际看到的代理来源，让应用识别客户端 IP 和 HTTPS。便签可用 HTTP 或 HTTPS 访问。HTTPS 提供传输加密，HTTP 以明文传输。
+
+管理员可以在「系统设置 → 系统更新」查看实际运行版本。默认 Docker 启动器可升级网站程序；想更新容器基础镜像和启动器时，拉取新的镜像并使用原端口、环境变量和数据目录重建。原生运行请手动替换程序和匹配的 `dist/`。[在线更新、安装包与回滚](docs/ONLINE_UPDATES.md)
 
 ## 项目结构
 
@@ -55,8 +178,8 @@ docker compose up -d --build
 | `server/cmd/updater/`、`server/internal/updates/` | 可选 Docker 更新服务及发布清单、备份和回滚逻辑 |
 | `extensions/qiangmacnav/` | Chrome / Edge Manifest V3 插件，含后台、收藏窗口和独立构建入口 |
 | `scripts/`、`testdata/` | 自动检查、素材处理脚本与测试数据 |
-| `docs/` | 组件约定、分类共享和在线更新文档 |
-| `Dockerfile`、`compose.yaml`、`compose.updates.yaml` | 应用镜像、基础部署和可选在线更新配置 |
+| `docs/` | 便签、组件约定、分类共享和在线更新文档 |
+| `Dockerfile`、`compose*.yaml` | 应用镜像、基础部署、群晖项目和可选在线更新配置 |
 | `.github/workflows/` | 分支与拉取请求检查、稳定版标签发布 |
 
 ## 浏览器插件
@@ -100,7 +223,7 @@ npm run build:extension
 | `GET /api/bootstrap`、`GET /api/session` | 初始化状态、是否需要初始化密钥、品牌、当前会话 |
 | `POST /api/session/activity`、`POST /api/extension/session/activity` | 当前网页或插件会话前台使用续期，返回到期时间及距下一次检查的秒数 |
 | `POST /api/auth/register\|login\|logout` | 注册、用户名登录、注销 |
-| `GET /api/navigation` | 可见分类、网站、`dockItems`、桌面布局、侧栏顺序及完整偏好 |
+| `GET /api/navigation` | 可见分类、网站、本人便签摘要、Dock、桌面布局、侧栏顺序及完整偏好 |
 | `/api/categories`、`/api/sites` | 内容管理；创建时自动归属当前账号 |
 | `PUT /api/categories/{id}/sharing` | 管理员共享自己的分类 |
 | `PATCH /api/sites/{id}/category` | 移动分类，保留网站其他内容 |
@@ -108,6 +231,7 @@ npm run build:extension
 | `/api/pins/{id}`、`/api/category-pins/{id}` | 固定／取消固定网站与分类 |
 | `POST /api/reorder` | Dock、侧栏、网站排序 |
 | `/api/desktop-shortcuts`、`/api/desktop-layout` | 桌面快捷方式和带并发校验的布局保存 |
+| `/api/notes`、`/api/notes/{id}/images` | 私有便签与加密图片附件，按当前会话账号校验归属 |
 | `PUT /api/preferences` | 提交完整偏好；`wallpaperMime` 由服务端确定 |
 | `/api/media`、`PUT /api/account/avatar` | 私有媒体及头像 |
 | `/api/admin/settings`、`/api/admin/users`、`/api/admin/updates` | 网站管理、用户管理、系统更新 |
@@ -124,11 +248,5 @@ bootstrap 的 `setupRequired` 表示尚无账号，需要创建首个管理员�
 浏览器插件使用独立的 Bearer API，复用服务端登录校验、导航可见性和收藏归属检查。网页登录和插件登录在记录中以 source 明确区分；网页 Cookie 与插件令牌不能互换。
 
 窗口状态、表单草稿、最近访问和搜索框几何信息使用 `qiangmacnav:desktop:v1:<userId>:` 本地缓存，不跨浏览器或设备同步。密码与会话凭据不写入该缓存，清除浏览器站点数据可重置本地工作区。
-
-## 备份与更新
-
-备份前停止服务，复制整个数据库目录，保留存在的 `navigation.db-wal` 和 `navigation.db-shm`。更新程序时保留数据卷；`docker compose down -v` 会删除命名卷中的数据。
-
-版本号取自 `server/internal/buildinfo/version.txt`。推送匹配的 `vX.Y.Z` 标签后，发布流程从同一次构建的镜像提取 AMD64 和 ARM64 网站升级包，连同插件 ZIP 和校验清单 `update.json` 发布。单容器默认启用程序升级。需要从网页替换整个容器的部署可使用 `compose.updates.yaml`。[在线更新、首次发布与故障恢复](docs/ONLINE_UPDATES.md)
 
 组件及交互约定见 [组件指南](docs/COMPONENTS.md)。本地素材和许可证见 [ASSET_NOTICES.md](ASSET_NOTICES.md)。

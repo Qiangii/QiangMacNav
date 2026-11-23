@@ -2,10 +2,33 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
+
+const visibleDesktopItemsSQL = `(` + visiblePinsSQL + ` OR (kind='note' AND EXISTS (SELECT 1 FROM notes WHERE id=target_id AND owner_id=desktop_items.user_id)))`
+
+var errDesktopFull = errors.New("桌面最多可添加 256 个图标")
+
+func addDesktopItem(tx *sql.Tx, owner, kind, id string) error {
+	var count, position int
+	err := tx.QueryRow(`SELECT COUNT(*), COALESCE(MIN(d.position+1) FILTER (WHERE NOT EXISTS (
+		SELECT 1 FROM desktop_items AS next WHERE next.user_id=d.user_id AND next.position=d.position+1
+	)),0) FROM desktop_items AS d WHERE d.user_id=?`, owner).Scan(&count, &position)
+	if err != nil {
+		return err
+	}
+	if count >= 256 {
+		return errDesktopFull
+	}
+	if _, err := tx.Exec(`INSERT INTO desktop_items(user_id,kind,target_id,position) VALUES(?,?,?,
+		CASE WHEN EXISTS (SELECT 1 FROM desktop_items WHERE user_id=? AND position=0) THEN ? ELSE 0 END)`, owner, kind, id, owner, position); err != nil {
+		return err
+	}
+	return nil
+}
 
 type desktopItem struct {
 	Kind     string `json:"kind"`
@@ -50,7 +73,7 @@ func (a *app) removeDesktopShortcuts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *app) desktopItems(owner string) ([]desktopItem, error) {
-	rows, err := a.db.Query("SELECT kind,target_id,position FROM desktop_items WHERE user_id=? AND "+visiblePinsSQL+" ORDER BY position", owner, owner, owner)
+	rows, err := a.db.Query("SELECT kind,target_id,position FROM desktop_items WHERE user_id=? AND "+visibleDesktopItemsSQL+" ORDER BY position", owner, owner, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -112,35 +135,11 @@ func (a *app) desktopShortcut(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.Method == http.MethodPost {
 			if err == sql.ErrNoRows {
-				rows, e := tx.Query("SELECT position FROM desktop_items WHERE user_id=? ORDER BY position", owner)
-				if e != nil {
-					fail(w, 500, "读取桌面失败")
+				err = addDesktopItem(tx, owner, kind, id)
+				if errors.Is(err, errDesktopFull) {
+					fail(w, 400, err.Error())
 					return
 				}
-				position, count := 0, 0
-				for rows.Next() {
-					var occupied int
-					if e = rows.Scan(&occupied); e != nil {
-						break
-					}
-					count++
-					if occupied == position {
-						position++
-					}
-				}
-				if e == nil {
-					e = rows.Err()
-				}
-				rows.Close()
-				if e != nil {
-					fail(w, 500, "读取桌面失败")
-					return
-				}
-				if count >= 256 {
-					fail(w, 400, "桌面最多可添加 256 个快捷方式")
-					return
-				}
-				_, err = tx.Exec("INSERT INTO desktop_items(user_id,kind,target_id,position) VALUES(?,?,?,?)", owner, kind, id, position)
 			}
 		} else {
 			if err == sql.ErrNoRows {

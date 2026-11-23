@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-const schemaVersion = 3
+const schemaVersion = 4
 
 // Version 1 baseline. initializeDB applies supported migrations atomically;
 // discarded pre-release prototypes remain unsupported.
@@ -159,11 +159,18 @@ ALTER TABLE login_logs ADD COLUMN source TEXT NOT NULL DEFAULT 'web' CHECK(sourc
 		}
 	}
 	// Legacy expiry was always exactly 30 days after authentication.
-	if _, err = tx.Exec(`ALTER TABLE sessions ADD COLUMN absolute_expires_at INTEGER NOT NULL DEFAULT 0`); err != nil {
-		return err
+	if version < 3 {
+		if _, err = tx.Exec(`ALTER TABLE sessions ADD COLUMN absolute_expires_at INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return err
+		}
+		if _, err = tx.Exec(`UPDATE sessions SET absolute_expires_at=expires_at+?`, sessionMaxSeconds-sessionIdleSeconds); err != nil {
+			return err
+		}
 	}
-	if _, err = tx.Exec(`UPDATE sessions SET absolute_expires_at=expires_at+?`, sessionMaxSeconds-sessionIdleSeconds); err != nil {
-		return err
+	if version < 4 {
+		if _, err = tx.Exec(notesSchema); err != nil {
+			return err
+		}
 	}
 	if _, err = tx.Exec(fmt.Sprintf("PRAGMA user_version=%d", schemaVersion)); err != nil {
 		return err

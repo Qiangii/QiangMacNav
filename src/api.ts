@@ -1,5 +1,6 @@
 import type { Bootstrap, NavigationData, Preferences, Site, User, ManagedUser, LoginLog, MediaImage, MediaKind, DesktopItem, SiteBranding, AdminSettings, SystemUpdateStatus, SystemRelease, UpdateJob } from './types';
 import type { SessionActivity } from './types';
+import type { NoteDocument } from './types';
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
@@ -54,6 +55,15 @@ export const api = {
     request<User>('/auth/register', 'POST', { name, username, password, setupToken }),
   logout: () => request<{ ok: boolean }>('/auth/logout', 'POST'),
   navigation: (signal?: AbortSignal) => request<NavigationData>('/navigation', 'GET', undefined, signal),
+  createNote: () => request<NoteDocument>('/notes', 'POST'),
+  note: (id: string) => request<NoteDocument>(`/notes/${id}`),
+  saveNote: ({ id, title, content, version }: NoteDocument) => request<NoteDocument>(`/notes/${id}`, 'PUT', { title, content, version }),
+  deleteNote: (id: string) => request(`/notes/${id}`, 'DELETE'),
+  uploadNoteImage: (id: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return request<{ url: string; width: number }>(`/notes/${id}/images`, 'POST', body);
+  },
   createCategory: (name: string, iconUrl = '') => request<{ id: string }>('/categories', 'POST', { name, iconUrl }),
   updateCategory: (id: string, name: string, iconUrl: string) => request(`/categories/${id}`, 'PATCH', { name, iconUrl }),
   deleteCategory: (id: string) => request(`/categories/${id}`, 'DELETE'),

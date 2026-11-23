@@ -41,6 +41,7 @@ type app struct {
 	attemptSweep   time.Time
 	passwordWork   chan struct{}
 	updates        *updateService
+	notes          *noteCipher
 }
 
 type user struct {
@@ -158,7 +159,7 @@ func checkWebRequest(next http.Handler) http.Handler {
 				fail(w, 403, "请在当前网站页面中操作")
 				return
 			}
-			imageUpload := r.Method == "POST" && r.URL.Path == "/api/media" && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
+			imageUpload := r.Method == "POST" && (r.URL.Path == "/api/media" || strings.HasPrefix(r.URL.Path, "/api/notes/") && strings.HasSuffix(r.URL.Path, "/images")) && strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data;")
 			bundleUpload := r.Method == "POST" && r.URL.Path == "/api/admin/updates/upload" && r.Header.Get("Content-Type") == "application/octet-stream"
 			if !imageUpload && !bundleUpload && !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
 				fail(w, 415, "Content-Type must be application/json")
@@ -533,7 +534,15 @@ func (a *app) navigation(w http.ResponseWriter, r *http.Request) {
 		fail(w, 500, "读取桌面失败")
 		return
 	}
-	send(w, 200, map[string]any{"categories": categories, "sites": sites, "dockItems": dockItems, "desktopItems": desktopItems, "desktopColumns": desktopColumns, "desktopRows": desktopRows, "preferences": pref, "sidebarOrder": sidebarOrder, "supportsCategorySiteOrder": true})
+	notes := []noteSummary{}
+	if a.notes != nil {
+		notes, err = a.noteSummaries(u.ID)
+		if err != nil {
+			fail(w, 500, "读取便签失败")
+			return
+		}
+	}
+	send(w, 200, map[string]any{"categories": categories, "sites": sites, "dockItems": dockItems, "desktopColumns": desktopColumns, "desktopRows": desktopRows, "preferences": pref, "sidebarOrder": sidebarOrder, "supportsCategorySiteOrder": true, "notes": notes, "desktopItems": desktopItems})
 }
 
 func (a *app) editable(w http.ResponseWriter, r *http.Request, table, id string) bool {
@@ -1310,6 +1319,15 @@ func (a *app) routes(staticDir string) http.Handler {
 			auth.Put("/desktop-layout", a.desktopLayout)
 			auth.Post("/reorder", a.reorder)
 			auth.Put("/preferences", a.updatePreference)
+			auth.Route("/notes", func(notes chi.Router) {
+				notes.Use(a.requireNoteCipher)
+				notes.Post("/", a.createNote)
+				notes.Get("/{id}", a.getNote)
+				notes.Put("/{id}", a.updateNote)
+				notes.Delete("/{id}", a.deleteNote)
+				notes.Post("/{id}/images", a.uploadNoteImage)
+				notes.Get("/{id}/images/{image}", a.getNoteImage)
+			})
 		})
 		api.With(a.requireAdmin).Get("/admin/settings", a.adminSettings)
 		api.With(a.requireAdmin).Put("/admin/settings", a.adminSettings)
@@ -1370,6 +1388,14 @@ func main() {
 		log.Fatal(err)
 	}
 	a := &app{db: db, setupToken: token, trustProxy: os.Getenv("TRUST_PROXY") == "true", trustedProxies: proxies}
+	keyPath := os.Getenv("NOTE_KEY_FILE")
+	if keyPath == "" {
+		keyPath = path + ".notes.key"
+	}
+	a.notes, err = loadNoteCipher(db, keyPath)
+	if err != nil {
+		log.Fatal(fmt.Errorf("open note encryption key: %w", err))
+	}
 	a.updates = &updateService{source: updates.SourceFromEnv(), url: os.Getenv("UPDATER_URL"), token: os.Getenv("UPDATER_TOKEN"), maintenanceFile: os.Getenv("UPDATE_MAINTENANCE_FILE")}
 	port := os.Getenv("PORT")
 	if port == "" {

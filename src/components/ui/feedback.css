@@ -5,6 +5,9 @@
 .mac-feedback-message { min-width: 0; overflow-wrap: anywhere; }
 @keyframes feedback-appear { from { opacity: 0; translate: 0 -7px; scale: .97; } to { opacity: 1; translate: 0 0; scale: 1; } }
 .editor-dialog.mac-form-dialog { padding: 0; overflow: auto; }
+.editor-dialog.mac-form-floating { position: absolute; display: flex; flex-direction: column; max-width: none; max-height: none; overflow: hidden; }
+.mac-form-floating .mac-form-titlebar { flex: none; cursor: grab; touch-action: none; user-select: none; }
+.mac-form-floating .mac-form-content { flex: 1; min-height: 0; overflow: auto; }
 .mac-form-titlebar { position: relative; min-height: 42px; display: flex; justify-content: center; align-items: center; padding: 10px 42px; border-bottom: 1px solid var(--border); }
 .mac-form-titlebar h2 { margin: 0; font-size: 13px; font-weight: 600; text-align: center; overflow-wrap: anywhere; }
 .mac-form-close { position: absolute; left: 8px; top: 7px; width: 28px; height: 28px; padding: 0; border: 0; background: none; display: grid; place-items: center; }

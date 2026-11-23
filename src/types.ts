@@ -49,9 +49,12 @@ export type DockTool = 'navigation' | 'search' | 'add' | 'settings';
 export type SearchEngine = { id: string; name: string; url: string; iconUrl?: string };
 export type DesktopSearchConfig = { enabled: boolean; engines: SearchEngine[] };
 
-export interface DesktopItem { kind: 'site' | 'category'; id: string; position: number }
+export interface DesktopItem { kind: 'site' | 'category' | 'note'; id: string; position: number }
+export interface NoteSummary { id: string; title: string }
+export interface NoteDocument extends NoteSummary { content: string; version: number }
 
 export interface NavigationData {
+  notes?: NoteSummary[];
   supportsCategorySiteOrder?: boolean;
   sidebarOrder: string[];
   categories: Category[];

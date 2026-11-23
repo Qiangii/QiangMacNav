@@ -12,6 +12,12 @@ export type MacWindowProps = ComponentPropsWithoutRef<'section'> & {
   labels: TrafficLightsProps['labels'];
 };
 
+export function MacWindowResizeHandles({ controller }: { controller: MacWindowProps['controller'] }) {
+  if (controller.maximized) return null;
+  return WINDOW_RESIZE_DIRECTIONS.map(direction => <div key={direction} className="mac-window-resize" data-resize-direction={direction} data-compact-resize={controller.allowCompact || undefined}
+    onPointerDown={event => controller.startResize(event, direction)} aria-hidden="true" />);
+}
+
 export function MacWindow({ controller, titlebarClassName, titlebarContent, labels, className = '', children, style, ...props }: MacWindowProps) {
   const position = useContext(TitlebarPositionContext);
   return <section role="dialog" {...props} data-titlebar-position={position} className={[className, controller.maximized && 'maximized'].filter(Boolean).join(' ')} style={{ ...controller.style, ...style }}>
@@ -20,6 +26,6 @@ export function MacWindow({ controller, titlebarClassName, titlebarContent, labe
       {titlebarContent}
     </div>
     {children}
-    {!controller.maximized && WINDOW_RESIZE_DIRECTIONS.map(direction => <div key={direction} className="mac-window-resize" data-resize-direction={direction} onPointerDown={event => controller.startResize(event, direction)} aria-hidden="true" />)}
+    <MacWindowResizeHandles controller={controller} />
   </section>;
 }

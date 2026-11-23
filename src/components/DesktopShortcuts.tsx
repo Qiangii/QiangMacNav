@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { DndContext, KeyboardSensor, MouseSensor, TouchSensor, useDraggable, useSensor, useSensors, type DragEndEvent, type KeyboardCoordinateGetter } from '@dnd-kit/core';
 import { getEventCoordinates } from '@dnd-kit/utilities';
-import type { Category, DesktopItem, DesktopSearchConfig, Site } from '../types';
+import type { Category, DesktopItem, DesktopSearchConfig, NoteSummary, Site } from '../types';
+import { StickyNote } from 'lucide-react';
 import { useDesktopState } from '../desktopCache';
 import { DesktopSearchWidget } from './DesktopSearchWidget';
 import { desktopSearchLayout, isSearchGeometry, saveDesktopSearch, searchOccupiedCells, type SavedSearchGeometry, type SearchBounds, type SearchGeometry } from './desktopSearch';
@@ -17,7 +18,7 @@ import { useNavigationIndex } from './useNavigationIndex';
 import './desktop-shortcuts.css';
 
 type Grid = ReturnType<typeof desktopGrid>;
-type Entry = { item: DesktopItem; site?: Site; category?: Category };
+type Entry = { item: DesktopItem; site?: Site; category?: Category; note?: NoteSummary };
 type DragSession = { keys: Set<string>; items: DesktopItem[]; grid: Grid; bounds: SearchBounds; delta: DesktopPointer; pointer?: DesktopPointer };
 
 function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, onOpen, onMenu, suppressOpen }: {
@@ -25,7 +26,7 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
   groupOffset?: { x: number; y: number; blocked: boolean };
   onSelect: (event?: MouseEvent) => void; onOpen: () => void; onMenu: (event: MouseEvent) => void; suppressOpen: () => boolean;
 }) {
-  const { item, site, category } = entry;
+  const { item, site, category, note } = entry;
   const { setNodeRef, attributes, listeners } = useDraggable({ id: desktopKey(item), disabled: busy });
   const isDragging = !!groupOffset;
   const element = useRef<HTMLButtonElement | null>(null);
@@ -35,7 +36,7 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
   const top = Math.floor(item.position / grid.columns) * DESKTOP_CELL_HEIGHT;
   const dx = groupOffset?.x ?? 0;
   const dy = groupOffset?.y ?? 0;
-  const name = site?.name ?? category?.name ?? '';
+  const name = site?.name ?? category?.name ?? note?.title ?? '便签';
   // Commit the new grid coordinates immediately, then animate only the remaining
   // distance from the last rendered drag position. Dnd-kit clears its transform
   // on release, so transitioning left/top would otherwise start at the old cell.
@@ -61,7 +62,7 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
   return <MacTooltip content={<>{name}<br />单击打开，拖动排列</>} disabled={busy || isDragging}><button ref={node => { element.current = node; setNodeRef(node); }} type="button" {...attributes} {...listeners}
     className={`desktop-shortcut${selected ? ' selected' : ''}${isDragging ? ' dragging' : ''}`}
     style={{ left, top, width: grid.cellWidth, transition: isDragging || lastDragRect.current ? 'none' : undefined, transform: isDragging ? `translate3d(${dx}px,${dy}px,0)` : undefined }}
-    data-desktop-key={desktopKey(item)} data-icon-motion={`desktop:${desktopKey(item)}`} data-position={item.position} aria-label={`桌面${site ? '网站' : '分类'} ${name}`} aria-pressed={selected} aria-disabled={busy}
+    data-desktop-key={desktopKey(item)} data-icon-motion={`desktop:${desktopKey(item)}`} data-position={item.position} aria-label={`桌面${item.kind === 'note' ? '便签' : site ? '网站' : '分类'} ${name}`} aria-pressed={selected} aria-disabled={busy}
     onFocus={event => { if (event.currentTarget.matches(':focus-visible')) onSelect(); }}
     onClick={event => {
       if (busy || suppressOpen() || event.detail > 1) return;
@@ -73,19 +74,21 @@ function DesktopShortcut({ entry, grid, busy, selected, groupOffset, onSelect, o
       listeners?.onKeyDown?.(event);
     }}
     onContextMenu={event => { event.preventDefault(); event.stopPropagation(); if (!suppressOpen()) onMenu(event); }}>
-    <span className="desktop-shortcut-image">{site ? <SiteIcon site={site} /> : <MediaPreview url={category?.iconUrl} fallback={<SystemIcon src="/assets/icons/folder-icon.png" />} />}</span>
+    <span className="desktop-shortcut-image">{item.kind === 'note' ? <span className="desktop-note-icon"><StickyNote size={27} aria-hidden="true" /></span> : site ? <SiteIcon site={site} /> : <MediaPreview url={category?.iconUrl} fallback={<SystemIcon src="/assets/icons/folder-icon.png" />} />}</span>
     <span className="desktop-shortcut-name">{name}</span>
   </button></MacTooltip>;
 }
 
-export function DesktopShortcuts({ items, sites, categories, searchConfig, layoutColumns, layoutRows, showDragGrid = false, onInitialize, onOpenCategory, onMenu, onRemove, onMove, onError, onDragStart }: {
+export function DesktopShortcuts({ items, sites, categories, notes, searchConfig, layoutColumns, layoutRows, showDragGrid = false, onInitialize, onOpenCategory, onOpenNote, onMenu, onRemove, onMove, onError, onDragStart }: {
   items: DesktopItem[]; sites: Site[]; categories: Category[];
+  notes: NoteSummary[];
   searchConfig: DesktopSearchConfig;
   layoutColumns: number;
   layoutRows: number;
   onInitialize: (columns: number, rows: number) => Promise<void>;
   showDragGrid?: boolean;
   onOpenCategory: (category: Category) => void;
+  onOpenNote: (id: string) => void;
   onMenu: (event: MouseEvent, items: DesktopItem[], remove: () => void) => void;
   onRemove: (items: DesktopItem[]) => Promise<void>;
   onMove: (items: DesktopItem[], columns: number, rows: number) => void;
@@ -110,7 +113,7 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   const reserved = useMemo(() => searchConfig.enabled ? searchOccupiedCells(searchPlacement, { columns, cellWidth: size.width / columns }, DESKTOP_CELL_HEIGHT, mobile) : new Set<number>(), [searchConfig.enabled, searchPlacement.x, searchPlacement.y, searchPlacement.width, columns, size.width, mobile]);
   const locked = useRef(false), blockedUntil = useRef(0);
   const visibleItems = useMemo(() => projectDesktopItems(
-    items.filter(item => item.kind === 'site' ? siteById.has(item.id) : categoryById.has(item.id)),
+    items.filter(item => item.kind === 'site' ? siteById.has(item.id) : item.kind === 'note' || categoryById.has(item.id)),
     layoutColumns || initialColumns.current, columns, desktopVisibleRows(size.height), reserved, layoutRows,
   ), [items, siteById, categoryById, layoutColumns, layoutRows, columns, size.height, reserved]);
   const grid = desktopGrid(size.width, size.height, visibleItems);
@@ -228,6 +231,8 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
     onMenu(event, targets, () => { void remove(targets); });
   }
   async function remove(targets: DesktopItem[]) {
+    targets = targets.filter(item => item.kind !== 'note');
+    if (!targets.length) return;
     if (locked.current) return;
     locked.current = true; setBusy(true);
     const keys = new Set(targets.map(desktopKey));
@@ -307,12 +312,13 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
           const site = item.kind === 'site' ? siteById.get(item.id) : undefined;
           const category = item.kind === 'category' ? categoryById.get(item.id) : undefined;
           const key = desktopKey(item);
-          return <DesktopShortcut key={key} entry={{ item, site, category }} grid={grid} busy={busy || !!searchDrag} selected={selected.has(key)} groupOffset={drag?.keys.has(key) ? drag.offset : undefined} onSelect={event => setSelected(previous => {
+          const note = item.kind === 'note' ? notes.find(note => note.id === item.id) : undefined;
+          return <DesktopShortcut key={key} entry={{ item, site, category, note }} grid={grid} busy={busy || !!searchDrag} selected={selected.has(key)} groupOffset={drag?.keys.has(key) ? drag.offset : undefined} onSelect={event => setSelected(previous => {
             if (!event) return previous.has(key) ? previous : new Set([key]);
             if (event.ctrlKey || event.metaKey || event.shiftKey) { const next = new Set(previous); if (next.has(key)) next.delete(key); else next.add(key); return next; }
             return new Set([key]);
           })} suppressOpen={suppressOpen}
-            onOpen={() => site ? openSite(site) : category && onOpenCategory(category)} onMenu={event => menu(event, item)} />;
+            onOpen={() => item.kind === 'note' ? onOpenNote(item.id) : site ? openSite(site) : category && onOpenCategory(category)} onMenu={event => menu(event, item)} />;
         })}
         {selectionBox && <div className="desktop-selection-box" style={selectionBox} aria-hidden="true" />}
       </div>

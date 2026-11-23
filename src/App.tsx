@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { DesktopAccountContext, flushDesktopCache, restoreDesktop, writeDesktopCache } from './desktopCache';
 import { createPortal } from 'react-dom';
 import {
   ArrowUpRight, Copy, Folder, FolderPlus, Globe2, LayoutGrid, MoreHorizontal,
-   Plus, Search, Settings2, Star, Trash2, X, Monitor,
+   Plus, Search, Settings2, Star, StickyNote, Trash2, X, Monitor,
 } from 'lucide-react';
 import {
   DndContext, DragOverlay,
@@ -30,7 +30,7 @@ import { Spotlight } from './components/Spotlight';
 import { SiteItem } from './components/SortableSite';
 import { searchSites } from './components/siteSearch';
 import { useSearchInput } from './components/useSearchInput';
-import type { Bootstrap, Category, CategorySiteOrder, DesktopItem, DockTool, NavigationData, Preferences, Site, User } from './types';
+import type { Bootstrap, Category, CategorySiteOrder, DesktopItem, DockTool, NavigationData, NoteDocument, Preferences, Site, User } from './types';
 import { saveLegacySiteOrder } from './legacySiteOrder';
 import { WindowSidebar } from './components/WindowSidebar';
 import { DEFAULT_BRANDING, useSiteBranding } from './branding';
@@ -39,7 +39,7 @@ import { IconAppearanceContext } from './components/IconAppearance';
 import { DesktopWallpaper } from './components/DesktopWallpaper';
 import { CategorySidebar } from './components/CategorySidebar';
 import { SharedBadge } from './components/SharedBadge';
-import { MacInput, MacScrollArea, MacTooltip, MacToastHost, dismissNotifications, useNotify, useDesktopWindows, type DesktopWindowMode } from './components/ui';
+import { MacFormDialog, MacInput, MacScrollArea, MacTooltip, MacToastHost, dismissNotifications, useNotify, useDesktopWindows, type DesktopWindowMode } from './components/ui';
 import { MacPresence } from './components/ui/MacPresence';
 import { DesktopThemeContext, TitlebarPositionContext } from './components/ui/WindowPreferences';
 import { NavigationDragContext, useNavigationDrag, useNavigationSensors } from './components/navigationDrag';
@@ -55,6 +55,7 @@ import { moveNavigationSite, orderCategorySites, orderDesktop, orderDock, orderS
 type ConfirmTarget = { title: string; description: string; action: () => Promise<void> };
 const desktopWindowDefaults = { finder: 'visible', settings: 'closed' } satisfies Record<string, DesktopWindowMode>;
 const dockWindows = { home: 'finder', settings: 'settings' } as const;
+const NoteEditor = lazy(() => import('./components/NoteEditor'));
 
 const preferredCollision: CollisionDetection = args => {
   const category = String(args.active.id).startsWith('category:');
@@ -83,6 +84,9 @@ export default function App() {
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const editorBusy = useRef(false);
   const [confirm, setConfirm] = useState<ConfirmTarget | null>(null);
+  const [note, setNote] = useState<NoteDocument | null>(null);
+  const [noteTitle, setNoteTitle] = useState('');
+  const openingNote = useRef(false);
   const windows = useDesktopWindows(desktopWindowDefaults);
   const finder = windows.window('finder'), settingsWindow = windows.window('settings');
   const finderOpen = finder.open, finderMinimized = finder.minimized;
@@ -136,6 +140,7 @@ export default function App() {
   });
 
   function restoreWorkspace(account: User, navigation: NavigationData) {
+    setNote(null);
     const saved = restoreDesktop(account, navigation);
     setSelectedCategory(saved.selectedCategory); setQuery(saved.query);
     windows.restore(saved.windows);
@@ -195,6 +200,7 @@ export default function App() {
   async function logout() {
     flushDesktopCache();
     const version = ++sessionVersion.current;
+    setNote(null);
     windows.restore();
     setUser(null);
     setData(null);
@@ -240,6 +246,7 @@ export default function App() {
   }, []);
   useEffect(() => {
     const expired = () => {
+      setNote(null);
       ++sessionVersion.current; setUser(null); setData(null); windows.restore();
       setEditor(null); setConfirm(null); setMenu(null); setSpotlightOpen(false); setLaunchpadOpen(false);
       setPhase('auth'); void refreshBootstrap().catch(() => {});
@@ -301,6 +308,7 @@ export default function App() {
   if (phase === 'auth' && bootstrap) return <AuthScreen bootstrap={bootstrap} onRefresh={refreshBootstrap} onSuccess={signedIn} />;
   if (!user || !data || !view) return null;
 
+  const noteSession = sessionVersion.current;
   const canEdit = view.activeCategory?.editable ?? true;
   const sidebarCategories = orderedCategories(data);
   const sidebarEntries = sidebarCategories.map(c => ({ id: c.id, name: c.name, iconUrl: c.iconUrl, shared: c.shared }));
@@ -316,7 +324,7 @@ export default function App() {
   function deleteCategory(category: Category) {
     setConfirm({ title: `删除“${category.name}”？`, description: '只能删除空分类。请先移动或删除其中的网站。', action: async () => { const version = sessionVersion.current; await api.deleteCategory(category.id); await refreshAfterChange('分类已删除', version); } });
   }
-  function desktopShortcutAction(kind: DesktopItem['kind'], id: string): MenuItem {
+  function desktopShortcutAction(kind: 'site' | 'category', id: string): MenuItem {
     const shortcut = data!.desktopItems?.find(item => item.kind === kind && item.id === id);
     if (shortcut) return { label: '从桌面移除', icon: <X size={15} />, action: () => void perform(() => api.removeDesktopItems([shortcut]), '已从桌面移除') };
     return { label: '添加到桌面', icon: <Monitor size={15} />, action: () => void perform(() => api.addDesktopItem(kind, id), '已添加到桌面') };
@@ -384,11 +392,22 @@ export default function App() {
 
   function desktopMenu(event: MouseEvent, items: DesktopItem[], remove: () => void) {
     if (items.length > 1) {
-      showMenu(event, [{ label: '从桌面移除', icon: <X size={15} />, action: remove }]);
+      if (items.some(item => item.kind !== 'note')) showMenu(event, [{ label: '移除所选快捷方式', icon: <X size={15} />, action: remove }]);
       return;
     }
     const item = items[0];
     if (!item) return;
+    if (item.kind === 'note') {
+      const title = data.notes?.find(note => note.id === item.id)?.title ?? '便签';
+      showMenu(event, [
+        { label: '打开便签', icon: <StickyNote size={15} />, action: () => void openNote(item.id) },
+        { label: '删除便签', icon: <Trash2 size={15} />, action: () => setConfirm({
+          title: `删除“${title}”？`, description: '便签和其中上传的图片将一并删除。',
+          action: async () => { const version = sessionVersion.current; await api.deleteNote(item.id); await refreshAfterChange('便签已删除', version); },
+        }) },
+      ]);
+      return;
+    }
     const site = item.kind === 'site' ? data!.sites.find(site => site.id === item.id) : undefined;
     const category = item.kind === 'category' ? shortcutCategories.find(category => category.id === item.id) : undefined;
     showMenu(event, [
@@ -396,6 +415,24 @@ export default function App() {
       { separator: true },
       { label: '从桌面移除', icon: <X size={15} />, action: remove },
     ]);
+  }
+
+  async function openNote(id?: string) {
+    if (openingNote.current || note) return;
+    openingNote.current = true;
+    const version = sessionVersion.current;
+    try {
+      const result = id ? await api.note(id) : await api.createNote();
+      if (version !== sessionVersion.current) return;
+      setNote(result);
+      setNoteTitle(result.title);
+      if (!id) {
+        try { await refresh(); }
+        catch { if (version === sessionVersion.current) notify('便签已创建，桌面刷新失败', 'error'); }
+      }
+    } catch (reason) {
+      if (version === sessionVersion.current) notify(message(reason), 'error');
+    } finally { openingNote.current = false; }
   }
 
   function openCategoryLaunchpad(category: Category) {
@@ -416,6 +453,7 @@ export default function App() {
     if (target.closest('input,textarea,select,button,a,[contenteditable="true"]')) return;
     const prepare = () => windows.open('finder');
     showMenu(event, [
+      ...(onDesktop ? [{ label: '新建便签', icon: <StickyNote size={15} />, action: () => void openNote() }] : []),
       { label: '添加网站', icon: <Plus size={15} />, action: () => { prepare(); setEditor({ kind: 'site' }); } },
       { label: '新建分类', icon: <FolderPlus size={15} />, action: () => { prepare(); setEditor({ kind: 'category' }); } },
       { separator: true },
@@ -497,7 +535,7 @@ export default function App() {
   return <DesktopAccountContext.Provider key={user.id} value={user.id}><IconAppearanceContext.Provider value={data.preferences}><DesktopThemeContext.Provider value={data.preferences.theme}><TitlebarPositionContext.Provider value={data.preferences.titlebarPosition ?? 'left'}><NavigationDragContext.Provider value={dragInteraction}><div data-navigation-drag-mode={dragInteraction.mode} className={`desktop theme-${data.preferences.theme}`} onContextMenu={blankMenu}>
     <div className="desktop-scene">
     <DesktopWallpaper preferences={data.preferences} />
-    <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={shortcutCategories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
+    <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={shortcutCategories} notes={(data.notes ?? []).map(item => item.id === note?.id ? { ...item, title: noteTitle.trim() || '未命名便签' } : item)} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onOpenNote={id => void openNote(id)} onMenu={desktopMenu}
       onInitialize={async (columns, rows) => { const version = sessionVersion.current; await api.initializeDesktopLayout(columns, rows); if (version === sessionVersion.current) await refresh(); }}
       onRemove={async items => { const version = sessionVersion.current; await api.removeDesktopItems(items); await refreshAfterChange(items.length > 1 ? `已移除 ${items.length} 个桌面快捷方式` : '已从桌面移除', version); }}
       onMove={(items, columns, rows) => queueSort(snapshot => orderDesktop(snapshot, items, columns, rows), (before, after) => api.saveDesktopLayout(after.desktopItems, columns, rows, before.desktopItems, before.desktopColumns, before.desktopRows), '桌面布局已保存')}
@@ -553,6 +591,12 @@ export default function App() {
     {menu && <ContextMenu key={`${menu.x}-${menu.y}-${menu.items.length}`} menu={menu} onClose={closeMenu} restoreFocus={!!desktopCategory || launchpadOpen} />}
     <MacPresence open={!!editor}>{editor && <EditorDialog key={`${editor.kind}-${editor.kind === 'site' ? editor.site?.id ?? editor.categoryId ?? 'new' : editor.category?.id ?? 'new'}`} target={editor} categories={data.categories} onBusyChange={busy => { editorBusy.current = busy; }} onSave={async () => { await refresh(); }} onClose={() => { if (!editorBusy.current) setEditor(null); }} />}</MacPresence>
     <MacPresence open={!!confirm}>{confirm && <ConfirmDialog title={confirm.title} description={confirm.description} onConfirm={confirm.action} onClose={() => setConfirm(null)} />}</MacPresence>
+    <MacPresence open={!!note}>{note && <Suspense fallback={<MacFormDialog title="便签" onClose={() => setNote(null)}><p role="status">正在加载便签编辑器…</p></MacFormDialog>}><NoteEditor key={note.id} initial={note} onTitle={setNoteTitle} onClose={() => setNote(null)} onSaved={saved => {
+      if (noteSession !== sessionVersion.current) return;
+      setNoteTitle(saved.title);
+      setData(current => current && { ...current, notes: (current.notes ?? []).map(item => item.id === saved.id ? { id: saved.id, title: saved.title } : item) });
+      void refresh().catch(() => {});
+    }} /></Suspense>}</MacPresence>
     <IconTransitions data={data} />
   </div></NavigationDragContext.Provider></TitlebarPositionContext.Provider></DesktopThemeContext.Provider></IconAppearanceContext.Provider></DesktopAccountContext.Provider>;
 }
