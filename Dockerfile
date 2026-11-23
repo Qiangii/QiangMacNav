@@ -29,7 +29,6 @@ COPY --from=frontend /work/dist ./dist
 COPY --from=backend /out/navigation ./navigation
 COPY --from=backend /out/start-navigation ./start-navigation
 COPY --from=backend /out/updater ./updater
-COPY ASSET_NOTICES.md ./ASSET_NOTICES.md
 ARG APP_VERSION=1.1.0
 ARG BUILD_COMMIT=development
 LABEL org.opencontainers.image.version=$APP_VERSION \

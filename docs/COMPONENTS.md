@@ -100,7 +100,7 @@ workspace 保存当前窗口管理器状态、分类、查询与编辑目标；�
 
 站点 `SiteIcon` 按原始宽高比放大到所在图标槽的边缘。背景填充仅绘制在图片自身的范围内，关闭时透明像素透出所在界面的背景。
 
-`ImagePickerDialog` 组合通用表单、滚动和上传控件。`kind=image|avatar|wallpaper` 决定用途和资源库，`onSelect` 成功后关闭、失败保留草稿。内置清单与服务端 catalog 必须同步，来源及许可证保留在 [素材说明](../ASSET_NOTICES.md)。`MediaPreview` 图片失败才显示后备内容；`useVideoPlayback` 在后台或减少动态效果时暂停。
+`ImagePickerDialog` 组合通用表单、滚动和上传控件。`kind=image|avatar|wallpaper` 决定用途和资源库，`onSelect` 成功后关闭、失败保留草稿。内置清单与服务端 catalog 必须同步。素材来源和许可证见 [README](../README.md) 中的链接。`MediaPreview` 图片失败才显示后备内容；`useVideoPlayback` 在后台或减少动态效果时暂停。
 
 媒体删除广播事件，App 和打开的草稿清空相应引用；实际文件及引用在服务端事务中删除。网站 Logo 保存为独立公开副本，原上传保持私有。
 

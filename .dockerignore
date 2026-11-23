@@ -9,7 +9,6 @@
 !src/**
 !public/
 !public/**
-!ASSET_NOTICES.md
 !server/
 !server/**/
 !server/**/*.go
