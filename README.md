@@ -249,4 +249,4 @@ bootstrap 的 `setupRequired` 表示尚无账号，需要创建首个管理员�
 
 窗口状态、表单草稿、最近访问和搜索框几何信息使用 `qiangmacnav:desktop:v1:<userId>:` 本地缓存，不跨浏览器或设备同步。密码与会话凭据不写入该缓存，清除浏览器站点数据可重置本地工作区。
 
-组件及交互约定见 [组件指南](docs/COMPONENTS.md)。素材与许可证见 [头像](public/assets/avatars/LICENSE.txt)、[Simple Icons](public/assets/icons/simple-icons-LICENSE.md)、[Lucide](public/assets/icons/lucide-LICENSE.txt) 和 [macOS 风格图标来源](public/assets/icons/macos27/source-README.md)。
+组件及交互约定见 [组件指南](docs/COMPONENTS.md)。素材与许可证见 [头像](public/assets/avatars/LICENSE.txt)、[Simple Icons](public/assets/icons/simple-icons-LICENSE.md)、[Lucide](public/assets/icons/lucide-LICENSE.txt)、[ThanasOS](public/assets/thanasos-LICENSE.txt) 和 [macOS 风格图标来源](public/assets/icons/macos27/source-README.md)。
