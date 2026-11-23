@@ -1,4 +1,5 @@
-FROM node:22-alpine AS frontend
+# The generated static files can be shared by all target architectures.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
 WORKDIR /work
 COPY package.json package-lock.json ./
 RUN npm ci
