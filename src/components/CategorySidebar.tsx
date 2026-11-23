@@ -1,4 +1,4 @@
-import { useContext, useState, type MouseEvent } from 'react';
+import { useContext, type MouseEvent } from 'react';
 import { DndContext, closestCenter, type Modifier } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -38,27 +38,22 @@ function Row({ entry, selected, disabled, onSelect, onMenu }: {
 export function CategorySidebar({ entries, selected, onSelect, onMenu, onReorder }: {
   entries: SidebarEntry[]; selected: string;
   onSelect: (id: string) => void; onMenu: (event: MouseEvent, id: string) => void;
-  onReorder: (ids: string[]) => Promise<void>;
+  onReorder: (ids: string[]) => void;
 }) {
-  const [saving, setSaving] = useState(false);
-  const [draft, setDraft] = useState<SidebarEntry[] | null>(null);
-  const displayed = draft ?? entries;
   const drag = useContext(NavigationDragContext);
   const sensors = useNavigationSensors(drag.mode, 'sidebar');
   return <MacScrollArea role="navigation" cacheKey="sidebar" className="finder-sidebar-list unified-categories" aria-label="分类">
-    <DndContext sensors={sensors} modifiers={sidebarModifiers} collisionDetection={closestCenter} onDragStart={drag.begin} onDragCancel={drag.end} onDragEnd={async ({ active, over }) => {
+    <DndContext sensors={sensors} modifiers={sidebarModifiers} collisionDetection={closestCenter} onDragStart={drag.begin} onDragCancel={drag.end} onDragEnd={({ active, over }) => {
       drag.end();
-      if (!over || saving || active.id === over.id) return;
+      if (!over || active.id === over.id) return;
       const from = entries.findIndex(entry => entry.id === active.id);
       const to = entries.findIndex(entry => entry.id === over.id);
       if (from < 0 || to < 0) return;
-      setSaving(true);
       const next = arrayMove(entries, from, to);
-      setDraft(next);
-      try { await onReorder(next.map(entry => entry.id)); } finally { setDraft(null); setSaving(false); }
+      onReorder(next.map(entry => entry.id));
     }}>
-      <SortableContext items={displayed.map(entry => entry.id)} strategy={verticalListSortingStrategy}>
-        {displayed.map(entry => <Row key={entry.id} entry={entry} selected={selected === entry.id} disabled={saving} onSelect={onSelect} onMenu={onMenu} />)}
+      <SortableContext items={entries.map(entry => entry.id)} strategy={verticalListSortingStrategy}>
+        {entries.map(entry => <Row key={entry.id} entry={entry} selected={selected === entry.id} disabled={false} onSelect={onSelect} onMenu={onMenu} />)}
       </SortableContext>
     </DndContext>
   </MacScrollArea>;

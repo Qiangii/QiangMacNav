@@ -10,7 +10,7 @@ import { MacButton, MacDialog, MacInput } from './ui';
 import { NAVIGATION_MENU_IDS } from './ContextMenu';
 import './launchpad.css';
 
-export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, category, scrollMode = 'horizontal', showDragGrid, savingOrder, onSiteOrder }: {
+export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, category, scrollMode = 'horizontal', showDragGrid, onSiteOrder }: {
   categories: Category[];
   sites: Site[];
   onCategory: (category: Category) => void;
@@ -19,14 +19,12 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
   category?: Category;
   scrollMode?: Preferences['launchpadScrollMode'];
   showDragGrid: boolean;
-  savingOrder: boolean;
-  onSiteOrder: (groups: CategorySiteOrder[]) => Promise<boolean>;
+  onSiteOrder: (groups: CategorySiteOrder[]) => void;
 }) {
   const [query, setQuery] = useDesktopState(category ? `desktop-category:${category.id}:query` : 'launchpad:query', '', isCachedText);
   const search = query.trim().toLocaleLowerCase();
   const [order, setOrder] = useDesktopState<string[]>(category ? `desktop-category:${category.id}:order` : 'launchpad:order', [], (value): value is string[] => Array.isArray(value) && value.every(key => typeof key === 'string'));
   const [activeKey, setActiveKey] = useState<string | null>(null);
-  const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
   const [hasDragged, setHasDragged] = useState(false);
   const overlayItem = useRef<HTMLDivElement>(null);
   const gridHost = useRef<HTMLDivElement>(null);
@@ -53,10 +51,8 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
   for (const group of siblings.values()) group.sort((a, b) => a.item.position - b.item.position).reverse();
   const movable = owned.sort((a, b) => (rank.get(a.key) ?? Infinity) - (rank.get(b.key) ?? Infinity))
     .map(entry => entry.kind === 'site' ? siblings.get(entry.item.categoryId)!.pop()! : entry);
-  const pendingRank = new Map(pendingOrder?.map((key, i) => [key, i]));
-  const displayed = pendingOrder ? [...movable].sort((a, b) => (pendingRank.get(a.key) ?? Infinity) - (pendingRank.get(b.key) ?? Infinity)) : movable;
   let nextMovable = 0;
-  const all = source.map(entry => canSort(entry) ? displayed[nextMovable++] : entry);
+  const all = source.map(entry => canSort(entry) ? movable[nextMovable++] : entry);
   const visible = all.filter(entry => (entry.kind === 'site' ? `${entry.item.name} ${entry.item.note}` : entry.item.name).toLocaleLowerCase().includes(search));
   const active = all.find(entry => entry.key === activeKey);
   const horizontal = scrollMode === 'horizontal';
@@ -64,7 +60,7 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
   const [layout, setLayout] = useState({ columns: 7, rows: 1 });
   const [page, setPage] = useState(0);
   const pageSize = layout.columns * layout.rows;
-  const sortingEnabled = !search && !savingOrder;
+  const sortingEnabled = !search;
   const entries = visible.map((entry, index) => <LaunchpadIcon key={entry.key} entry={entry} index={index} sortable={sortingEnabled && canSort(entry)} sorting={!!activeKey} blocked={() => !!activeKey || Date.now() < blockedUntil.current} onCategory={onCategory} onClose={onClose} onSiteMenu={onSiteMenu} />);
   const pageCount = Math.max(1, Math.ceil(entries.length / pageSize));
   const keys = sortingEnabled ? movable.map(entry => entry.key) : [];
@@ -216,7 +212,7 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
       <label className="launchpad-search"><Search size={16} /><MacInput autoFocus value={query} onChange={event => setQuery(event.target.value)} placeholder={category ? '搜索分类中的网站' : '搜索'} aria-label={category ? '搜索分类网站' : '搜索启动台'} /></label>
       <DndContext sensors={sensors} collisionDetection={collision} autoScroll={!horizontal} onDragStart={({ active }) => {
         setHasDragged(true); setActiveKey(String(active.id)); document.dispatchEvent(new Event('mac-tooltip-dismiss'));
-      }} onDragCancel={finishDrag} onDragEnd={async ({ active, over }) => {
+      }} onDragCancel={finishDrag} onDragEnd={({ active, over }) => {
         if (over && overlayItem.current) release.current = { key: String(active.id), rect: overlayItem.current.getBoundingClientRect() };
         finishDrag();
         if (!over || active.id === over.id) return;
@@ -236,12 +232,7 @@ export function Launchpad({ categories, sites, onCategory, onClose, onSiteMenu, 
         }
         const changed = [...groups.values()].filter(group => group.ids.some((id, i) => id !== group.previousIds[i]));
         const nextKeys = next.map(entry => entry.key);
-        if (changed.length) {
-          setPendingOrder(nextKeys);
-          try {
-            if (!await onSiteOrder(changed)) return;
-          } finally { setPendingOrder(null); }
-        }
+        if (changed.length) onSiteOrder(changed);
         if (!category) setOrder(nextKeys);
       }}>
       <SortableContext items={keys} strategy={rectSortingStrategy}>

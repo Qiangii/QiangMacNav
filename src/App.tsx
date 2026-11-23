@@ -49,6 +49,8 @@ import { useSessionActivity } from './components/useSessionActivity';
 import { navigationView, orderedCategories, uncategorizedCategory } from './navigationSelection';
 import { useWindowFeedback } from './viewFeedback';
 import { IconTransitions } from './components/IconTransitions';
+import { useOptimisticNavigation } from './components/useOptimisticNavigation';
+import { moveNavigationSite, orderCategorySites, orderDesktop, orderDock, orderSidebar } from './navigationOrder';
 
 type ConfirmTarget = { title: string; description: string; action: () => Promise<void> };
 const desktopWindowDefaults = { finder: 'visible', settings: 'closed' } satisfies Record<string, DesktopWindowMode>;
@@ -71,7 +73,7 @@ export default function App() {
   useSiteBranding(bootstrap);
   const [user, setUser] = useState<User | null>(null);
   useSessionActivity(phase === 'desktop' && user ? user.id : '', api.sessionActivity);
-  const [data, setData] = useState<NavigationData | null>(null);
+  const { data, setData, saving: savingSort, queue: sortQueue } = useOptimisticNavigation();
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const preferencesBusy = useRef(false);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -91,7 +93,6 @@ export default function App() {
   const [activeDrag, setActiveDrag] = useState<string | null>(null);
   const [draft, setDraft] = useState<NavigationData | null>(null);
   const draftRef = useRef<NavigationData | null>(null);
-  const [savingSort, setSavingSort] = useState(false);
   const [dragColumns, setDragColumns] = useState<string>();
   const layoutRef = useSortLayout([(draft ?? data)?.categories, (draft ?? data)?.sites, (draft ?? data)?.sidebarOrder, phase, selectedCategory, query, finderOpen, finderMinimized]);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -105,10 +106,7 @@ export default function App() {
   useNavigationSync(data, setData, phase === 'desktop' && !activeDrag && !savingSort && !preferencesSaving && !editor && !confirm);
 
   async function refresh() {
-    const version = sessionVersion.current;
-    const result = await api.navigation();
-    if (version === sessionVersion.current) setData(result);
-    return result;
+    return sortQueue.refresh();
   }
   async function refreshBootstrap() { setBootstrap(await api.bootstrap()); }
 
@@ -156,6 +154,7 @@ export default function App() {
 
   async function initialize() {
     const version = ++sessionVersion.current;
+    setData(null);
     setPhase('boot'); setBootError('');
     try {
       const [initial, account] = await Promise.all([api.bootstrap(), api.session().catch(reason => {
@@ -306,7 +305,7 @@ export default function App() {
   const sidebarCategories = orderedCategories(data);
   const sidebarEntries = sidebarCategories.map(c => ({ id: c.id, name: c.name, iconUrl: c.iconUrl, shared: c.shared }));
   const orderedIDs = sidebarEntries.map(entry => entry.id);
-  const canSort = canEdit && !query.trim() && !savingSort;
+  const canSort = canEdit && !query.trim();
   const { activeCategory, categories, allSites, selectedCategory: visibleCategory } = view;
   const desktopCategory = shortcutCategories.find(category => category.id === desktopCategoryId);
   const finderCategoryTitle = searching ? '搜索结果' : activeCategory?.name ?? (visibleCategory === 'uncategorized' ? '未分类' : '我的导航');
@@ -463,44 +462,27 @@ export default function App() {
     }
     draftRef.current = next; setDraft(next);
   }
-  async function saveLaunchpadSiteOrder(groups: CategorySiteOrder[]) {
-    if (savingSort) return false;
-    const version = sessionVersion.current;
-    setSavingSort(true);
-    try {
-      if (!data?.supportsCategorySiteOrder) {
-        const saved = await saveLegacySiteOrder(groups, () => version === sessionVersion.current);
-        if (!saved || version !== sessionVersion.current) return false;
-        setData(saved);
-        notify('排序已保存');
-        return true;
-      }
-      await api.reorder({ kind: 'categorySites', groups });
-      if (version !== sessionVersion.current) return false;
-      const positions = new Map<string, number>();
-      for (const { ids } of groups) ids.forEach((id, index) => positions.set(id, index));
-      setData(current => current && { ...current, sites: current.sites.map(s => positions.has(s.id) ? { ...s, position: positions.get(s.id)! } : s) });
-      await refreshAfterChange('排序已保存', version);
-      return version === sessionVersion.current;
-    } catch (reason) {
-      if (version === sessionVersion.current) { notify(message(reason), 'error'); await refresh().catch(() => {}); }
-      return false;
-    } finally { setSavingSort(false); }
+  function queueSort(apply: (snapshot: NavigationData) => NavigationData, save: (before: NavigationData, after: NavigationData, isCurrent: () => boolean) => Promise<unknown>, success = '排序已保存') {
+    sortQueue.enqueue({ apply, save, onSuccess: () => notify(success),
+      onError: reason => notify(`${message(reason)}，相关未保存排序已撤销`, 'error'),
+      onRefreshError: () => notify(`${success}，但列表刷新失败，请刷新页面`, 'error') });
   }
-  async function onDragEnd(event: DragEndEvent) {
-    dragInteraction.end();
-    const version = sessionVersion.current;
+  function saveSidebarOrder(ids: string[]) {
+    queueSort(snapshot => orderSidebar(snapshot, ids), () => api.reorder({ kind: 'sidebar', ids }), '分类顺序已保存');
+  }
+  function saveLaunchpadSiteOrder(groups: CategorySiteOrder[]) {
+    queueSort(snapshot => orderCategorySites(snapshot, groups), (before, _after, isCurrent) => before.supportsCategorySiteOrder
+      ? api.reorder({ kind: 'categorySites', groups }) : saveLegacySiteOrder(groups, isCurrent));
+  }
+  function onDragEnd(event: DragEndEvent) {
     const result = draftRef.current;
-    setActiveDrag(null);
     const source = String(event.active.id);
-    if (!event.over || !result || !canSort) { clearDrag(); return; }
-    setSavingSort(true);
-    let savedOrder = false;
-    try {
+    clearDrag();
+    if (!event.over || !result || !canSort) return;
     if (source.startsWith('category:')) {
       const ids = result.sidebarOrder;
       if (ids.join() === orderedIDs.join()) return;
-      await api.reorder({ kind: 'sidebar', ids });
+      saveSidebarOrder(ids);
     } else if (source.startsWith('site:')) {
       const id = source.slice(5);
       const moving = result.sites.find(s => s.id === id);
@@ -508,16 +490,8 @@ export default function App() {
       const index = result.sites.filter(s => s.categoryId === moving.categoryId).sort((a, b) => a.position - b.position).findIndex(s => s.id === id);
       const original = data!.sites.filter(s => s.categoryId === moving.categoryId).sort((a, b) => a.position - b.position);
       if (original.findIndex(s => s.id === id) === index) return;
-      await api.reorder({ kind: 'sites', siteId: id, categoryId: moving.categoryId, index });
+      queueSort(snapshot => moveNavigationSite(snapshot, id, moving.categoryId, index), () => api.reorder({ kind: 'sites', siteId: id, categoryId: moving.categoryId, index }));
     }
-    savedOrder = true;
-    // Keep the draft visible through both requests; publish the authoritative
-    // snapshot and remove the draft together, never through refresh/perform.
-    const saved = await api.navigation();
-    if (version === sessionVersion.current) { setData(saved); notify('排序已保存'); }
-    } catch (reason) {
-      if (version === sessionVersion.current) notify(savedOrder ? '排序已保存，但列表刷新失败，请刷新页面' : message(reason), 'error');
-    } finally { clearDrag(); setSavingSort(false); }
   }
 
   return <DesktopAccountContext.Provider key={user.id} value={user.id}><IconAppearanceContext.Provider value={data.preferences}><DesktopThemeContext.Provider value={data.preferences.theme}><TitlebarPositionContext.Provider value={data.preferences.titlebarPosition ?? 'left'}><NavigationDragContext.Provider value={dragInteraction}><div data-navigation-drag-mode={dragInteraction.mode} className={`desktop theme-${data.preferences.theme}`} onContextMenu={blankMenu}>
@@ -526,7 +500,7 @@ export default function App() {
     <DesktopShortcuts key={user.id} items={data.desktopItems ?? []} sites={data.sites} categories={shortcutCategories} searchConfig={data.preferences.desktopSearch ?? DEFAULT_DESKTOP_SEARCH} layoutColumns={data.desktopColumns ?? 0} layoutRows={data.desktopRows ?? 0} showDragGrid={data.preferences.desktopDragGrid ?? false} onOpenCategory={openCategoryLaunchpad} onMenu={desktopMenu}
       onInitialize={async (columns, rows) => { const version = sessionVersion.current; await api.initializeDesktopLayout(columns, rows); if (version === sessionVersion.current) await refresh(); }}
       onRemove={async items => { const version = sessionVersion.current; await api.removeDesktopItems(items); await refreshAfterChange(items.length > 1 ? `已移除 ${items.length} 个桌面快捷方式` : '已从桌面移除', version); }}
-      onMove={async (items, columns, rows) => { const version = sessionVersion.current; try { await api.saveDesktopLayout(items, columns, rows, data.desktopItems ?? [], data.desktopColumns ?? 0, data.desktopRows ?? 0); } catch (reason) { if (version === sessionVersion.current) await refresh().catch(() => {}); throw reason; } await refreshAfterChange('桌面布局已保存', version); }}
+      onMove={(items, columns, rows) => queueSort(snapshot => orderDesktop(snapshot, items, columns, rows), (before, after) => api.saveDesktopLayout(after.desktopItems, columns, rows, before.desktopItems, before.desktopColumns, before.desktopRows), '桌面布局已保存')}
       onError={error => notify(error, 'error')} onDragStart={() => setMenu(null)} />
     <MacToastHost />
     <MacPresence open={finder.visible} keepMounted={finder.open}><FinderWindow focused={finder.focused} zIndex={finder.zIndex} hidden={!finder.visible} onFocusWindow={finder.onFocusWindow} onClose={finder.onClose} onMinimize={finder.onMinimize}>
@@ -536,7 +510,7 @@ export default function App() {
           <CategorySidebar entries={sidebarEntries} selected={visibleCategory}
             onSelect={id => { const category = sidebarCategories.find(c => c.id === id); if (category) openCategory(category); }}
             onMenu={showSidebarMenu}
-            onReorder={ids => perform(() => api.reorder({ kind: 'sidebar', ids }), '分类顺序已保存')} />
+            onReorder={saveSidebarOrder} />
           {data.sites.some(s => !s.categoryId) && <button className={`finder-sidebar-item ${visibleCategory === uncategorizedCategory.id ? 'selected' : ''}`}
             onClick={() => { setSelectedCategory(uncategorizedCategory.id); setQuery(''); }} onContextMenu={event => showSidebarMenu(event, uncategorizedCategory.id)}
             onKeyDown={event => { if (event.key === 'ContextMenu' || event.shiftKey && event.key === 'F10') showSidebarMenu(event, uncategorizedCategory.id); }}
@@ -572,9 +546,9 @@ export default function App() {
     </FinderWindow></MacPresence>
     <MacPresence open={settingsWindow.visible} keepMounted={settingsWindow.open}><SettingsWindow branding={bootstrap ?? DEFAULT_BRANDING} onBranding={value => setBootstrap(previous => previous ? { ...previous, ...value } : previous)} focused={settingsWindow.focused && !launchpadOpen && !desktopCategory && !spotlightOpen && !editor} zIndex={settingsWindow.zIndex} onFocusWindow={settingsWindow.onFocusWindow} user={user} onUser={setUser} preferences={data.preferences} preferencesSaving={preferencesSaving} hidden={!settingsWindow.visible} onClose={settingsWindow.onClose} onMinimize={settingsWindow.onMinimize} onPreferences={savePreferences} onRegistration={refreshBootstrap} onLogout={logout} /></MacPresence>
     </div>
-    <Dock items={data.dockItems} sites={data.sites} categories={shortcutCategories} tools={data.preferences.dockTools} onToolMenu={(event, tool) => showMenu(event, [{ label: '隐藏', disabled: preferencesSaving || !!document.querySelector('[aria-busy="true"]'), action: () => { void hideDockTool(tool); } }])} canEdit={true} onSiteMenu={(event, s) => showMenu(event, siteMenuItems(s, true))} onCategoryMenu={(event, c) => showMenu(event, categoryMenuItems(c, true))} onOpenCategory={openCategoryLaunchpad} onSettings={() => toggleTool('settings')} onSearch={() => toggleTool('search')} onHome={() => toggleTool('home')} onAdd={() => toggleTool('add')} onReorder={ids => { void perform(() => api.reorder({ kind: 'pins', ids }), 'Dock 顺序已保存'); }} />
-    <MacPresence open={launchpadOpen}><Launchpad categories={data.categories} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} /></MacPresence>
-    <MacPresence open={!!desktopCategory}>{desktopCategory && <Launchpad key={desktopCategory.id} category={desktopCategory} categories={[]} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} savingOrder={savingSort} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} />}</MacPresence>
+    <Dock items={data.dockItems} sites={data.sites} categories={shortcutCategories} tools={data.preferences.dockTools} onToolMenu={(event, tool) => showMenu(event, [{ label: '隐藏', disabled: preferencesSaving || !!document.querySelector('[aria-busy="true"]'), action: () => { void hideDockTool(tool); } }])} canEdit={true} onSiteMenu={(event, s) => showMenu(event, siteMenuItems(s, true))} onCategoryMenu={(event, c) => showMenu(event, categoryMenuItems(c, true))} onOpenCategory={openCategoryLaunchpad} onSettings={() => toggleTool('settings')} onSearch={() => toggleTool('search')} onHome={() => toggleTool('home')} onAdd={() => toggleTool('add')} onReorder={ids => queueSort(snapshot => orderDock(snapshot, ids), () => api.reorder({ kind: 'pins', ids }), 'Dock 顺序已保存')} />
+    <MacPresence open={launchpadOpen}><Launchpad categories={data.categories} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} /></MacPresence>
+    <MacPresence open={!!desktopCategory}>{desktopCategory && <Launchpad key={desktopCategory.id} category={desktopCategory} categories={[]} sites={data.sites} scrollMode={data.preferences.launchpadScrollMode} showDragGrid={data.preferences.desktopDragGrid ?? false} onSiteOrder={saveLaunchpadSiteOrder} onCategory={openCategoryLaunchpad} onSiteMenu={showSiteMenu} onClose={closeCategoryLaunchpad} />}</MacPresence>
     <MacPresence open={spotlightOpen}><Spotlight sites={data.sites} onClose={() => setSpotlightOpen(false)} /></MacPresence>
     {menu && <ContextMenu key={`${menu.x}-${menu.y}-${menu.items.length}`} menu={menu} onClose={closeMenu} restoreFocus={!!desktopCategory || launchpadOpen} />}
     <MacPresence open={!!editor}>{editor && <EditorDialog key={`${editor.kind}-${editor.kind === 'site' ? editor.site?.id ?? editor.categoryId ?? 'new' : editor.category?.id ?? 'new'}`} target={editor} categories={data.categories} onBusyChange={busy => { editorBusy.current = busy; }} onSave={async () => { await refresh(); }} onClose={() => { if (!editorBusy.current) setEditor(null); }} />}</MacPresence>

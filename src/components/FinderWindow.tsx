@@ -33,7 +33,7 @@ export function FinderWindow({ children, onClose, onMinimize, focused, onFocusWi
     return () => window.removeEventListener('keydown', key);
   }, [active, focused, onClose, controller.maximized, controller.toggleMaximize]);
   return <MacWindow controller={controller} data-desktop-window="finder" className="finder-window" aria-label="网站导航" style={{ zIndex }} onPointerDownCapture={onFocusWindow} onFocusCapture={onFocusWindow}
-    titlebarClassName="finder-titlebar" resizeClassName="finder-resize"
+    titlebarClassName="finder-titlebar"
     labels={{ close: '关闭导航窗口', minimize: '最小化导航窗口', maximize: '最大化导航窗口', restore: '还原导航窗口' }}
     titlebarContent={<><span className="finder-window-title">网站导航</span><span aria-hidden="true" className="finder-titlebar-spacer" /></>}>
     {children}

@@ -88,7 +88,7 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   onOpenCategory: (category: Category) => void;
   onMenu: (event: MouseEvent, items: DesktopItem[], remove: () => void) => void;
   onRemove: (items: DesktopItem[]) => Promise<void>;
-  onMove: (items: DesktopItem[], columns: number, rows: number) => Promise<void>;
+  onMove: (items: DesktopItem[], columns: number, rows: number) => void;
   onError: (error: string) => void; onDragStart: () => void;
 }) {
   const area = useRef<HTMLDivElement>(null);
@@ -102,7 +102,6 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   const selectionCleanup = useRef<(() => void) | undefined>(undefined);
   const [drag, setDrag] = useState<{ keys: Set<string>; offset: ReturnType<typeof desktopGroupOffset> }>();
   const dragSession = useRef<DragSession | undefined>(undefined);
-  const [draft, setDraft] = useState<{ items: DesktopItem[]; columns: number; rows: number }>();
   const [busy, setBusy] = useState(false);
   const [searchGeometry, setSearchGeometry] = useDesktopState<SavedSearchGeometry | null>('desktop-search:geometry', null, isSearchGeometry);
   const [searchDrag, setSearchDrag] = useState<SearchGeometry>();
@@ -111,9 +110,9 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   const reserved = useMemo(() => searchConfig.enabled ? searchOccupiedCells(searchPlacement, { columns, cellWidth: size.width / columns }, DESKTOP_CELL_HEIGHT, mobile) : new Set<number>(), [searchConfig.enabled, searchPlacement.x, searchPlacement.y, searchPlacement.width, columns, size.width, mobile]);
   const locked = useRef(false), blockedUntil = useRef(0);
   const visibleItems = useMemo(() => projectDesktopItems(
-    (draft?.items ?? items).filter(item => item.kind === 'site' ? siteById.has(item.id) : categoryById.has(item.id)),
-    draft?.columns ?? (layoutColumns || initialColumns.current), columns, desktopVisibleRows(size.height), reserved, draft?.rows ?? layoutRows,
-  ), [draft, items, siteById, categoryById, layoutColumns, layoutRows, columns, size.height, reserved]);
+    items.filter(item => item.kind === 'site' ? siteById.has(item.id) : categoryById.has(item.id)),
+    layoutColumns || initialColumns.current, columns, desktopVisibleRows(size.height), reserved, layoutRows,
+  ), [items, siteById, categoryById, layoutColumns, layoutRows, columns, size.height, reserved]);
   const grid = desktopGrid(size.width, size.height, visibleItems);
   const dragGrid = useRef(grid);
   const dropOffset = useEventCallback((session: DragSession) => {
@@ -271,7 +270,7 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
   };
   const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 7 } }), useSensor(KeyboardSensor, { coordinateGetter: coordinates, keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Enter'] } }));
   const suppressOpen = () => locked.current || !!drag || Date.now() < blockedUntil.current;
-  async function finish(event: DragEndEvent) {
+  function finish(event: DragEndEvent) {
     blockedUntil.current = Date.now() + 350;
     setDrag(undefined);
     const session = dragSession.current;
@@ -282,10 +281,7 @@ export function DesktopShortcuts({ items, sites, categories, searchConfig, layou
     const next = moveDesktopGroup(session.items, session.keys, offset, session.grid.columns);
     if (next === session.items) return;
     const rows = desktopVisibleRows(session.bounds.height);
-    locked.current = true; setBusy(true); setDraft({ items: next, columns: session.grid.columns, rows });
-    try { await onMove(next, session.grid.columns, rows); }
-    catch (reason) { onError(message(reason)); }
-    finally { setDraft(undefined); setBusy(false); locked.current = false; }
+    onMove(next, session.grid.columns, rows);
   }
   return <div ref={area} className={`desktop-shortcuts${drag?.offset.blocked ? ' is-drop-blocked' : ''}`} role="region" aria-label="桌面快捷方式" aria-busy={busy}
     onPointerDown={startSelection} onContextMenu={event => menu(event)}>

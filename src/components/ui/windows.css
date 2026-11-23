@@ -1,6 +1,17 @@
 /* Pointer gestures belong to the window controller, not browser touch panning. */
 .finder-titlebar, .window-titlebar, .mac-window-resize { touch-action: none; }
-.mac-window-resize { position: absolute; z-index: 5; right: 0; bottom: 0; width: 17px; height: 17px; cursor: nwse-resize; }
+.mac-window-resize { position: absolute; z-index: 5; user-select: none; }
+.mac-window-resize[data-resize-direction="n"], .mac-window-resize[data-resize-direction="s"] { left: 17px; right: 17px; height: 6px; cursor: ns-resize; }
+.mac-window-resize[data-resize-direction="n"] { top: 0; }
+.mac-window-resize[data-resize-direction="s"] { bottom: 0; }
+.mac-window-resize[data-resize-direction="e"], .mac-window-resize[data-resize-direction="w"] { top: 17px; bottom: 17px; width: 6px; cursor: ew-resize; }
+.mac-window-resize[data-resize-direction="e"] { right: 0; }
+.mac-window-resize[data-resize-direction="w"] { left: 0; }
+.mac-window-resize[data-resize-direction="ne"], .mac-window-resize[data-resize-direction="se"], .mac-window-resize[data-resize-direction="sw"], .mac-window-resize[data-resize-direction="nw"] { width: 17px; height: 17px; }
+.mac-window-resize[data-resize-direction="ne"] { top: 0; right: 0; cursor: nesw-resize; }
+.mac-window-resize[data-resize-direction="se"] { bottom: 0; right: 0; cursor: nwse-resize; }
+.mac-window-resize[data-resize-direction="sw"] { bottom: 0; left: 0; cursor: nesw-resize; }
+.mac-window-resize[data-resize-direction="nw"] { top: 0; left: 0; cursor: nwse-resize; }
 @media (max-width: 760px) {
   .mac-window-resize { display: none; }
 }

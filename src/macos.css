@@ -50,7 +50,6 @@
 .theme-light .finder-window-title { color: #535660; }
 .finder-titlebar-spacer, .finder-titlebar .traffic-lights { width: 84px; }
 .finder-titlebar .traffic-lights { gap: 0; }
-.finder-resize { position: absolute; z-index: 5; right: 0; bottom: 0; width: 17px; height: 17px; cursor: nwse-resize; }
 .finder-layout { display: grid; grid-template-columns: 194px minmax(0,1fr); flex: 1; min-height: 0; }
 .finder-layout { grid-template-rows: minmax(0, 1fr); overflow: hidden; }
 .finder-sidebar { min-height: 0; overflow: hidden; }
@@ -418,7 +417,6 @@
   .finder-scroll { padding-inline: 8px; }
   .finder-toolbar { padding-inline: 8px; }
   .finder-filterbar { padding-inline: 8px; }
-  .finder-resize { display: none; }
   .site-more { width: 28px; margin-right: 2px; }
   .site-open { gap: 7px; }
   .settings-body { grid-template-columns: 52px minmax(0,1fr); }

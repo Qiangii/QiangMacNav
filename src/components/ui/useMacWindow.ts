@@ -1,8 +1,9 @@
 import { useContext, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { usePresenceActive } from './MacPresence';
 import { DesktopAccountContext, isRecord, readDesktopCache, writeDesktopCache } from '../../desktopCache';
+import { resizeWindowGeometry, type WindowGeometry, type WindowResizeDirection } from './windowGeometry';
 
-export type WindowGeometry = { position: { x: number; y: number }; size: { width: number; height: number } };
+export type { WindowGeometry } from './windowGeometry';
 export type MacWindowOptions = {
   fit: () => WindowGeometry;
   minSize?: { width: number; height: number };
@@ -58,11 +59,12 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
     (kind === 'close' ? onClose : onMinimize)();
   }
 
-  function startGesture(event: PointerEvent<HTMLDivElement>, resize: boolean) {
+  function startGesture(event: PointerEvent<HTMLDivElement>, resize?: WindowResizeDirection) {
     if (hidden || !active || maximized || window.innerWidth <= 760 || event.button !== 0) return;
     if (!resize && event.target instanceof Element && event.target.closest('button, input, textarea, select, a, [contenteditable="true"], [data-no-drag]')) return;
     event.preventDefault();
     gestureCleanup.current?.();
+    const target = event.currentTarget;
     const { position, size } = geometry;
     const origin = { x: event.clientX, y: event.clientY };
     const pointerId = event.pointerId;
@@ -70,13 +72,7 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
       if (next.pointerId !== pointerId) return;
       const dx = next.clientX - origin.x;
       const dy = next.clientY - origin.y;
-      setGeometry(resize ? {
-        position,
-        size: {
-          width: Math.max(0, Math.min(window.innerWidth - position.x - 10, Math.max(minSize.width, size.width + dx))),
-          height: Math.max(0, Math.min(window.innerHeight - position.y - bottomInset, Math.max(minSize.height, size.height + dy))),
-        },
-      } : {
+      setGeometry(resize ? resizeWindowGeometry({ position, size }, resize, { x: dx, y: dy }, { width: window.innerWidth, height: window.innerHeight }, minSize, bottomInset) : {
         size,
         position: {
           x: Math.max(0, Math.min(Math.max(0, window.innerWidth - size.width), position.x + dx)),
@@ -89,6 +85,8 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
       window.removeEventListener('pointerup', end);
       window.removeEventListener('pointercancel', end);
       window.removeEventListener('blur', stop);
+      target.removeEventListener('lostpointercapture', stop);
+      if (target.hasPointerCapture(pointerId)) target.releasePointerCapture(pointerId);
       gestureCleanup.current = null;
     };
     const end = (next: globalThis.PointerEvent) => { if (next.pointerId === pointerId) stop(); };
@@ -97,13 +95,15 @@ export function useMacWindow({ fit, minSize = { width: 640, height: 300 }, botto
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
     window.addEventListener('blur', stop);
+    target.addEventListener('lostpointercapture', stop);
+    target.setPointerCapture(pointerId);
   }
 
   return {
     ...geometry, maximized,
     style: maximized ? undefined : { left: geometry.position.x, top: geometry.position.y, ...geometry.size },
-    startMove: (event: PointerEvent<HTMLDivElement>) => startGesture(event, false),
-    startResize: (event: PointerEvent<HTMLDivElement>) => startGesture(event, true),
+    startMove: (event: PointerEvent<HTMLDivElement>) => startGesture(event),
+    startResize: (event: PointerEvent<HTMLDivElement>, direction: WindowResizeDirection) => startGesture(event, direction),
     toggleMaximize: () => { gestureCleanup.current?.(); setMaximized(value => !value); },
     close: () => exit('close'),
     minimize: () => exit('minimize'),
