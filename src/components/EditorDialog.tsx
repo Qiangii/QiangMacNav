@@ -10,6 +10,13 @@ import { ImageIcon } from 'lucide-react';
 
 export type EditorTarget = { kind: 'site'; site?: Site; categoryId?: string | null } | { kind: 'category'; category?: Category };
 
+function isRemoteImageURL(value: string) {
+  try {
+    const url = new URL(value.trim());
+    return (url.protocol === 'http:' || url.protocol === 'https:') && !!url.hostname;
+  } catch { return false; }
+}
+
 export function EditorDialog({ target, categories, onSave, onClose, onBusyChange }: {
   target: EditorTarget;
   categories: Category[];
@@ -36,6 +43,7 @@ export function EditorDialog({ target, categories, onSave, onClose, onBusyChange
   });
   const [busy, setBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false), [pickerBusy, setPickerBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
   useEffect(() => {
     const deleted = (event: Event) => { const url = (event as CustomEvent<string>).detail; setLogoUrl(previous => previous === url ? '' : previous); };
     window.addEventListener('harbor-media-deleted', deleted);
@@ -47,9 +55,19 @@ export function EditorDialog({ target, categories, onSave, onClose, onBusyChange
   function close() { finished.current = true; clearDesktopCacheEntry(account, cacheKey); onClose(); }
 
   const notify = useNotify();
+  async function importLogo() {
+    if (busy || importing || !isRemoteImageURL(logoUrl)) return;
+    setImporting(true); onBusyChange(true);
+    try {
+      const item = await api.importMedia(logoUrl.trim());
+      setLogoUrl(item.url);
+      notify('图标已上传');
+    } catch (reason) { notify(message(reason), 'error'); }
+    finally { setImporting(false); onBusyChange(false); }
+  }
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (busy || pickerOpen) return;
+    if (busy || pickerOpen || importing) return;
     setBusy(true); onBusyChange(true);
     try {
       if (target.kind === 'category') {
@@ -72,7 +90,7 @@ export function EditorDialog({ target, categories, onSave, onClose, onBusyChange
   }
 
   const isSite = target.kind === 'site';
-  return <><MacFormDialog onClose={close} busy={busy || pickerBusy} label={isSite ? '编辑网站' : '编辑分类'} title={isSite ? target.site ? '编辑网站' : '添加网站' : target.category ? '编辑分类' : '新建分类'}>
+  return <><MacFormDialog onClose={close} busy={busy || pickerBusy || importing} label={isSite ? '编辑网站' : '编辑分类'} title={isSite ? target.site ? '编辑网站' : '添加网站' : target.category ? '编辑分类' : '新建分类'}>
       <form onSubmit={save} className="editor-form">
         <label>名称<MacInput autoFocus required maxLength={isSite ? 100 : 80} value={name} onChange={e => setName(e.target.value)} placeholder={isSite ? '网站名称' : '分类名称'} /></label>
         {isSite && <>
@@ -85,11 +103,14 @@ export function EditorDialog({ target, categories, onSave, onClose, onBusyChange
           <div className="editor-icon-controls">
             <span className="editor-icon-preview" aria-hidden="true"><MediaPreview url={logoUrl} fallback={<ImageIcon size={17} />} /></span>
             <MacInput id={iconInputId} aria-describedby={`${iconInputId}-hint`} type="text" maxLength={2048} value={logoUrl} onChange={event => setLogoUrl(event.target.value)} placeholder="粘贴图片链接" />
-            <MacButton variant="secondary" disabled={busy} onClick={() => setPickerOpen(true)}>选择图标</MacButton>
+            <div className="editor-icon-actions">
+              <MacButton variant="secondary" disabled={busy || importing || !isRemoteImageURL(logoUrl)} aria-busy={importing} title="读取图标地址中的图片并保存到图标库" onClick={importLogo}>{importing ? '上传中' : '上传'}</MacButton>
+              <MacButton variant="secondary" disabled={busy || importing} onClick={() => setPickerOpen(true)}>选择图标</MacButton>
+            </div>
           </div>
           <p id={`${iconInputId}-hint`} className="editor-icon-hint">{isSite ? '留空时使用网站默认图标' : '留空时使用默认文件夹图标'}</p>
         </div>
-        <div className="dialog-actions"><MacButton variant="secondary" disabled={busy} onClick={close}>取消</MacButton><MacButton type="submit" variant="primary" disabled={busy}>{busy ? '正在保存...' : '保存'}</MacButton></div>
+        <div className="dialog-actions"><MacButton variant="secondary" disabled={busy || importing} onClick={close}>取消</MacButton><MacButton type="submit" variant="primary" disabled={busy || importing}>{busy ? '正在保存...' : '保存'}</MacButton></div>
       </form>
   </MacFormDialog>
     <MacPresence open={pickerOpen}><ImagePickerDialog title="选择图标" value={logoUrl} onClose={() => setPickerOpen(false)} onBusyChange={value => { setPickerBusy(value); onBusyChange(value); }} onSelect={async url => setLogoUrl(url)} /></MacPresence>

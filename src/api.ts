@@ -44,6 +44,7 @@ export const api = {
     const body = new FormData(); body.append('file', file); body.append('kind', kind);
     return request<MediaImage>('/media', 'POST', body);
   },
+  importMedia: (url: string) => request<MediaImage>('/media/import', 'POST', { url }),
   changePassword: (currentPassword: string, newPassword: string) => request('/account/password', 'PUT', { currentPassword, newPassword }),
   revokeOtherSessions: () => request<{ revoked: number }>('/account/sessions', 'DELETE'),
   loginLogs: (admin: boolean, page: number, signal?: AbortSignal) => request<{ items: LoginLog[]; total: number }>(`/${admin ? 'admin' : 'account'}/login-logs?page=${page}`, 'GET', undefined, signal),

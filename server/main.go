@@ -42,6 +42,7 @@ type app struct {
 	passwordWork   chan struct{}
 	updates        *updateService
 	notes          *noteCipher
+	mediaClient    *http.Client
 }
 
 type user struct {
@@ -1291,6 +1292,7 @@ func (a *app) routes(staticDir string) http.Handler {
 			auth.Put("/account/avatar", a.updateAvatar)
 			auth.Get("/media", a.listMedia)
 			auth.Post("/media", a.uploadMedia)
+			auth.Post("/media/import", a.importMedia)
 			auth.Get("/media/{id}", a.getMedia)
 			auth.Delete("/media/{id}", a.deleteMedia)
 			auth.Put("/account/password", a.changePassword)

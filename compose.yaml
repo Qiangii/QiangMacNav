@@ -4,7 +4,7 @@ services:
       context: .
       args:
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
-        APP_VERSION: ${APP_VERSION:-1.1.0}
+        APP_VERSION: ${APP_VERSION:-1.1.1}
     image: ${NAVIGATION_IMAGE:-harbor-navigation:local}
     container_name: harbor-navigation
     restart: unless-stopped

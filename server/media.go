@@ -47,7 +47,7 @@ type mediaItem struct {
 }
 
 func (a *app) uploadMedia(w http.ResponseWriter, r *http.Request) {
-	if !a.allowAttempt("upload:"+currentUser(r).ID, 40) {
+	if !a.allowAttempt("upload:"+currentUser(r).ID, 200) {
 		fail(w, 429, "上传过于频繁，请稍后重试")
 		return
 	}
@@ -105,27 +105,32 @@ func (a *app) uploadMedia(w http.ResponseWriter, r *http.Request) {
 		a.storeMedia(w, r, header.Filename, "video/mp4", kind, width, height, raw)
 		return
 	}
-	if len(raw) > maxMediaBytes {
-		fail(w, 413, "图片不能超过 8 MB")
+	content, mime, width, height, status, message := normalizeImage(raw)
+	if message != "" {
+		fail(w, status, message)
 		return
+	}
+	a.storeMedia(w, r, header.Filename, mime, kind, width, height, content)
+}
+
+func normalizeImage(raw []byte) ([]byte, string, int, int, int, string) {
+	if len(raw) > maxMediaBytes {
+		return nil, "", 0, 0, 413, "图片不能超过 8 MB"
 	}
 	config, format, err := image.DecodeConfig(bytes.NewReader(raw))
 	if err != nil || config.Width < 1 || config.Height < 1 || config.Width > 8192 || config.Height > 8192 || int64(config.Width)*int64(config.Height) > 24000000 {
-		fail(w, 400, "请上传有效的 PNG、JPEG、WebP 或 GIF 图片（不超过 2400 万像素）")
-		return
+		return nil, "", 0, 0, 400, "请上传有效的 PNG、JPEG、WebP 或 GIF 图片（不超过 2400 万像素）"
 	}
 	img, _, err := image.Decode(bytes.NewReader(raw))
 	if err != nil {
-		fail(w, 400, "无法读取图片内容")
-		return
+		return nil, "", 0, 0, 400, "无法读取图片内容"
 	}
 	// Decode and re-encode, stripping scripts, trailing payloads and metadata.
 	var normalized bytes.Buffer
 	mime := "image/png"
 	if format == "gif" {
 		if !validGIFBudget(raw) {
-			fail(w, 400, "动图过大或帧数过多，请缩小后重试")
-			return
+			return nil, "", 0, 0, 400, "动图过大或帧数过多，请缩小后重试"
 		}
 		var animation *gif.GIF
 		animation, err = gif.DecodeAll(bytes.NewReader(raw))
@@ -140,29 +145,32 @@ func (a *app) uploadMedia(w http.ResponseWriter, r *http.Request) {
 		err = png.Encode(&normalized, img)
 	}
 	if err != nil {
-		fail(w, 400, "无法处理图片")
-		return
+		return nil, "", 0, 0, 400, "无法处理图片"
 	}
 	if normalized.Len() > maxMediaBytes {
-		fail(w, 413, "处理后的图片超过 8 MB，请缩小后重试")
-		return
+		return nil, "", 0, 0, 413, "处理后的图片超过 8 MB，请缩小后重试"
 	}
-	a.storeMedia(w, r, header.Filename, mime, kind, config.Width, config.Height, normalized.Bytes())
+	return normalized.Bytes(), mime, config.Width, config.Height, 0, ""
 }
 
 func (a *app) storeMedia(w http.ResponseWriter, r *http.Request, filename, mime, kind string, width, height int, content []byte) {
+	item, err := a.createMedia(currentUser(r).ID, filename, mime, kind, width, height, content)
+	if err != nil {
+		fail(w, 500, "保存图片失败")
+		return
+	}
+	send(w, 201, item)
+}
+
+func (a *app) createMedia(owner, filename, mime, kind string, width, height int, content []byte) (mediaItem, error) {
 	name := []rune(strings.TrimSpace(filepath.Base(strings.ReplaceAll(filename, "\\", "/"))))
 	if len(name) > 120 {
 		name = name[:120]
 	}
 	item := mediaItem{ID: randomID(), Name: string(name), Width: width, Height: height, Size: len(content), Mime: mime}
 	item.URL = "/api/media/" + item.ID
-	_, err := a.db.Exec("INSERT INTO media(id,owner_id,name,mime,kind,width,height,size,content) VALUES(?,?,?,?,?,?,?,?,?)", item.ID, currentUser(r).ID, item.Name, mime, kind, item.Width, item.Height, item.Size, content)
-	if err != nil {
-		fail(w, 500, "保存图片失败")
-		return
-	}
-	send(w, 201, item)
+	_, err := a.db.Exec("INSERT INTO media(id,owner_id,name,mime,kind,width,height,size,content) VALUES(?,?,?,?,?,?,?,?,?)", item.ID, owner, item.Name, mime, kind, item.Width, item.Height, item.Size, content)
+	return item, err
 }
 
 func (a *app) listMedia(w http.ResponseWriter, r *http.Request) {
